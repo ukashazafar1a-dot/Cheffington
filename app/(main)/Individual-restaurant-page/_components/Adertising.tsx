@@ -1,8 +1,8 @@
 
 const Adertising = () => {
     return (
-        <div className="col-span-12 lg:col-span-4 lg:pt-35">
-            <div className="mt-8 bg-[#D9D9D9] h-80 rounded-sm">
+        <div className="xl:w-[30%] lg:pt-32">
+            <div className="bg-[#D9D9D9] h-80 w-full max-sm:w-72 max-sm:h-72 max-w-full rounded-sm">
             </div>
         </div>
 
