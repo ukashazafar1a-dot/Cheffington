@@ -2,9 +2,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* =========================
+   COMPONENTS
+========================= */
 @layer components {
   .input-field {
-    @apply w-full border-b border-gray-400 py-2 outline-none bg-transparent text-[20px] transition-all duration-300 ease-in-out max-sm: !text-[16px];
+    @apply w-full border-b border-gray-400 py-2 outline-none bg-transparent text-[20px] transition-all duration-300 ease-in-out;
   }
 
   .input-field:focus {
@@ -14,50 +17,35 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* =========================
+   ROOT VARIABLES
+========================= */
 :root {
   --bg: #fff1e1;
   --primary: #ff8400;
   --secondary: #000000;
+
   --radius: 6px;
+
   --bg-black: #000000;
   --primary-dark: hsl(34, 100%, 55%);
+
   --font-helvetica: Helvetica, Arial, sans-serif;
 }
 
+/* =========================
+   THEME
+========================= */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg);
+  --color-foreground: var(--secondary);
+
   --font-helvetica: Helvetica, Arial, sans-serif;
   --font-heading: var(--font-helvetica);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
+
   --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
+  --color-secondary: var(--secondary);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -67,6 +55,9 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* =========================
+   LAYOUT
+========================= */
 .page-width {
   max-width: 1160px;
   margin: auto;
@@ -79,76 +70,105 @@
   padding-inline: 20px;
 }
 
+/* =========================
+   BODY
+========================= */
 body {
   background-color: var(--bg);
   font-family: var(--font-helvetica) !important;
 }
 
+/* =========================
+   GLOBALS
+========================= */
 ::selection {
   background-color: var(--primary);
   color: var(--bg);
 }
 
 ::placeholder {
-  font-weight: regular;
   font-size: 20px;
   color: #00000099 !important;
 }
 
+/* =========================
+   AUTOFILL
+========================= */
 input:-internal-autofill-selected {
   background-color: transparent !important;
   background-image: none !important;
   color: inherit !important;
 }
 
+/* =========================
+   INPUTS
+========================= */
 input:not([type="checkbox"]) {
   min-height: 60px;
 }
 
+/* =========================
+   CHECKBOX
+========================= */
 input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
-  background-color: transparent;
-  border: 1px solid #000;
 
   width: 20px;
   height: 20px;
+
+  background-color: transparent;
+  border: 1px solid #000;
+
   cursor: pointer;
   position: relative;
 }
 
 input[type="checkbox"]:checked {
-  border-color: #ff8400;
+  border-color: var(--primary);
 }
 
 input[type="checkbox"]:checked::after {
   content: "✓";
-  color: #ff8400;
+
+  color: var(--primary);
   font-size: 25px;
   font-weight: bold;
+
   position: absolute;
   top: 50%;
   left: 50%;
+
   transform: translate(-50%, -55%);
 }
 
+/* =========================
+   BUTTON
+========================= */
 .button {
   font-family: var(--font-helvetica);
   font-weight: bold;
   font-size: 20px;
+
   letter-spacing: -0.06em;
   text-transform: uppercase;
+
   padding: 16px 50px;
+
+  min-width: 197px;
+  min-height: 69px;
+
   background-color: var(--primary);
   color: var(--bg-black);
+
   border-radius: var(--radius);
-  transition: background-color 0.3s ease;
+
   box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+
   transition: all 400ms ease-in-out;
+
   cursor: pointer;
-  display: block;
-  min-width: 197px;
-  min-height: 69px !important;
+
   display: flex;
   align-items: center;
   justify-content: center;
@@ -163,40 +183,43 @@ input[type="checkbox"]:checked::after {
   color: var(--bg-black);
 }
 
+/* =========================
+   TYPOGRAPHY
+========================= */
 .title {
   font-weight: bold;
   font-size: 100px;
-  letter-spacing: -6%;
   line-height: 100%;
+  letter-spacing: -6%;
 }
 
 .subtitle {
   font-weight: 400;
   font-size: 50px;
-  letter-spacing: -8%;
   line-height: 46px;
+  letter-spacing: -8%;
 }
 
 .body-title {
   font-weight: bold;
   font-size: 20px;
-  letter-spacing: -6%;
   line-height: 21px;
+  letter-spacing: -6%;
   text-transform: uppercase;
 }
 
 .body-subtitle {
   font-weight: bold;
   font-size: 20px;
-  letter-spacing: -6%;
   line-height: 21px;
+  letter-spacing: -6%;
 }
 
 .body-text {
   font-weight: 500;
   font-size: 20px;
-  letter-spacing: -6%;
   line-height: 21px;
+  letter-spacing: -6%;
 }
 
 .text-40 {
@@ -208,10 +231,13 @@ input[type="checkbox"]:checked::after {
 label {
   font-weight: bold;
   font-size: 20px;
-  letter-spacing: -8%;
   line-height: normal;
+  letter-spacing: -8%;
 }
 
+/* =========================
+   TABLET
+========================= */
 @media (max-width: 768px) {
   .title {
     font-size: 46px;
@@ -246,7 +272,13 @@ label {
   }
 }
 
+/* =========================
+   MOBILE
+========================= */
 @media (max-width: 525px) {
+  .input-field {
+    font-size: 16px;
+  }
 
   .page-width,
   .page-width-narrow {
@@ -300,16 +332,3 @@ label {
   }
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-  }
-
-  html {
-    @apply font-helvetica;
-  }
-}
