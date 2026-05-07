@@ -4,7 +4,7 @@
 
 @layer components {
   .input-field {
-    @apply w-full border-b border-gray-400 py-2 outline-none bg-transparent text-[20px] transition-all duration-300 ease-in-out max-sm:!text-[16px];
+    @apply w-full border-b border-gray-400 py-2 outline-none bg-transparent text-[20px] transition-all duration-300 ease-in-out max-sm: !text-[16px];
   }
 
   .input-field:focus {
@@ -23,6 +23,7 @@
   --primary-dark: hsl(34, 100%, 55%);
   --font-helvetica: Helvetica, Arial, sans-serif;
 }
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -71,6 +72,7 @@
   margin: auto;
   padding-inline: 20px;
 }
+
 .page-width-narrow {
   max-width: 957px;
   margin: auto;
@@ -86,11 +88,13 @@ body {
   background-color: var(--primary);
   color: var(--bg);
 }
+
 ::placeholder {
   font-weight: regular;
   font-size: 20px;
   color: #00000099 !important;
 }
+
 input:-internal-autofill-selected {
   background-color: transparent !important;
   background-image: none !important;
@@ -127,6 +131,7 @@ input[type="checkbox"]:checked::after {
   left: 50%;
   transform: translate(-50%, -55%);
 }
+
 .button {
   font-family: var(--font-helvetica);
   font-weight: bold;
@@ -144,11 +149,15 @@ input[type="checkbox"]:checked::after {
   display: block;
   min-width: 197px;
   min-height: 69px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .button:hover {
   background-color: var(--primary-dark);
 }
+
 .button-primary {
   background-color: var(--primary);
   color: var(--bg-black);
@@ -160,6 +169,7 @@ input[type="checkbox"]:checked::after {
   letter-spacing: -6%;
   line-height: 100%;
 }
+
 .subtitle {
   font-weight: 400;
   font-size: 50px;
@@ -188,74 +198,92 @@ input[type="checkbox"]:checked::after {
   letter-spacing: -6%;
   line-height: 21px;
 }
+
 .text-40 {
   font-size: 40px;
   line-height: normal;
   letter-spacing: -8%;
 }
+
 label {
   font-weight: bold;
   font-size: 20px;
   letter-spacing: -8%;
   line-height: normal;
 }
+
 @media (max-width: 768px) {
   .title {
     font-size: 46px;
   }
+
   .subtitle {
     font-size: 36px;
     line-height: 36px;
   }
+
   .body-title {
     font-size: 18px;
     line-height: 18px;
   }
+
   .body-subtitle {
     font-size: 18px;
     line-height: 18px;
   }
+
   .body-text {
     font-size: 18px;
     line-height: 18px;
   }
+
   .text-40 {
     font-size: 30px;
   }
+
   .button {
     min-height: 50px;
   }
 }
 
 @media (max-width: 525px) {
+
   .page-width,
   .page-width-narrow {
     padding-inline: 15px;
   }
+
   .text-40 {
     font-size: 24px;
   }
+
   input:not([type="checkbox"]) {
     min-height: 48px;
   }
+
   label {
     font-size: 18px;
   }
+
   ::placeholder {
     font-size: 16px;
   }
+
   .subtitle {
     font-size: 26px;
     line-height: 36px;
   }
+
   .body-title {
     font-size: 18px;
     line-height: 18px;
   }
+
   .body-subtitle {
     font-size: 16px;
     line-height: 16px;
   }
+
   .body-text {
     font-size: 18px;
     line-height: 18px;
@@ -264,19 +292,23 @@ label {
   input[type="checkbox"]:checked::after {
     font-size: 15px;
   }
+
   .button {
     font-size: 18px;
     min-height: 48px;
     padding: 14px 30px;
   }
 }
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-helvetica;
   }

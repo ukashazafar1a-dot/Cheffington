@@ -9,7 +9,7 @@ const HeroSection = () => {
         <div>
             <section className="bg-black min-h-120">
                 <div className="page-width">
-                    <div className="grid grid-cols-12 gap-6 pt-4">
+                    <div className="flex align-center justify-center gap-6 p-4">
                         <div className="col-span-12 lg:col-span-8 space-y-10">
                             <RestaurantsImages />
                             <RestaurantsDetails />

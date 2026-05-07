@@ -32,7 +32,7 @@ export default function Navbar() {
             <span className="font-bold 2xl:text-6xl text-3xl leading-none max-sm:hidden">
               Cheffington
             </span>
-          </Link>
+          </Link> 
         </div>
 
         {/* Desktop Menu */}
@@ -92,7 +92,7 @@ export default function Navbar() {
                   <a
                     href={item.url}
                     onClick={() => setOpen(false)}
-                    className="text-sm"
+                    className="text-sm w-full"
                   >
                     {item.name}
                   </a>

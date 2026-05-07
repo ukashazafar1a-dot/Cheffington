@@ -111,7 +111,7 @@ const AddListing = () => {
                         </div>
                     </div>
                     {/* Submit Button */}
-                    <div className="md:py-8  py-6 flex justify-center">
+                    <div className="md:py-8 py-6 flex justify-center">
                         <Button title="Post Review" type='submit' />
                     </div>
                 </form>

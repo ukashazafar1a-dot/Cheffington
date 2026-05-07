@@ -5,7 +5,7 @@ const HowItWork = () => {
         {
             number: 1,
             text: "Create a profile.",
-            link: true,
+            link: "/join-2-create-profile",
         },
         {
             number: 2,
