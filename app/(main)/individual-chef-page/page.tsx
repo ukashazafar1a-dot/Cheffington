@@ -91,6 +91,8 @@ export default function ChefProfile() {
             <div className="w-full h-[320px] md:h-[447px] rounded overflow-hidden border">
               <Map lat={30.2672} lng={-97.7431} name="Chef Location" />
             </div>
+             
+            
 
             {/* INFO */}
             <div className="bg-[#FF8C00] text-center p-4 rounded text-black font-bold text-sm">

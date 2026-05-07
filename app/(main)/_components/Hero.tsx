@@ -1,4 +1,5 @@
 import Button from "@/components/Button";
+import Link from "next/link";
 import Image from "next/image";
 
 const Hero = () => {
@@ -44,8 +45,9 @@ const Hero = () => {
                 className="bg-transparent border-b focus:border-black outline-none pb-1"
               />
             </div>
-
-            <Button title="Let's Eat" />
+               <Link href="/search-results">
+                <Button title="Let's Eat" />
+              </Link>
           </div>
         </div>
       </div>
