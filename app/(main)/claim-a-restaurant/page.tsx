@@ -182,7 +182,7 @@ export default function RestaurantSearch() {
             {showDropdown && (
               <div
                 ref={dropdownRef}
-                className="absolute left-0 right-0 top-full mt-1  border-2 border-black rounded-xl shadow-lg z-20 max-h-80 overflow-y-auto"
+                className="left-0 right-0 top-full mt-1  border-3 border-black rounded-xl shadow-lg z-20 overflow-y-auto"
               >
                 {/* Add new */}
                 {searchInput.trim() && (

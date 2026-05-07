@@ -14,10 +14,11 @@ export default function Navbar() {
     { name: "ADVERTISE", url: "advertising" },
   ];
   const [open, setOpen] = useState(false);
-  // console.log(sitedata);
+
   return (
     <div className="relative">
       <nav className="sticky top-0 z-50 w-full lg:px-8 px-4 flex items-center lg:py-4 py-2 body-subtitle justify-between">
+        
         <div className="flex items-center gap-1">
           <Link href={"/"} className="flex items-center gap-1">
             <Image
@@ -34,7 +35,7 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Desktop Menu (CENTER) */}
+        {/* Desktop Menu */}
         <ul className="hidden lg:flex items-center xl:gap-10 gap-6">
           {navLinks.map((item, index) => (
             <li key={index}>
@@ -52,6 +53,7 @@ export default function Navbar() {
             </Link>
           </li>
         </ul>
+
         {/* Mobile Button */}
         <button
           onClick={() => setOpen(!open)}
@@ -59,7 +61,6 @@ export default function Navbar() {
           className="lg:hidden ml-auto active:scale-90 transition"
         >
           {open ? (
-            // ❌ CLOSE ICON (X)
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
               <path
                 d="M6 6L18 18M18 6L6 18"
@@ -69,7 +70,6 @@ export default function Navbar() {
               />
             </svg>
           ) : (
-            // ☰ MENU 
             <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
               <path
                 d="M3 7h24M3 14h24M3 21h24"
@@ -83,17 +83,25 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {open && (
-          <div className="absolute top-[100px] left-0 w-full z-50 bg-[var(--bg)] p-6 lg:hidden shadow">
+          <div className="absolute top-[100px] left-0 w-full bg-[var(--bg)] p-6 lg:hidden shadow">
             <ul className="flex flex-col space-y-6 text-lg">
+              
+              
               {navLinks.map((item, index) => (
                 <li key={index}>
-                  <a href={item.url} className="text-sm">
+                  <a
+                    href={item.url}
+                    onClick={() => setOpen(false)}
+                    className="text-sm"
+                  >
                     {item.name}
                   </a>
                 </li>
               ))}
+
+        
               <li>
-                <Link href={"/sign-in"}>
+                <Link href={"/sign-in"} onClick={() => setOpen(false)}>
                   <Image
                     src="/Layer.png"
                     alt="Profile"
