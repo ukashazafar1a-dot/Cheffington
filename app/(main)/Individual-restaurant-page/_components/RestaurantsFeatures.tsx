@@ -9,15 +9,15 @@ const RestaurantsFeatures = () => {
         ["Pet-friendly"],
     ];
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-[14px]">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-6 text-sm ">
             {features.map((row, idx) => (
                 <React.Fragment key={idx}>
                     {row.map((item) => (
-                        <div key={item} className="flex items-start gap-3">
-                            <span className="text-2xl leading-none font-bold mt-[-2px]">
+                        <div key={item} className="flex  gap-3 items-center justify-start">
+                            <span className="text-2xl leading-none font-bold">
                                 •
                             </span>
-                            <span className="text-lg font-bold text-gray-900 leading-tight">
+                            <span className="text-sm font-bold tracking-[2%]">
                                 {item}
                             </span>
                         </div>

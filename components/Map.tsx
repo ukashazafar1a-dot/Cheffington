@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
 
-// ✅ Dynamic imports (react-leaflet)
 const MapContainer = dynamic(() => import('react-leaflet').then(m => m.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then(m => m.TileLayer), { ssr: false });
 const Marker = dynamic(() => import('react-leaflet').then(m => m.Marker), { ssr: false });
@@ -21,7 +20,7 @@ export default function Map({ lat, lng, name }: Props) {
 
   useEffect(() => {
     import('leaflet').then((L) => {
-    
+
       delete (L.Icon.Default.prototype as any)._getIconUrl;
 
       const customIcon = new L.Icon({
@@ -39,12 +38,12 @@ export default function Map({ lat, lng, name }: Props) {
   if (!icon) return null;
 
   return (
-    <div className="w-[385px] h-[447px] rounded overflow-hidden border border-gray-900">
+    <div className=" w-full h-full rounded overflow-hidden border border-gray-900">
       <MapContainer
         center={[lat, lng]}
         zoom={13}
         scrollWheelZoom={false}
-        className="w-full h-full"
+        className="w-full h-full min-h-60"
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
