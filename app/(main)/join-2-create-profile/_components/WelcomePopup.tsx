@@ -33,27 +33,18 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({
     }, [onClose, autoHideDelay]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm animate-in fade-in duration-500">
-            <div className="relative bg-white rounded-2xl max-w-5xl w-full mx-4 p-8 md:p-12 animate-in zoom-in duration-300">
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 cursor-pointer text-gray-500 hover:text-black transition-colors"
-                    aria-label="Close popup"
-                >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+        <div onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm animate-in fade-in duration-500" aria-label="Close popup">
+            <div className="relative bg-white rounded-2xl max-w-3xl w-full mx-4 p-4 md:p-12 animate-in zoom-in duration-300">
                 <div className="text-center">
-                    <h1 className="title font-black tracking-tighter text-black mb-8">
+                    <h1 className="md:text-5xl text-4xl font-black tracking-tighter text-black md:mb-8 mb-4">
                         {title}
                     </h1>
 
-                    <p className="subtitle md:text-4xl font-bold tracking-tight text-black mb-4">
+                    <p className="text-2xl md:text-3xl tracking-[-8%] text-black mb-4">
                         {subtitle}
                     </p>
 
-                    <p className="text-sm md:text-base font-medium text-black/70 mb-16">
+                    <p className="text-sm md:text-base font-medium text-black/70 md:mb-16 mb-8">
                         No email?{" "}
                         <button
                             onClick={onContactClick || onClose}
