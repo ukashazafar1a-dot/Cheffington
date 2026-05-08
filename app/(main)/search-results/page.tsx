@@ -22,85 +22,131 @@ const restaurants = [
 
 const page = () => {
   return (
-    <section>
-      <div className="page-width">
-        <div className="text-center mb-10 sm:mb-14 px-4">
+    <section className="py-6 md:py-10">
+      <div className="page-width px-4 sm:px-6 lg:px-8">
+
+        {/* Heading */}
+        <div className="text-center mb-10 sm:mb-14">
           <p className="subtitle text-sm sm:text-base md:text-lg leading-relaxed">
-            Results for <span className="text-[#FF8400]">Type of Food</span> in{" "}
+            Results for{" "}
+            <span className="text-[#FF8400]">Type of Food</span> in{" "}
             <span className="text-[#FF8400]">Town</span>.
           </p>
         </div>
-        {/* Search Bar / Filter Section */}
-        <div className="bg-transparent border-black border-3 px-4 py-5 rounded-[9px]">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        {/* Search / Filter Section */}
+        <div className="bg-transparent border-2 border-black rounded-[9px] p-4 sm:p-5 md:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+
+            {/* Cuisine */}
             <div className="flex flex-col space-y-2">
-              <label className="uppercase text-xl">Cuisine</label>
+              <label className="uppercase text-base sm:text-lg md:text-xl">
+                Cuisine
+              </label>
+
               <input
                 type="text"
-                className="bg-transparent border-b focus:border-black outline-none pb-1"
+                className="bg-transparent border-b border-black outline-none pb-2 text-sm sm:text-base w-full"
               />
             </div>
 
+            {/* Location */}
             <div className="flex flex-col space-y-2">
-              <label className="uppercase text-xl">Location</label>
+              <label className="uppercase text-base sm:text-lg md:text-xl">
+                Location
+              </label>
+
               <input
                 type="text"
-                className="bg-transparent border-b focus:border-black outline-none pb-1"
+                className="bg-transparent border-b border-black outline-none pb-2 text-sm sm:text-base w-full"
               />
             </div>
 
+            {/* Chef */}
             <div className="flex flex-col space-y-2">
-              <label className="uppercase text-xl">Chef</label>
+              <label className="uppercase text-base sm:text-lg md:text-xl">
+                Chef
+              </label>
+
               <input
                 type="text"
-                className="bg-transparent border-b focus:border-black outline-none pb-1"
+                className="bg-transparent border-b border-black outline-none pb-2 text-sm sm:text-base w-full"
               />
             </div>
           </div>
         </div>
-        <div className="flex flex-col lg:flex-row gap-6">
+
+        {/* Main Layout */}
+        <div className="flex flex-col xl:flex-row gap-6 mt-6">
+
           {/* Left Side */}
-          <div className="flex-1 max-w-full lg:max-w-2xl">
+          <div className="flex-1 w-full">
+
             {/* Buttons */}
-            <div className="flex  gap-3 my-4 sm:flex-row">
-              <Button title="Sort by" />
-              <Button title="Near me" />
-              <Button title="More filters" />
+            <div className="flex flex-col items-center md:flex-row md:items-start gap-2 sm:gap-3 my-4">
+              <div className="scale-90 sm:scale-100 origin-left">
+                <Button title="Sort by" />
+              </div>
+
+              <div className="scale-90 sm:scale-100 origin-left">
+                <Button title="Near me" />
+              </div>
+
+              <div className="scale-90 sm:scale-100 origin-left">
+                <Button title="More filters" />
+              </div>
             </div>
 
             {/* Sponsored Results */}
             <div className="mb-8">
+
               <h2 className="text-lg md:text-xl font-bold flex items-center gap-2 my-6">
                 SPONSORED RESULTS
               </h2>
 
+              {/* Restaurant Cards */}
               <div className="space-y-6">
                 {restaurants.map((restaurant) => (
-                  <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                  <RestaurantCard
+                    key={restaurant.id}
+                    restaurant={restaurant}
+                  />
                 ))}
               </div>
 
-              <div className="border-2 border-black rounded-3xl p-4 md:p-8 mt-6">
+              {/* More Results */}
+              <div className="border-2 border-black rounded-3xl p-4 md:p-8 mt-6 space-y-6">
                 {restaurants.map((restaurant) => (
-                  <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                  <RestaurantCard
+                    key={restaurant.id}
+                    restaurant={restaurant}
+                  />
                 ))}
 
                 {restaurants.map((restaurant) => (
-                  <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                  <RestaurantCard
+                    key={restaurant.id}
+                    restaurant={restaurant}
+                  />
                 ))}
               </div>
             </div>
           </div>
 
           {/* Right Side */}
-          <div className="w-full lg:w-[420px] mt-4 lg:mt-6 mx-0 lg:mx-10">
+          <div className="w-full xl:w-[420px] flex-shrink-0">
+
             {/* Map */}
-            <div className="bg-amber-900 h-[300px] sm:h-[400px] lg:h-[447px] w-full rounded overflow-hidden border">
-              <Map lat={30.2672} lng={-97.7431} name="Chef Location" />
+            <div className="bg-amber-900 h-[280px] sm:h-[350px] md:h-[400px] xl:h-[447px] w-full rounded overflow-hidden border">
+              <Map
+                lat={30.2672}
+                lng={-97.7431}
+                name="Chef Location"
+              />
             </div>
 
             {/* Extra Box */}
-            <div className="w-full h-[300px] sm:h-[400px] lg:h-[447px] rounded overflow-hidden bg-gray-200 my-5"></div>
+            <div className="w-full h-[280px] sm:h-[350px] md:h-[400px] xl:h-[447px] rounded overflow-hidden bg-gray-200 mt-5"></div>
           </div>
         </div>
       </div>
