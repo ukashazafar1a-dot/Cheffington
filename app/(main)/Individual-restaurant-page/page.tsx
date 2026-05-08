@@ -7,7 +7,7 @@ import RestaurantsFeatures from "./_components/RestaurantsFeatures";
 import ChefReviewForRestaurants from "./_components/ChefReviewForRestaurants";
 import Adertising from "./_components/Adertising";
 
-const RestaurantProfile = () => {
+const page = () => {
 
   return (
     <div className="">
@@ -26,4 +26,4 @@ const RestaurantProfile = () => {
   );
 };
 
-export default RestaurantProfile;
+export default page;

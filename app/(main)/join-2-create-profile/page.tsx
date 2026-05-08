@@ -1,5 +1,5 @@
-'use client'
-import JoinToCreateProfileForm from './_components/JoinToCreateProfileForm';
+import JoinToCreateProfileForm from "./_components/JoinToCreateProfileForm";
+
 
 const CreateProfileForm = () => {
 
