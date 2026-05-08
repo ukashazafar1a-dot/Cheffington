@@ -24,8 +24,8 @@ const page = () => {
   return (
     <section>
       <div className="page-width">
-        <div className="text-center mb-14">
-          <p className="subtitle">
+        <div className="text-center mb-10 sm:mb-14 px-4">
+          <p className="subtitle text-sm sm:text-base md:text-lg leading-relaxed">
             Results for <span className="text-[#FF8400]">Type of Food</span> in{" "}
             <span className="text-[#FF8400]">Town</span>.
           </p>
@@ -58,45 +58,49 @@ const page = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-col md:flex-row">
-          <div className="flex-1 max-w-2xl">
-            <div className="flex flex-col md:flex-row gap-3 my-4">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left Side */}
+          <div className="flex-1 max-w-full lg:max-w-2xl">
+            {/* Buttons */}
+            <div className="flex  gap-3 my-4 sm:flex-row">
               <Button title="Sort by" />
               <Button title="Near me" />
               <Button title="More filters" />
             </div>
+
+            {/* Sponsored Results */}
             <div className="mb-8">
-              <h2 className="text-lg font-bold flex items-center gap-2 my-6">
+              <h2 className="text-lg md:text-xl font-bold flex items-center gap-2 my-6">
                 SPONSORED RESULTS
               </h2>
-              <div className="space-y-3 md:space-y-6">
+
+              <div className="space-y-6">
                 {restaurants.map((restaurant) => (
                   <RestaurantCard key={restaurant.id} restaurant={restaurant} />
                 ))}
               </div>
-              <div className="border-2 border-black rounded-3xl p-4 md:p-8">
+
+              <div className="border-2 border-black rounded-3xl p-4 md:p-8 mt-6">
                 {restaurants.map((restaurant) => (
                   <RestaurantCard key={restaurant.id} restaurant={restaurant} />
                 ))}
+
                 {restaurants.map((restaurant) => (
                   <RestaurantCard key={restaurant.id} restaurant={restaurant} />
                 ))}
               </div>
             </div>
           </div>
-          <div className="mt-6 mx-10">
-            <div className="w-full h-[320px] md:h-[447px] rounded overflow-hidden border">
+
+          {/* Right Side */}
+          <div className="w-full lg:w-[420px] mt-4 lg:mt-6 mx-0 lg:mx-10">
+            {/* Map */}
+            <div className="bg-amber-900 h-[300px] sm:h-[400px] lg:h-[447px] w-full rounded overflow-hidden border">
               <Map lat={30.2672} lng={-97.7431} name="Chef Location" />
             </div>
-             <div className="w-full h-[320px] md:h-[447px] rounded overflow-hidden bg-gray-200 my-5">
 
-             </div>
-             <div className="w-full h-[320px] md:h-[447px] rounded overflow-hidden bg-gray-200 my-5">
-
-             </div>
-             <div className="w-full h-[320px] md:h-[447px] rounded overflow-hidden bg-gray-200 my-5">
-
-             </div>
+            {/* Extra Box */}
+            <div className="w-full h-[300px] sm:h-[400px] lg:h-[447px] rounded overflow-hidden bg-gray-200 my-5"></div>
           </div>
         </div>
       </div>
