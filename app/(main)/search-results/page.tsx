@@ -1,7 +1,7 @@
 import Button from "@/components/Button";
 import Map from "@/components/Map";
-import React from "react";
 import RestaurantCard from "./_components/restaurant-card";
+import SearchButton from "./_components/SearchButton";
 
 const restaurants = [
   {
@@ -22,8 +22,8 @@ const restaurants = [
 
 const page = () => {
   return (
-    <section className="py-6 md:py-10">
-      <div className="page-width px-4 sm:px-6 lg:px-8">
+    <section className="py-6 md:py-14">
+      <div className="page-width">
 
         {/* Heading */}
         <div className="text-center mb-10 sm:mb-14">
@@ -80,30 +80,18 @@ const page = () => {
         <div className="flex flex-col xl:flex-row gap-6 mt-6">
 
           {/* Left Side */}
-          <div className="flex-1 w-full">
+          <div className="basis-[70%]">
 
             {/* Buttons */}
             <div className="flex flex-col items-center md:flex-row md:items-start gap-2 sm:gap-3 my-4">
-              <div className="scale-90 sm:scale-100 origin-left">
-                <Button title="Sort by" />
-              </div>
-
-              <div className="scale-90 sm:scale-100 origin-left">
-                <Button title="Near me" />
-              </div>
-
-              <div className="scale-90 sm:scale-100 origin-left">
-                <Button title="More filters" />
-              </div>
+              <SearchButton />
             </div>
 
             {/* Sponsored Results */}
             <div className="mb-8">
-
               <h2 className="text-lg md:text-xl font-bold flex items-center gap-2 my-6">
                 SPONSORED RESULTS
               </h2>
-
               {/* Restaurant Cards */}
               <div className="space-y-6">
                 {restaurants.map((restaurant) => (
@@ -113,7 +101,6 @@ const page = () => {
                   />
                 ))}
               </div>
-
               {/* More Results */}
               <div className="border-2 border-black rounded-3xl p-4 md:p-8 mt-6 space-y-6">
                 {restaurants.map((restaurant) => (
@@ -122,7 +109,6 @@ const page = () => {
                     restaurant={restaurant}
                   />
                 ))}
-
                 {restaurants.map((restaurant) => (
                   <RestaurantCard
                     key={restaurant.id}
@@ -132,21 +118,18 @@ const page = () => {
               </div>
             </div>
           </div>
-
           {/* Right Side */}
-          <div className="w-full xl:w-[420px] flex-shrink-0">
-
+          <div className="basis-[30%]">
             {/* Map */}
-            <div className="bg-amber-900 h-[280px] sm:h-[350px] md:h-[400px] xl:h-[447px] w-full rounded overflow-hidden border">
+            <div className="bg-amber-900  h-70 sm:h-87.5 md:h-100 xl:h-11.75 w-full rounded overflow-hidden border">
               <Map
                 lat={30.2672}
                 lng={-97.7431}
                 name="Chef Location"
               />
             </div>
-
             {/* Extra Box */}
-            <div className="w-full h-[280px] sm:h-[350px] md:h-[400px] xl:h-[447px] rounded overflow-hidden bg-gray-200 mt-5"></div>
+            <div className="w-full h-70 sm:h-87.5 md:h-100 xl:h-111.75 rounded overflow-hidden bg-gray-200 mt-5"></div>
           </div>
         </div>
       </div>

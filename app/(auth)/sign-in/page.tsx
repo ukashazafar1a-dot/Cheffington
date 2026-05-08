@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 export default function SignInPage() {
@@ -65,25 +66,19 @@ export default function SignInPage() {
           </div>
         </form>
 
-        {/* Brand and Mascot Section */}
-        <div className="relative mt-20 flex justify-center">
-          <h2 className="body-subtitle">
-            Cheffington
-          </h2>
 
-          {/* Mascot Placeholder */}
-          <div className="absolute -right-4 -bottom-4 md:-right-20">
-            {/* Replace src with your chicken mascot image */}
-            <img
-              src="/signlogo.png"
-              alt="Cheffington Mascot"
-              className="w-32 h-32 object-contain"
+      </div>
 
-            />
-
-          </div>
-        </div>
+      <div className=" flex items-center justify-end w-full max-w-5xl">
+        <Image src="/signlogo.png"
+          alt="Cheffington Mascot" className=" object-contain object-center lg:-mt-20 max-lg:w-25 max=lg:w-25 " width={200} height={200} />
+      </div>
+      <div>
+        <h2 className="body-subtitle xl:text-6xl! text-4xl! font-bold! xl:pb-11 pb-6">
+          Cheffington
+        </h2>
       </div>
     </div>
+
   );
 }
