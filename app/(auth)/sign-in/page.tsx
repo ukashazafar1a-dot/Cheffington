@@ -71,7 +71,7 @@ export default function SignInPage() {
             Cheffington
           </h2>
 
-          {/* Mascot Placeholder */}
+       
           <div className="absolute -right-4 -bottom-4 md:-right-20">
             {/* Replace src with your chicken mascot image */}
             <img

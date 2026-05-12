@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { Info } from "lucide-react";
 
 interface RestaurantCardProps {
@@ -36,9 +36,11 @@ export default function RestaurantCard({
           </p>
 
           {/* Reviews Badge */}
+          <Link href='/Individual-restaurant-page'>
           <button className="button text-black font-bold py-2 px-4 rounded-lg inline-block mb-4 text-xs sm:text-sm md:text-base">
             {restaurant.reviews} CHEF REVIEWS
           </button>
+          </Link>
 
           {/* Address */}
           <p className="text-sm leading-relaxed break-words">

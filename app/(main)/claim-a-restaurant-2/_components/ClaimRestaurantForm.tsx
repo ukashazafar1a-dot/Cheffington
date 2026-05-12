@@ -1,5 +1,5 @@
 import Button from '@/components/Button'
-
+import Link from 'next/link'
 const ClaimRestaurantForm = () => {
     return (
         <div className='page-width-narrow max-sm:px-0!'>
@@ -18,9 +18,11 @@ const ClaimRestaurantForm = () => {
                         <span className="md:text-[20px] text-[16px] tracking-[-8%] font-medium">Takes Reservations</span>
                     </label>
                 </div>
+                <Link href="/claim-a-restaurant-3">
                 <Button className='w-full!' title='Send'  />
+                </Link>
                 <div className='flex items-center justify-between mt-5.5 gap-1 gap-y-4 flex-wrap'>
-                    <div className='body-text'>Not a member?  <a href='/join-2-creat-profile' className='underline underline-offset-2  '>Sign up here. </a></div>
+                    <div className='body-text'>Not a member?  <a href='/join-2-create-profile' className='underline underline-offset-2  '>Sign up here. </a></div>
                     <a href='' className='underline underline-offset-2 body-text'>Forgot password?</a>
 
                 </div>
