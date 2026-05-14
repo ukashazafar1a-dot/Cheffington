@@ -1,208 +1,416 @@
 // components/JoinToCreateProfileForm.tsx
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useState } from "react";
+import axios from "axios";
+import Link from "next/link";
 
-import Button from '@/components/Button'
-import WelcomePopup from './WelcomePopup'
+import Button from "@/components/Button";
+import WelcomePopup from "./WelcomePopup";
+import toast from "react-hot-toast";
+import { Eye, EyeOff } from "lucide-react";
+
+// ✅ initial form
+const initialForm = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  password: "",
+  currentRestaurant: "",
+  website: "",
+  jobTitle: "",
+  addressLine1: "",
+  addressLine2: "",
+  city: "",
+  state: "",
+  zipCode: "",
+  country: "",
+  professionalEmail: "",
+  professionalProof: "",
+  printFirstName: "",
+  printLastName: "",
+  declarationAccepted: false,
+  termsAccepted: false,
+};
 
 const JoinToCreateProfileForm = () => {
-    const [showPopup, setShowPopup] = useState(false)
+  const [showPopup, setShowPopup] = useState(false);
+  const [loading, setLoading] = useState(false);
+ const [showPassword, setShowPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
-        setShowPopup(true) // Show popup after submission
+  // ✅ load from localStorage OR initial
+  const [formData, setFormData] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("chefForm");
+      return saved ? JSON.parse(saved) : initialForm;
     }
+    return initialForm;
+  });
 
-    const handleClosePopup = () => {
-        setShowPopup(false)
-        // Optional: Redirect or perform other actions after closing
-        // router.push('/dashboard')
+  // ✅ handle input change + save to localStorage
+  const handleChange = (e: any) => {
+    const { name, value, type, checked } = e.target;
+
+    const updated = {
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    };
+
+    setFormData(updated);
+
+    localStorage.setItem("chefForm", JSON.stringify(updated));
+  };
+
+  // ✅ submit form
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+
+      const res = await axios.post(
+        "http://localhost:5000/api/chef-applications",
+        formData,
+      );
+
+      console.log(res.data);
+
+      toast.success("Profile created successfully");
+      setShowPopup(true);
+
+      // ✅ reset form after success
+      setFormData(initialForm);
+      localStorage.removeItem("chefForm");
+    } catch (err: any) {
+      console.log(err.response?.data || err.message);
+      toast.error(err.response?.data?.message || "Error submitting form");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const handleContactClick = () => {
-        // Handle contact click - open contact form, modal, or navigate
-        console.log('Contact clicked')
-        // Example: Open a contact modal or redirect
-        // router.push('/contact')
-    }
+  const handleClosePopup = () => setShowPopup(false);
 
-    return (
-        <>
-            <section className="md:pb-44 md:pt-20 py-10">
-                <div className="page-width w-full">
-                    {/* Title */}
-                    <div className='mb-12'>
-                        <h1 className="title text-center mb-1.5">
-                            Be a <span className="text-[#FF8400]">Cheffington</span>
-                        </h1>
-                        <h2 className="subtitle text-center mb-8 ">
-                            Create Your Profile
-                        </h2>
-                    </div>
+  const handleContactClick = () => {
+    console.log("Contact clicked");
+  };
 
-                    <form
-                        onSubmit={handleSubmit}
-                        className="border-3 rounded-[9px] border-black md:px-10! md:py-12! py-8! px-4! page-width-narrow"
-                    >
-                        {/* Full Name */}
-                        <div className="mb-10">
-                            <label className="block mb-2 text-lg font-medium!">Full Name</label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <input type="text" placeholder="First" className="input-field" />
-                                <input type="text" placeholder="Last" className="input-field" />
-                            </div>
-                        </div>
+  return (
+    <>
+      <section className="md:pb-44 md:pt-20 py-10">
+        <div className="page-width w-full">
+          <div className="mb-12">
+            <h1 className="title text-center mb-1.5">
+              Be a <span className="text-[#FF8400]">Cheffington</span>
+            </h1>
+            <h2 className="subtitle text-center mb-8 ">Create Your Profile</h2>
+          </div>
 
-                        {/* Email & Phone */}
-                        <div className="mb-10">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block mb-2 text-lg font-medium!">Email</label>
-                                    <input type="email" placeholder="" className="input-field" />
-                                </div>
-                                <div>
-                                    <label className="block mb-2 text-lg font-medium!">Phone</label>
-                                    <input type="tel" placeholder="" className="input-field" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Onsite Password & Verify */}
-                        <div className="mb-10">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block mb-2 text-lg font-medium!">Create Password</label>
-                                    <input type="password" className="input-field" />
-                                </div>
-                                <div>
-                                    <label className="block mb-2 text-lg font-medium!">Verify Password</label>
-                                    <input type="password" placeholder="" className="input-field" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Current Restaurant & Website */}
-                        <div className="mb-10">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block mb-2 text-lg font-medium!">Current Restaurant</label>
-                                    <input type="text" placeholder="" className="input-field" />
-                                </div>
-                                <div>
-                                    <label className="block mb-2 text-lg font-medium!">Website</label>
-                                    <input type="url" placeholder="" className="input-field" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Job Title */}
-                        <div className="mb-10">
-                            <label className="block mb-2 text-lg font-medium!">Job Title</label>
-                            <input type="text" placeholder="" className="input-field" />
-                        </div>
-
-                        {/* Restaurant Address */}
-                        <div className="mb-10">
-                            <label className="block mb-2 text-lg font-medium!">Restaurant Address</label>
-                            <div className="space-y-4">
-                                <input type="text" placeholder="Address Line 1" className="input-field" />
-                                <input type="text" placeholder="Address Line 2" className="input-field" />
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input type="text" placeholder="City" className="input-field" />
-                                    <input type="text" placeholder="State" className="input-field" />
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input type="text" placeholder="Zip Code" className="input-field" />
-                                    <select className="input-field">
-                                        <option value="">Select Country</option>
-                                        <option value="US">United States</option>
-                                        <option value="CA">Canada</option>
-                                        <option value="UK">United Kingdom</option>
-                                        <option value="AU">Australia</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Qualification Section */}
-                        <div className="mb-10">
-                            <p className="md:text-[20px] text-[18px] tracking-[-8%] leading-normal mb-4">
-                                To qualify as a Cheffington, you must enter a valid restaurant email (ex. may be submitted from any of our global locations).
-                            </p>
-                            <div className="mb-4">
-                                <input type="email" placeholder="Professional email" className="input-field" />
-                            </div>
-                        </div>
-
-                        <div className='mb-10'>
-                            <p className="md:text-[20px] text-[18px] tracking-[-8%] leading-normal mb-4">Phone optional — restaurant may take up to part of employment</p>
-
-                            {/* File Upload with note */}
-                            <label className="block border border-dashed border-black/50 md:py-20 md:px-12 px-4 py-10 text-center cursor-pointer bg-transparent rounded-lg">
-                                <input type="file" className="hidden" />
-                                <p className="md:text-[20px] text-[18px] font-normal text-black/50 max-sm:text-[16px]">
-                                    Drag & Drop Files,{" "}
-                                    <span className="underline text-black/50">Choose Files to Upload</span>
-                                </p>
-                            </label>
-                            <p className="md:text-[20px] text-[18px] tracking-[-8%] leading-normal mt-2 mb-4 ">Must be dated in the last six months</p>
-                        </div>
-
-                        {/* Declaration */}
-                        <div className="mb-10">
-                            <div className="text-[20px] leading-normal tracking-[-8%] mb-2 text-lg font-bold">Declaration</div>
-                            <label className="flex items-center md:space-x-3 space-x-2 cursor-pointer group">
-                                <input type="checkbox" className="md:min-w-10 md:min-h-10 min-w-5 min-h-5 border border-black bg-transparent rounded-none checked:border-black cursor-pointer accent-color" />
-                                <span className="md:text-[20px] text-[16px] tracking-[-8%] font-medium">
-                                    Information submitted without above is consent to the best of my knowledge.
-                                </span>
-                            </label>
-                        </div>
-
-                        {/* Signature */}
-                        <div className="mb-10">
-                            <label className="block mb-2 text-lg font-medium">Signature</label>
-                            <div className="border border-black h-36 bg-transparent" />
-                        </div>
-
-                        {/* Terms Checkbox */}
-                        <div className="mb-10">
-                            <label className="flex items-center md:space-x-3 space-x-2 cursor-pointer group">
-                                <input type="checkbox" className="md:min-w-10 md:min-h-10 min-w-5 min-h-5 border border-black bg-transparent rounded-none checked:border-black cursor-pointer accent-color" />
-                                <span className="md:text-[20px] text-[16px] tracking-[-8%] font-medium ">
-                                    I have read and accept the <span className='underline'><Link href="/terms">terms and agreement</Link>.</span>
-                                </span>
-                            </label>
-                        </div>
-
-                        {/* Part Name */}
-                        <div className="mb-8">
-                            <label className="block mb-2 text-lg font-medium!">Print Name</label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <input type="text" placeholder="First" className="input-field" />
-                                <input type="text" placeholder="Last" className="input-field" />
-                            </div>
-                        </div>
-
-                        {/* Submit Button */}
-                        <div className="md:py-8 py-6 flex justify-center">
-                            <Button type='submit' title='CREATE PROFILE' />
-                        </div>
-                    </form>
-                </div>
-            </section>
-
-            {/* Popup */}
-            {showPopup && (
-                <WelcomePopup
-                    onClose={handleClosePopup}
-                    onContactClick={handleContactClick}
+          <form
+            onSubmit={handleSubmit}
+            className="border-3 rounded-[9px] border-black md:px-10! md:py-12! py-8! px-4! page-width-narrow"
+          >
+            {/* Full Name */}
+            <div className="mb-10">
+              <label className="block mb-2 text-lg font-medium!">
+                Full Name
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <input
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  placeholder="First"
+                  className="input-field"
+                  onChange={handleChange}
                 />
-            )}
-        </>
-    )
-}
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  placeholder="Last"
+                  className="input-field"
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
 
-export default JoinToCreateProfileForm
+            {/* Email & Phone */}
+            <div className="mb-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block mb-2 text-lg font-medium!">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    className="input-field"
+                    onChange={handleChange}
+                  />
+                </div>
+                <div>
+                  <label className="block mb-2 text-lg font-medium!">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    className="input-field"
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Password */}
+            {/* Password */}
+<div className="mb-10">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    {/* Create Password */}
+    <div className="relative">
+      <label className="block mb-2 text-lg font-medium!">
+        Create Password
+      </label>
+
+      <input
+        type={showPassword ? "text" : "password"}
+        name="password"
+        value={formData.password}
+        className="input-field pr-10"
+        onChange={handleChange}
+      />
+
+      <button
+        type="button"
+        onClick={() => setShowPassword(!showPassword)}
+        className="absolute right-3 top-[42px] text-gray-600"
+      >
+        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+      </button>
+    </div>
+
+    {/* Verify Password */}
+    <div className="relative">
+      <label className="block mb-2 text-lg font-medium!">
+        Verify Password
+      </label>
+
+      <input
+        type={showConfirmPassword ? "text" : "password"}
+        name="confirmPassword"
+        className="input-field pr-10"
+      />
+
+      <button
+        type="button"
+        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+        className="absolute right-3 top-[42px] text-gray-600"
+      >
+        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+      </button>
+    </div>
+
+  </div>
+</div>
+            {/* Restaurant */}
+            <div className="mb-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block mb-2 text-lg font-medium!">
+                    Current Restaurant
+                  </label>
+                  <input
+                    type="text"
+                    name="currentRestaurant"
+                    value={formData.currentRestaurant}
+                    className="input-field"
+                    onChange={handleChange}
+                  />
+                </div>
+                <div>
+                  <label className="block mb-2 text-lg font-medium!">
+                    Website
+                  </label>
+                  <input
+                    type="url"
+                    name="website"
+                    value={formData.website}
+                    className="input-field"
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Job Title */}
+            <div className="mb-10">
+              <label className="block mb-2 text-lg font-medium!">
+                Job Title
+              </label>
+              <input
+                type="text"
+                name="jobTitle"
+                value={formData.jobTitle}
+                className="input-field"
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* Address */}
+            <div className="mb-10">
+              <label className="block mb-2 text-lg font-medium!">
+                Restaurant Address
+              </label>
+
+              <input
+                type="text"
+                name="addressLine1"
+                value={formData.addressLine1}
+                placeholder="Address Line 1"
+                className="input-field"
+                onChange={handleChange}
+              />
+
+              <input
+                type="text"
+                name="addressLine2"
+                value={formData.addressLine2}
+                placeholder="Address Line 2"
+                className="input-field"
+                onChange={handleChange}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  name="city"
+                  value={formData.city}
+                  placeholder="City"
+                  className="input-field"
+                  onChange={handleChange}
+                />
+                <input
+                  name="state"
+                  value={formData.state}
+                  placeholder="State"
+                  className="input-field"
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  name="zipCode"
+                  value={formData.zipCode}
+                  placeholder="Zip Code"
+                  className="input-field"
+                  onChange={handleChange}
+                />
+                <input
+                  name="country"
+                  value={formData.country}
+                  placeholder="Country"
+                  className="input-field"
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            {/* Professional */}
+            <div className="mb-10">
+              <input
+                type="email"
+                name="professionalEmail"
+                value={formData.professionalEmail}
+                placeholder="Professional email"
+                className="input-field"
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="mb-10">
+              <input
+                type="text"
+                name="professionalProof"
+                value={formData.professionalProof}
+                placeholder="Professional Proof"
+                className="input-field"
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* Print Name */}
+            <div className="mb-8">
+              <label className="block mb-2 text-lg font-medium!">
+                Print Name
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <input
+                  name="printFirstName"
+                  value={formData.printFirstName}
+                  placeholder="First"
+                  className="input-field"
+                  onChange={handleChange}
+                />
+                <input
+                  name="printLastName"
+                  value={formData.printLastName}
+                  placeholder="Last"
+                  className="input-field"
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            {/* CHECKBOX */}
+            <div className="mb-4">
+              <label>
+                <input
+                  type="checkbox"
+                  name="declarationAccepted"
+                  checked={formData.declarationAccepted}
+                  onChange={handleChange}
+                />{" "}
+                Declaration
+              </label>
+            </div>
+
+            <div className="mb-10">
+              <label>
+                <input
+                  type="checkbox"
+                  name="termsAccepted"
+                  checked={formData.termsAccepted}
+                  onChange={handleChange}
+                />{" "}
+                Terms
+              </label>
+            </div>
+
+            {/* SUBMIT */}
+            <div className="md:py-8 py-6 flex justify-center">
+              <Button
+                type="submit"
+                title={loading ? "Loading..." : "CREATE PROFILE"}
+              />
+            </div>
+          </form>
+        </div>
+      </section>
+
+      {showPopup && (
+        <WelcomePopup
+          onClose={handleClosePopup}
+          onContactClick={handleContactClick}
+        />
+      )}
+    </>
+  );
+};
+
+export default JoinToCreateProfileForm;
