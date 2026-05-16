@@ -16,8 +16,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="">
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+      <body className="" suppressHydrationWarning>
         <Navebar />
         {children}
         <Toaster position="top-right" />
