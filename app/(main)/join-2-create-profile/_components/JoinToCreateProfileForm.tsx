@@ -1,17 +1,17 @@
 // components/JoinToCreateProfileForm.tsx
 "use client";
 
-import { useState } from "react";
-import axios from "axios";
-import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 import Button from "@/components/Button";
 import WelcomePopup from "./WelcomePopup";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
+import { submitApplication, type ApplicationType } from "@/lib/api-client";
 
-// ✅ initial form
 const initialForm = {
+  applicationType: "chef" as ApplicationType,
   firstName: "",
   lastName: "",
   email: "",
@@ -35,12 +35,12 @@ const initialForm = {
 };
 
 const JoinToCreateProfileForm = () => {
+  const searchParams = useSearchParams();
   const [showPopup, setShowPopup] = useState(false);
   const [loading, setLoading] = useState(false);
- const [showPassword, setShowPassword] = useState(false);
-const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // ✅ load from localStorage OR initial
   const [formData, setFormData] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("chefForm");
@@ -49,8 +49,28 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     return initialForm;
   });
 
-  // ✅ handle input change + save to localStorage
-  const handleChange = (e: any) => {
+  useEffect(() => {
+    const t = searchParams.get("type");
+    if (t === "chef" || t === "business_owner") {
+      setFormData((prev: typeof initialForm) => ({
+        ...prev,
+        applicationType: t,
+      }));
+    }
+  }, [searchParams]);
+
+  const isChef = formData.applicationType === "chef";
+  const isOwner = formData.applicationType === "business_owner";
+
+  const setApplicationType = (applicationType: ApplicationType) => {
+    setFormData((prev: typeof initialForm) => {
+      const updated = { ...prev, applicationType };
+      localStorage.setItem("chefForm", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
 
     const updated = {
@@ -59,33 +79,33 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     };
 
     setFormData(updated);
-
     localStorage.setItem("chefForm", JSON.stringify(updated));
   };
 
-  // ✅ submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       setLoading(true);
 
-      const res = await axios.post(
-        "http://localhost:5000/api/chef-applications",
-        formData,
-      );
+      const payload = { ...formData };
+      if (isOwner) {
+        delete (payload as { jobTitle?: string }).jobTitle;
+        delete (payload as { professionalEmail?: string }).professionalEmail;
+        delete (payload as { professionalProof?: string }).professionalProof;
+      }
 
-      console.log(res.data);
+      await submitApplication(payload);
 
-      toast.success("Profile created successfully");
+      toast.success("Application submitted successfully");
       setShowPopup(true);
 
-      // ✅ reset form after success
       setFormData(initialForm);
       localStorage.removeItem("chefForm");
-    } catch (err: any) {
-      console.log(err.response?.data || err.message);
-      toast.error(err.response?.data?.message || "Error submitting form");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Error submitting form";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -112,6 +132,27 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
             onSubmit={handleSubmit}
             className="border-3 rounded-[9px] border-black md:px-10! md:py-12! py-8! px-4! page-width-narrow"
           >
+            <div className="flex flex-wrap gap-3 justify-center mb-10">
+              <button
+                type="button"
+                onClick={() => setApplicationType("chef")}
+                className={`px-6 py-2 rounded-md border-2 border-black font-medium transition-colors ${
+                  isChef ? "bg-[#FF8400] text-black" : "bg-white hover:bg-gray-50"
+                }`}
+              >
+                Join as Chef
+              </button>
+              <button
+                type="button"
+                onClick={() => setApplicationType("business_owner")}
+                className={`px-6 py-2 rounded-md border-2 border-black font-medium transition-colors ${
+                  isOwner ? "bg-[#FF8400] text-black" : "bg-white hover:bg-gray-50"
+                }`}
+              >
+                Join as Business Owner
+              </button>
+            </div>
+
             {/* Full Name */}
             <div className="mb-10">
               <label className="block mb-2 text-lg font-medium!">
@@ -125,6 +166,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                   placeholder="First"
                   className="input-field"
                   onChange={handleChange}
+                  required
                 />
                 <input
                   type="text"
@@ -133,6 +175,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                   placeholder="Last"
                   className="input-field"
                   onChange={handleChange}
+                  required
                 />
               </div>
             </div>
@@ -150,6 +193,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                     value={formData.email}
                     className="input-field"
                     onChange={handleChange}
+                    required
                   />
                 </div>
                 <div>
@@ -162,68 +206,69 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                     value={formData.phone}
                     className="input-field"
                     onChange={handleChange}
+                    required
                   />
                 </div>
               </div>
             </div>
 
             {/* Password */}
-            {/* Password */}
-<div className="mb-10">
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="mb-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="relative">
+                  <label className="block mb-2 text-lg font-medium!">
+                    Create Password
+                  </label>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    className="input-field pr-10"
+                    onChange={handleChange}
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-[42px] text-gray-600"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
 
-    {/* Create Password */}
-    <div className="relative">
-      <label className="block mb-2 text-lg font-medium!">
-        Create Password
-      </label>
+                <div className="relative">
+                  <label className="block mb-2 text-lg font-medium!">
+                    Verify Password
+                  </label>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    className="input-field pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
+                    className="absolute right-3 top-[42px] text-gray-600"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={20} />
+                    ) : (
+                      <Eye size={20} />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
 
-      <input
-        type={showPassword ? "text" : "password"}
-        name="password"
-        value={formData.password}
-        className="input-field pr-10"
-        onChange={handleChange}
-      />
-
-      <button
-        type="button"
-        onClick={() => setShowPassword(!showPassword)}
-        className="absolute right-3 top-[42px] text-gray-600"
-      >
-        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-      </button>
-    </div>
-
-    {/* Verify Password */}
-    <div className="relative">
-      <label className="block mb-2 text-lg font-medium!">
-        Verify Password
-      </label>
-
-      <input
-        type={showConfirmPassword ? "text" : "password"}
-        name="confirmPassword"
-        className="input-field pr-10"
-      />
-
-      <button
-        type="button"
-        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-        className="absolute right-3 top-[42px] text-gray-600"
-      >
-        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-      </button>
-    </div>
-
-  </div>
-</div>
-            {/* Restaurant */}
+            {/* Restaurant / business */}
             <div className="mb-10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block mb-2 text-lg font-medium!">
-                    Current Restaurant
+                    {isOwner ? "Business / Restaurant Name" : "Current Restaurant"}
                   </label>
                   <input
                     type="text"
@@ -231,6 +276,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                     value={formData.currentRestaurant}
                     className="input-field"
                     onChange={handleChange}
+                    required
                   />
                 </div>
                 <div>
@@ -248,24 +294,26 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
               </div>
             </div>
 
-            {/* Job Title */}
-            <div className="mb-10">
-              <label className="block mb-2 text-lg font-medium!">
-                Job Title
-              </label>
-              <input
-                type="text"
-                name="jobTitle"
-                value={formData.jobTitle}
-                className="input-field"
-                onChange={handleChange}
-              />
-            </div>
+            {isChef && (
+              <div className="mb-10">
+                <label className="block mb-2 text-lg font-medium!">
+                  Job Title
+                </label>
+                <input
+                  type="text"
+                  name="jobTitle"
+                  value={formData.jobTitle}
+                  className="input-field"
+                  onChange={handleChange}
+                  required={isChef}
+                />
+              </div>
+            )}
 
             {/* Address */}
             <div className="mb-10">
               <label className="block mb-2 text-lg font-medium!">
-                Restaurant Address
+                {isOwner ? "Business Address" : "Restaurant Address"}
               </label>
 
               <input
@@ -275,6 +323,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                 placeholder="Address Line 1"
                 className="input-field"
                 onChange={handleChange}
+                required
               />
 
               <input
@@ -293,6 +342,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                   placeholder="City"
                   className="input-field"
                   onChange={handleChange}
+                  required
                 />
                 <input
                   name="state"
@@ -300,6 +350,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                   placeholder="State"
                   className="input-field"
                   onChange={handleChange}
+                  required
                 />
               </div>
 
@@ -310,6 +361,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                   placeholder="Zip Code"
                   className="input-field"
                   onChange={handleChange}
+                  required
                 />
                 <input
                   name="country"
@@ -317,32 +369,38 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                   placeholder="Country"
                   className="input-field"
                   onChange={handleChange}
+                  required
                 />
               </div>
             </div>
 
-            {/* Professional */}
-            <div className="mb-10">
-              <input
-                type="email"
-                name="professionalEmail"
-                value={formData.professionalEmail}
-                placeholder="Professional email"
-                className="input-field"
-                onChange={handleChange}
-              />
-            </div>
+            {isChef && (
+              <>
+                <div className="mb-10">
+                  <input
+                    type="email"
+                    name="professionalEmail"
+                    value={formData.professionalEmail}
+                    placeholder="Professional email"
+                    className="input-field"
+                    onChange={handleChange}
+                    required={isChef}
+                  />
+                </div>
 
-            <div className="mb-10">
-              <input
-                type="text"
-                name="professionalProof"
-                value={formData.professionalProof}
-                placeholder="Professional Proof"
-                className="input-field"
-                onChange={handleChange}
-              />
-            </div>
+                <div className="mb-10">
+                  <input
+                    type="text"
+                    name="professionalProof"
+                    value={formData.professionalProof}
+                    placeholder="Professional Proof"
+                    className="input-field"
+                    onChange={handleChange}
+                    required={isChef}
+                  />
+                </div>
+              </>
+            )}
 
             {/* Print Name */}
             <div className="mb-8">
@@ -356,6 +414,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                   placeholder="First"
                   className="input-field"
                   onChange={handleChange}
+                  required
                 />
                 <input
                   name="printLastName"
@@ -363,11 +422,11 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                   placeholder="Last"
                   className="input-field"
                   onChange={handleChange}
+                  required
                 />
               </div>
             </div>
 
-            {/* CHECKBOX */}
             <div className="mb-4">
               <label>
                 <input
@@ -375,6 +434,7 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                   name="declarationAccepted"
                   checked={formData.declarationAccepted}
                   onChange={handleChange}
+                  required
                 />{" "}
                 Declaration
               </label>
@@ -387,12 +447,12 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                   name="termsAccepted"
                   checked={formData.termsAccepted}
                   onChange={handleChange}
+                  required
                 />{" "}
                 Terms
               </label>
             </div>
 
-            {/* SUBMIT */}
             <div className="md:py-8 py-6 flex justify-center">
               <Button
                 type="submit"

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
@@ -56,11 +55,11 @@ const RestaurantsImages = ({ images = DUMMY_IMAGES }: RestaurantsImagesProps) =>
                             className="block"
                         >
                             <div className="relative w-64.25 h-64.25 max-w-full max-sm:h-48 max-sm:w-full overflow-hidden rounded-md">
-                                <Image
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
                                     src={image}
                                     alt={`Restaurant Image ${index + 1}`}
-                                    fill
-                                    className="object-cover transition-transform duration-500 "
+                                    className="w-full h-full object-cover transition-transform duration-500"
                                 />
                             </div>
                         </a>

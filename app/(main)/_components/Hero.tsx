@@ -28,6 +28,7 @@ const Hero = () => {
               <label className="uppercase text-xl">Cuisine</label>
               <input
                 type="text"
+                suppressHydrationWarning
                 className="bg-transparent border-b focus:border-black outline-none pb-1"
               />
             </div>
@@ -35,6 +36,7 @@ const Hero = () => {
               <label className="uppercase text-xl">Location</label>
               <input
                 type="text"
+                suppressHydrationWarning
                 className="bg-transparent border-b focus:border-black outline-none pb-1"
               />
             </div>
@@ -42,6 +44,7 @@ const Hero = () => {
               <label className="uppercase text-xl">Chef</label>
               <input
                 type="text"
+                suppressHydrationWarning
                 className="bg-transparent border-b focus:border-black outline-none pb-1"
               />
             </div>

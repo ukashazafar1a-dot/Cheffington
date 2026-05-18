@@ -10,6 +10,8 @@ type RestaurantsMapProps = {
     lat?: number;
     lng?: number;
     locationName?: string;
+    /** Public detail: map + address only; phone/website live in sidebar */
+    compact?: boolean;
 };
 
 const RestaurantsMap = ({
@@ -19,6 +21,7 @@ const RestaurantsMap = ({
     lat = 30.2672,
     lng = -97.7431,
     locationName = "Chef Location",
+    compact = false,
 }: RestaurantsMapProps) => {
     const [copied, setCopied] = useState<string | null>(null);
 
@@ -52,7 +55,9 @@ const RestaurantsMap = ({
             {/* Address & Contact Info */}
             <div className="flex flex-col text-center">
                 {/* Address Section */}
-                <div className="px-6 py-5 border-b border-black/10 group relative">
+                <div
+                    className={`px-6 py-5 group relative ${compact ? "" : "border-b border-black/10"}`}
+                >
                     <p className="font-extrabold text-sm text-black tracking-[-2%] leading-tight">
                         {address}
                     </p>
@@ -79,6 +84,8 @@ const RestaurantsMap = ({
                     )}
                 </div>
 
+                {!compact && (
+                <>
                 {/* Phone Section */}
                 <div className="px-6 py-4 border-b border-black/10 group relative">
                     <button
@@ -128,6 +135,8 @@ const RestaurantsMap = ({
                         </span>
                     )}
                 </div>
+                </>
+                )}
             </div>
         </div>
     );
