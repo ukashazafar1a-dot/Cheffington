@@ -10,7 +10,7 @@ const footerLinks = [
   { name: "Privacy Policy", url: "/privacy-policy" },
   { name: "Terms & Conditions", url: "/terms" },
   { name: "Advertise With Us", url: "/advertising" },
-  { name: "Chef", url: "/individual-chef-page" },
+  // { name: "Chef", url: "/individual-chef-page" },
 ];
 const Footer = () => {
   return (

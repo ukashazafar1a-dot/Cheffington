@@ -7,6 +7,7 @@ import ChefReviewForRestaurants from './_components/ChefReviewForRestaurants';
 import Adertising from './_components/Adertising';
 import ChefWebsiteButton from './_components/ChefWebsiteButton';
 import type { ChefProfile } from '@/types/chef';
+import router from 'next/router';
 
 const page = () => {
  const [chef, setChef] = useState<ChefProfile | undefined>(undefined);
@@ -21,6 +22,10 @@ const page = () => {
         setLoading(false);
         return;
       }
+      if (!token) {
+  router.push("/sign-in");
+  return;
+}
 
       try {
         const res = await fetch('http://localhost:5000/api/auth/chef-me', {
@@ -35,6 +40,7 @@ const page = () => {
           setLoading(false);
           return;
         }
+        
 
         setChef(data.chef);
       } catch (err) {
