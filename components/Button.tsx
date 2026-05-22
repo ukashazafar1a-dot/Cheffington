@@ -61,6 +61,7 @@ export default function Button({
       type={type}
       onClick={onClick}
       disabled={isDisabled}
+      suppressHydrationWarning
       className={classes}
     >
       {content}

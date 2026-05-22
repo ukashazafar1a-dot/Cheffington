@@ -43,6 +43,7 @@ const Footer = () => {
                 <form className="flex flex-col sm:flex-row gap-3">
                   <input
                     type="email"
+                    suppressHydrationWarning
                     className="bg-gray-300 text-black px-4 py-3 rounded-sm w-full focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                   <Button title="Sign Up" type="submit" />

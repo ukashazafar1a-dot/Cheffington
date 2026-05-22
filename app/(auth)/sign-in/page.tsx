@@ -11,7 +11,7 @@ export default function SignInPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
     setLoading(true);
@@ -28,7 +28,12 @@ export default function SignInPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || 'Unable to sign in');
+        const msg = data.message || 'Unable to sign in';
+        setError(
+          msg.includes('business owner')
+            ? `${msg} Sign in at http://localhost:3002/login`
+            : msg
+        );
         setLoading(false);
         return;
       }
