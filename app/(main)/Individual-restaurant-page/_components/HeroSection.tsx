@@ -1,44 +1,41 @@
 import type { PublicRestaurant } from "@/types/restaurant";
 import RestaurantsImages from "./RestaurantsImages";
 import RestaurantsDetails from "./RestaurantsDetails";
+import RestaurantHeroCover from "./RestaurantHeroCover";
 import RetaurantsMap from "./RetaurantsMap";
-
-function formatMapAddress(restaurant: PublicRestaurant) {
-  return [
-    restaurant.addressLine1,
-    restaurant.addressLine2,
-    `${restaurant.city}, ${restaurant.state} ${restaurant.zipCode}`,
-    restaurant.country,
-  ]
-    .filter(Boolean)
-    .join(", ");
-}
 
 type Props = { restaurant?: PublicRestaurant };
 
 const HeroSection = ({ restaurant }: Props) => {
-  const images =
-    restaurant?.images && restaurant.images.length > 0
-      ? restaurant.images
-      : undefined;
+  if (restaurant) {
+    const coverImageUrl = restaurant.images?.[0];
+
+    return (
+      <div>
+        <section className="bg-[var(--bg-hero)] border-b border-[#ff8400]/20 pb-6 max-xl:pb-5">
+          <div className="page-width pt-5 max-xl:pt-4">
+            <RestaurantHeroCover
+              name={restaurant.name}
+              cuisine={restaurant.cuisine}
+              coverImageUrl={coverImageUrl}
+            />
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <section className="bg-black xl:min-h-130 pb-10 max-xl:pb-8">
+      <section className="bg-[var(--bg-hero)] border-b border-[#ff8400]/20 xl:min-h-130 pb-10 max-xl:pb-8">
         <div className="page-width">
           <div className="flex align-center justify-center max-xl:flex-wrap gap-6 pt-5">
             <div className="flex flex-col xl:w-[68%] w-full">
-              <RestaurantsImages images={images} />
-              <RestaurantsDetails restaurant={restaurant} />
+              <RestaurantsImages />
+              <RestaurantsDetails />
             </div>
             <div className="xl:w-[30%] w-full">
-              <RetaurantsMap
-                address={restaurant ? formatMapAddress(restaurant) : undefined}
-                phone={restaurant?.phone}
-                website={restaurant?.website}
-                locationName={restaurant?.name}
-                compact={!!restaurant}
-              />
+              <RetaurantsMap />
             </div>
           </div>
         </div>

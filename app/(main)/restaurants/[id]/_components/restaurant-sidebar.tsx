@@ -1,4 +1,16 @@
 import type { PublicRestaurant } from "@/types/restaurant";
+import RetaurantsMap from "@/app/(main)/Individual-restaurant-page/_components/RetaurantsMap";
+
+function formatMapAddress(restaurant: PublicRestaurant) {
+  return [
+    restaurant.addressLine1,
+    restaurant.addressLine2,
+    `${restaurant.city}, ${restaurant.state} ${restaurant.zipCode}`,
+    restaurant.country,
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
 
 export default function RestaurantSidebar({
   restaurant,
@@ -21,33 +33,41 @@ export default function RestaurantSidebar({
     : null;
 
   return (
-    <section className="bg-white border border-gray-200 rounded-lg p-6 space-y-4 shadow-sm">
-      <h2 className="font-bold text-lg text-gray-900">Contact & location</h2>
-      {restaurant.phone && (
+    <div className="flex w-full flex-col gap-6 lg:sticky lg:top-24 lg:z-10">
+      <section className="space-y-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-gray-900">Contact & location</h2>
+        {restaurant.phone && (
+          <div>
+            <p className="text-sm text-gray-500">Phone</p>
+            <a href={`tel:${restaurant.phone}`} className="font-medium text-gray-900">
+              {restaurant.phone}
+            </a>
+          </div>
+        )}
+        {websiteHref && (
+          <div>
+            <p className="text-sm text-gray-500">Website</p>
+            <a
+              href={websiteHref}
+              className="font-medium text-[#ff8400] underline break-all"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {restaurant.website}
+            </a>
+          </div>
+        )}
         <div>
-          <p className="text-sm text-gray-500">Phone</p>
-          <a href={`tel:${restaurant.phone}`} className="font-medium text-gray-900">
-            {restaurant.phone}
-          </a>
+          <p className="text-sm text-gray-500">Address</p>
+          <p className="whitespace-pre-line text-gray-800">{address}</p>
         </div>
-      )}
-      {websiteHref && (
-        <div>
-          <p className="text-sm text-gray-500">Website</p>
-          <a
-            href={websiteHref}
-            className="font-medium text-[#ff8400] underline break-all"
-            target="_blank"
-            rel="noreferrer"
-          >
-            {restaurant.website}
-          </a>
-        </div>
-      )}
-      <div>
-        <p className="text-sm text-gray-500">Address</p>
-        <p className="text-gray-800 whitespace-pre-line">{address}</p>
-      </div>
-    </section>
+      </section>
+
+      <RetaurantsMap
+        address={formatMapAddress(restaurant)}
+        locationName={restaurant.name}
+        compact
+      />
+    </div>
   );
 }

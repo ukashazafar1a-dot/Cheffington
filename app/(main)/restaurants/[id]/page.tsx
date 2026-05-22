@@ -20,12 +20,12 @@ export default async function RestaurantDetailPage({ params }: Props) {
   return (
     <div>
       <HeroSection restaurant={restaurant} />
-      <div className="page-width pb-18 mt-10 lg:mt-14 relative">
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
-          <aside className="w-full lg:w-[30%] lg:sticky lg:top-24 shrink-0">
+      <div className="page-width pb-18 mt-10 lg:mt-14">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,30%)_minmax(0,1fr)] gap-8 lg:gap-10 items-start">
+          <aside className="min-w-0">
             <RestaurantSidebar restaurant={restaurant} />
           </aside>
-          <main className="w-full lg:w-[70%] min-w-0">
+          <main className="min-w-0">
             <RestaurantContentSections sections={restaurant.contentSections} />
           </main>
         </div>

@@ -48,7 +48,7 @@ const RestaurantsMap = ({
     return (
         <div className="bg-[#FF8400] rounded-3xl overflow-hidden">
             {/* Map Placeholder for Sidebar */}
-            <div className="md:h-111.75">
+            <div className={compact ? "h-48 md:h-52" : "md:h-111.75"}>
                 <Map lat={lat} lng={lng} name={locationName} />
             </div>
 
@@ -56,7 +56,7 @@ const RestaurantsMap = ({
             <div className="flex flex-col text-center">
                 {/* Address Section */}
                 <div
-                    className={`px-6 py-5 group relative ${compact ? "" : "border-b border-black/10"}`}
+                    className={`group relative ${compact ? "px-5 py-4" : "px-6 py-5 border-b border-black/10"}`}
                 >
                     <p className="font-extrabold text-sm text-black tracking-[-2%] leading-tight">
                         {address}

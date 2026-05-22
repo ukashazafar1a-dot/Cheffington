@@ -10,6 +10,8 @@ import IconPrev from "@/components/Icons/IconPrev";
 
 type RestaurantsImagesProps = {
     images?: string[];
+    /** Tighter carousel for public restaurant hero */
+    compact?: boolean;
 };
 const DUMMY_IMAGES = [
     "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&h=500&fit=crop",
@@ -20,7 +22,10 @@ const DUMMY_IMAGES = [
     "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&h=500&fit=crop",
 ];
 
-const RestaurantsImages = ({ images = DUMMY_IMAGES }: RestaurantsImagesProps) => {
+const RestaurantsImages = ({ images = DUMMY_IMAGES, compact = false }: RestaurantsImagesProps) => {
+    const slideClass = compact
+        ? "relative w-52 h-52 sm:w-56 sm:h-56 max-w-full overflow-hidden rounded-md"
+        : "relative w-64.25 h-64.25 max-w-full max-sm:h-48 max-sm:w-full overflow-hidden rounded-md";
     const [isBeginning, setIsBeginning] = useState(true);
     const [isEnd, setIsEnd] = useState(false);
     const swiperRef = useRef<SwiperType | null>(null);
@@ -54,7 +59,7 @@ const RestaurantsImages = ({ images = DUMMY_IMAGES }: RestaurantsImagesProps) =>
                             rel="noopener noreferrer"
                             className="block"
                         >
-                            <div className="relative w-64.25 h-64.25 max-w-full max-sm:h-48 max-sm:w-full overflow-hidden rounded-md">
+                            <div className={slideClass}>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                     src={image}
