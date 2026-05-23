@@ -1,58 +1,135 @@
-import Button from '@/components/Button'
-import React from 'react'
+"use client";
 
-const ReviewFrom = () => {
-    return (
-        <div className=" border-3 border-black rounded-[9px] md:px-7 md:py-20 py-8 px-4">
-            <div className="">
-                <h2 className="md:text-4xl sm:text:3xl text-2xl font-bold mb-2 tracking-[-8%]"> {`${"Share your Chef's Notes..."}`}</h2>
-                <p className="md:text-[20px] text-[18px] mb-4 tracking-[-8%]"> {`${"Don't forget to tell us about..."}`}</p>
+import Button from "@/components/Button";
+import StarRating from "@/components/StarRating";
+import { submitReview } from "@/lib/api-client";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-                <div className="flex gap-2 mb-4.5 max-md:flex-wrap">
-                    {['your favorite dishes', 'the experience', 'the ambiance'].map((tag) => (
-                        <span key={tag} className="bg-black  py-3 px-3 rounded-[6px]  text-center  md:basis-1/3 md:text-[20px] sm:text-[16px] text-[14px] font-medium text-[#FFF1E1]">
-                            {tag}
-                        </span>
-                    ))}
-                </div>
+type ReviewFromProps = {
+  restaurantId: string;
+  restaurantName?: string;
+};
 
-                <div className="relative">
-                    <textarea
-                        placeholder="Positive reviews only. Negative reviews will be removed and your account will be flagged. Must be a minimum of 85 characters."
+const ReviewFrom = ({ restaurantId, restaurantName }: ReviewFromProps) => {
+  const router = useRouter();
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [title, setTitle] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-                        className="border border-black md:h-96 h-44 p-4 input-field"
-                    />
+  const handleSubmit = async () => {
+    setError("");
 
-                </div>
-            </div>
+    const token =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem("chefToken")
+        : null;
 
-            {/* File Upload */}
-            <div className="mt-10 ">
-                <label className="block">
-                    Upload images or video (optional)
-                </label>
-                <label className="block mt-8 border border-dashed md:py-26 md:px-12 px-4 py-10 text-center cursor-pointer bg-transparent ">
-                    <input
-                        type="file"
-                        className="hidden"
-                    />
-                    <p className="text-[20px] font-normal text-black/50 max-sm:text-[16px]">
-                        Drag & Drop Files,{" "}
-                        <span className="underline text-black/50 ">
-                            Choose Files to Upload
-                        </span>
-                    </p>
-                </label>
-            </div>
+    if (!token) {
+      router.push(
+        `/sign-in?returnUrl=${encodeURIComponent(`/review-1?restaurantId=${restaurantId}`)}`
+      );
+      return;
+    }
 
-            {/* Submit Section */}
-            <div className="mt-10 flex justify-center relative">
-            
-                <Button title='Share' />
+    if (rating < 1) {
+      setError("Please select a star rating.");
+      return;
+    }
 
-            </div>
-        </div>
-    )
-}
+    if (!comment.trim()) {
+      setError("Please enter your review.");
+      return;
+    }
 
-export default ReviewFrom
+    setLoading(true);
+    try {
+      const result = await submitReview(
+        {
+          restaurantId,
+          rating,
+          comment: comment.trim(),
+          title: title.trim() || undefined,
+        },
+        token
+      );
+
+      if (result.flagged) {
+        router.push("/review-flagged");
+        return;
+      }
+
+      router.push(`/restaurants/${restaurantId}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to submit review");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-[9px] border-3 border-black px-4 py-8 md:px-7 md:py-20">
+      {restaurantName ? (
+        <p className="mb-4 text-sm font-medium text-gray-700">
+          Reviewing: <span className="font-bold text-gray-900">{restaurantName}</span>
+        </p>
+      ) : null}
+
+      <h2 className="mb-2 text-2xl font-bold tracking-[-8%] sm:text-3xl md:text-4xl">
+        Share your Chef&apos;s Notes...
+      </h2>
+      <p className="mb-4 text-[18px] tracking-[-8%] md:text-[20px]">
+        Don&apos;t forget to tell us about...
+      </p>
+
+      <div className="mb-4.5 flex flex-wrap gap-2 max-md:flex-wrap">
+        {["your favorite dishes", "the experience", "the ambiance"].map((tag) => (
+          <span
+            key={tag}
+            className="rounded-[6px] bg-black px-3 py-3 text-center text-[14px] font-medium text-[#FFF1E1] sm:text-[16px] md:basis-1/3 md:text-[20px]"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+
+      <div className="mb-6">
+        <p className="mb-2 text-sm font-medium">Your rating</p>
+        <StarRating value={rating} onChange={setRating} />
+      </div>
+
+      <div className="relative mb-4">
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Review title (optional)"
+          className="input-field mb-4 w-full border border-black p-3"
+          maxLength={120}
+        />
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Positive reviews only. Negative reviews will be removed and your account will be flagged."
+          className="input-field h-44 border border-black p-4 md:h-96"
+        />
+        <p className="mt-1 text-xs text-gray-500">{comment.trim().length} characters</p>
+      </div>
+
+      {error ? <p className="mb-4 text-sm text-red-600">{error}</p> : null}
+
+      <div className="relative mt-10 flex justify-center">
+        <Button
+          title="Share"
+          onClick={handleSubmit}
+          loading={loading}
+          disabled={loading}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default ReviewFrom;

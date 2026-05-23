@@ -4,98 +4,46 @@ import { useState, useRef, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-
-const DUMMY_RESTAURANTS = [
-  {
-    id: 1,
-    name: "The Italian Kitchen",
-    city: "New York",
-    state: "NY",
-    country: "USA",
-  },
-  {
-    id: 2,
-    name: "Sushi House",
-    city: "Los Angeles",
-    state: "CA",
-    country: "USA",
-  },
-  {
-    id: 3,
-    name: "La Bella Pizza",
-    city: "Chicago",
-    state: "IL",
-    country: "USA",
-  },
-  {
-    id: 4,
-    name: "Thai Paradise",
-    city: "San Francisco",
-    state: "CA",
-    country: "USA",
-  },
-  {
-    id: 5,
-    name: "The Burger Joint",
-    city: "Austin",
-    state: "TX",
-    country: "USA",
-  },
-  { id: 6, name: "French Bistro", city: "Boston", state: "MA", country: "USA" },
-  { id: 7, name: "Taco Fiesta", city: "Miami", state: "FL", country: "USA" },
-  { id: 8, name: "India House", city: "Seattle", state: "WA", country: "USA" },
-  {
-    id: 9,
-    name: "Dragon Palace",
-    city: "Portland",
-    state: "OR",
-    country: "USA",
-  },
-  {
-    id: 10,
-    name: "Mediterranean Grill",
-    city: "Denver",
-    state: "CO",
-    country: "USA",
-  },
-];
-
-interface Restaurant {
-  id: number;
-  name: string;
-  city: string;
-  state: string;
-  country: string;
-}
+import { useRouter } from "next/navigation";
+import { getPublishedRestaurants } from "@/lib/api-client";
+import type { PublicRestaurant } from "@/types/restaurant";
 
 export default function RestaurantSearch() {
+  const router = useRouter();
+  const [allRestaurants, setAllRestaurants] = useState<PublicRestaurant[]>([]);
   const [searchInput, setSearchInput] = useState("");
-  const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>(
-    [],
-  );
+  const [filteredRestaurants, setFilteredRestaurants] = useState<PublicRestaurant[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedRestaurant, setSelectedRestaurant] =
-    useState<Restaurant | null>(null);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<PublicRestaurant | null>(null);
+  const [loadError, setLoadError] = useState("");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    getPublishedRestaurants()
+      .then((res) => setAllRestaurants(res.data ?? []))
+      .catch(() => setLoadError("Could not load restaurants. Try again later."));
+  }, []);
+
+  useEffect(() => {
     if (searchInput.trim() === "") {
       setFilteredRestaurants([]);
       setShowDropdown(false);
-
       return;
-
     }
 
-    const filtered = DUMMY_RESTAURANTS.filter((r) =>
-      r.name.toLowerCase().includes(searchInput.toLowerCase()),
+    const q = searchInput.toLowerCase();
+    const filtered = allRestaurants.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        r.city?.toLowerCase().includes(q) ||
+        r.state?.toLowerCase().includes(q)
     );
 
     setFilteredRestaurants(filtered);
     setShowDropdown(true);
-  }, [searchInput]);
+  }, [searchInput, allRestaurants]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -113,56 +61,46 @@ export default function RestaurantSearch() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelectRestaurant = (restaurant: Restaurant) => {
+  const handleSelectRestaurant = (restaurant: PublicRestaurant) => {
     setSelectedRestaurant(restaurant);
     setSearchInput(restaurant.name);
     setShowDropdown(false);
   };
 
-  const handleAddNew = () => {
-    alert(`Adding new restaurant: "${searchInput}"`);
-  };
-
   const handleSearch = () => {
     if (selectedRestaurant) {
-      alert(`Searching for reviews of ${selectedRestaurant.name}`);
+      router.push(`/review-1?restaurantId=${selectedRestaurant._id}`);
     }
   };
 
   return (
-    <section className="">
-      <div className="flex justify-center items-center page-width-narrow ">
-        <div className="md:pt-20 md:pb-72 py-16">
-          {/* Header */}
-          <div className="text-center mb-10">
+    <section>
+      <div className="page-width-narrow flex items-center justify-center">
+        <div className="py-16 md:pb-72 md:pt-20">
+          <div className="mb-10 text-center">
             <h1 className="title w-full">
-              <span className="text-[#FF8400]">Serve</span>{' '}
-              Up{' '}
-              <span className="text-[#FF8400]">Some </span>
-              {' '}
-              Love
+              <span className="text-[#FF8400]">Serve</span> Up{" "}
+              <span className="text-[#FF8400]">Some</span> Love
             </h1>
-            <p className="subtitle mt-2">
-              Search an establishment to review.
-            </p>
+            <p className="subtitle mt-2">Search an establishment to review.</p>
           </div>
 
-          {/* Search Box */}
+          {loadError ? (
+            <p className="text-center text-sm text-red-600">{loadError}</p>
+          ) : null}
+
           <div className="relative">
-            <div className=" bg-transparent border-3 rounded-[9px] md:py-4 px-4.5 p-4 md:flex items-end justify-between gap-4">
-              {/* Left side (Label + Input) */}
-              <div className="flex flex-col w-full max-md:mb-6 relative">
-                <label className="body-text mb-2 absolute -top-3">Business Name</label>
+            <div className="flex items-end justify-between gap-4 rounded-[9px] border-3 bg-transparent p-4 px-4.5 md:py-4 md:flex">
+              <div className="relative flex w-full flex-col max-md:mb-6">
+                <label className="body-text absolute -top-3 mb-2">Business Name</label>
                 <Input
                   ref={inputRef}
                   type="text"
-                  placeholder=""
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="bg-transparent text-xl!  border-b border-black rounded-none px-0 text-black focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-black"
+                  className="rounded-none border-b border-black bg-transparent px-0 text-xl! text-black focus:border-black focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
-
 
               <button
                 onClick={handleSearch}
@@ -173,40 +111,40 @@ export default function RestaurantSearch() {
               </button>
             </div>
 
-            {/* Dropdown */}
             {showDropdown && (
               <div
                 ref={dropdownRef}
-                className="left-0 right-0 top-full mt-1  border-3 border-black rounded-xl shadow-lg z-20 overflow-y-auto"
+                className="left-0 right-0 top-full z-20 mt-1 overflow-y-auto rounded-xl border-3 border-black shadow-lg"
               >
-                {/* Add new */}
                 {searchInput.trim() && (
-                  <div className="px-4 py-3 border-b  flex items-center gap-3">
-                    <Plus className="w-5 h-5 body-title" />
-                    <Link href='add-listing'>
-                      <p className="body-title text-sm flex-1">
-                        Don&apos;t see your establishment? Add an estabilshment with this name
+                  <div className="flex items-center gap-3 border-b px-4 py-3">
+                    <Plus className="body-title h-5 w-5" />
+                    <Link href="add-listing">
+                      <p className="body-title flex-1 text-sm">
+                        Don&apos;t see your establishment? Add an establishment with this name
                       </p>
                     </Link>
                   </div>
                 )}
 
-                {/* Results */}
+                {filteredRestaurants.length === 0 && searchInput.trim() ? (
+                  <p className="body-title px-4 py-3 text-sm text-gray-600">
+                    No published restaurants match your search.
+                  </p>
+                ) : null}
+
                 {filteredRestaurants.map((restaurant) => (
                   <button
-                    key={restaurant.id}
+                    key={restaurant._id}
+                    type="button"
                     onClick={() => handleSelectRestaurant(restaurant)}
-                    className="w-full text-left px-4 py-3  flex justify-between items-center"
+                    className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-black/5"
                   >
                     <div>
-                      <Link href="review-1">
-                        <p className="body-title font-semibold">
-                          {restaurant.name}
-                        </p>
-                        <p className="body-title text-sm">
-                          {restaurant.city}, {restaurant.state}
-                        </p>
-                      </Link>
+                      <p className="body-title font-semibold">{restaurant.name}</p>
+                      <p className="body-title text-sm">
+                        {restaurant.city}, {restaurant.state}
+                      </p>
                     </div>
                   </button>
                 ))}

@@ -3,6 +3,7 @@ import { getPublishedRestaurant } from "@/lib/api-client";
 import HeroSection from "../../Individual-restaurant-page/_components/HeroSection";
 import RestaurantSidebar from "./_components/restaurant-sidebar";
 import RestaurantContentSections from "./_components/restaurant-content-sections";
+import RestaurantReviews from "./_components/restaurant-reviews";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -27,6 +28,10 @@ export default async function RestaurantDetailPage({ params }: Props) {
           </aside>
           <main className="min-w-0">
             <RestaurantContentSections sections={restaurant.contentSections} />
+            <RestaurantReviews
+              restaurantId={id}
+              restaurantName={restaurant.name}
+            />
           </main>
         </div>
       </div>
