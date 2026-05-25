@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getPublishedRestaurant } from "@/lib/api-client";
 import Hero from "./_components/Hero";
-import ReviewFrom from "./_components/ReviewFrom";
+import ReviewChefGuard from "./_components/ReviewChefGuard";
 
 type Props = {
   searchParams: Promise<{ restaurantId?: string }>;
@@ -26,7 +26,10 @@ export default async function ReviewFormPage({ searchParams }: Props) {
     <div className="py-10 md:pb-44 md:pt-20">
       <div className="page-width-narrow">
         <Hero />
-        <ReviewFrom restaurantId={restaurantId} restaurantName={restaurantName} />
+        <ReviewChefGuard
+          restaurantId={restaurantId}
+          restaurantName={restaurantName}
+        />
       </div>
     </div>
   );

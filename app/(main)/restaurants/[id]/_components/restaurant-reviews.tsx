@@ -1,9 +1,9 @@
-import Link from "next/link";
 import {
   getRestaurantReviewSummary,
   getRestaurantReviews,
 } from "@/lib/api-client";
 import ChefReviewCard from "@/app/(main)/_components/ChefReviewCard";
+import WriteReviewLink from "@/components/WriteReviewLink";
 import StarRating from "@/components/StarRating";
 
 type Props = {
@@ -46,12 +46,7 @@ export default async function RestaurantReviews({
             <p className="mt-1 text-sm text-gray-500">No reviews yet.</p>
           )}
         </div>
-        <Link
-          href={`/review-1?restaurantId=${restaurantId}`}
-          className="button button--primary inline-flex w-fit px-6 py-3 text-sm"
-        >
-          Write a review
-        </Link>
+        <WriteReviewLink restaurantId={restaurantId} />
       </div>
 
       {reviews.length > 0 ? (
@@ -64,6 +59,7 @@ export default async function RestaurantReviews({
               <ChefReviewCard
                 key={review._id}
                 chefName={chefName}
+                profilePhotoUrl={review.chef?.profilePhotoUrl}
                 restaurantName={restaurantName}
                 rating={review.rating}
                 title={review.title?.trim() || undefined}

@@ -1,82 +1,97 @@
+"use client";
 
-'use client';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import HeroSection from "./_components/HeroSection";
+import ChefReviewForRestaurants from "./_components/ChefReviewForRestaurants";
+import Adertising from "./_components/Adertising";
+import ChefWebsiteButton from "./_components/ChefWebsiteButton";
+import type { ChefProfile } from "@/types/chef";
+import type { MyReview } from "@/types/review";
+import { getChefMe, getMyReviews } from "@/lib/api-client";
 
-import { useEffect, useState } from 'react';
-import HeroSection from './_components/HeroSection';
-import ChefReviewForRestaurants from './_components/ChefReviewForRestaurants';
-import Adertising from './_components/Adertising';
-import ChefWebsiteButton from './_components/ChefWebsiteButton';
-import type { ChefProfile } from '@/types/chef';
-import router from 'next/router';
-
-const page = () => {
- const [chef, setChef] = useState<ChefProfile | undefined>(undefined);
+export default function IndividualChefPage() {
+  const router = useRouter();
+  const [chef, setChef] = useState<ChefProfile | undefined>(undefined);
+  const [reviews, setReviews] = useState<MyReview[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchChef = async () => {
-      const token = window.localStorage.getItem('chefToken');
+    const loadProfile = async () => {
+      const token = window.localStorage.getItem("chefToken");
       if (!token) {
-        setError('Please sign in first to view your chef profile.');
-        setLoading(false);
+        router.push("/sign-in?returnUrl=/individual-chef-page");
         return;
       }
-      if (!token) {
-  router.push("/sign-in");
-  return;
-}
 
       try {
-        const res = await fetch('http://localhost:5000/api/auth/chef-me', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.message || 'Unable to load chef profile');
-          setLoading(false);
-          return;
-        }
-        
-
-        setChef(data.chef);
+        const [chefData, reviewsRes] = await Promise.all([
+          getChefMe(token),
+          getMyReviews(token),
+        ]);
+        setChef(chefData);
+        setReviews(reviewsRes.data ?? []);
       } catch (err) {
-        setError('Unable to load chef profile. Please try again.');
+        setError(
+          err instanceof Error ? err.message : "Unable to load chef profile."
+        );
       } finally {
         setLoading(false);
       }
     };
 
-    fetchChef();
-  }, []);
+    loadProfile();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="page-width py-16 text-center text-lg text-gray-700">
+        Loading chef profile...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-width py-16 text-center text-lg text-red-600">
+        {error}
+      </div>
+    );
+  }
+
+  const handlePhotoUpdated = (displayUrl: string) => {
+    setChef((prev) => {
+      const next = prev ? { ...prev, profilePhotoUrl: displayUrl } : prev;
+      if (next && typeof window !== "undefined") {
+        const name =
+          `${next.firstName ?? ""} ${next.lastName ?? ""}`.trim() || "Chef";
+        window.dispatchEvent(
+          new CustomEvent("chef-profile-updated", {
+            detail: { name, profilePhotoUrl: displayUrl },
+          })
+        );
+      }
+      return next;
+    });
+  };
 
   return (
-    <div className="">
-      <HeroSection chef={chef} />
+    <div>
+      <HeroSection
+        chef={chef}
+        reviewCount={reviews.length}
+        onPhotoUpdated={handlePhotoUpdated}
+      />
 
-      <div className="flex flex-col -mt-8 relative z-10 page-width">
-        <div className="flex flex-col">
-          <ChefWebsiteButton />
-        </div>
+      <div className="relative z-0 -mt-8 flex flex-col page-width">
+        <ChefWebsiteButton website={chef?.website} />
 
-        <div className="flex items-start max-xl:flex-wrap gap-6 max-xl:pb-5 mb-18">
-          <ChefReviewForRestaurants />
+        <div className="mb-18 flex items-start gap-6 max-xl:flex-wrap max-xl:pb-5">
+          <ChefReviewForRestaurants chef={chef} reviews={reviews} />
           <Adertising />
         </div>
       </div>
-
-      {loading && (
-        <div className="page-width py-8 text-center text-lg text-gray-700">Loading chef profile...</div>
-      )}
-
-      {error && !loading && (
-        <div className="page-width py-8 text-center text-lg text-red-600">{error}</div>
-      )}
     </div>
   );
-};
-
-export default page;
+}

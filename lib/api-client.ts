@@ -2,7 +2,9 @@ import type {
   PublicRestaurantListResponse,
   PublicRestaurantResponse,
 } from "@/types/restaurant";
+import type { ChefProfile } from "@/types/chef";
 import type {
+  FeaturedReviewsResponse,
   MyReviewsResponse,
   RestaurantReviewsResponse,
   ReviewSummaryResponse,
@@ -67,6 +69,20 @@ export async function getRestaurantReviews(restaurantId: string, page = 1) {
   return data;
 }
 
+export async function getFeaturedReviews(limit = 4) {
+  const res = await fetch(
+    `${API_BASE_URL}/restaurants/reviews/featured?limit=${limit}`,
+    { cache: "no-store" }
+  );
+  const data = (await res.json()) as FeaturedReviewsResponse & {
+    message?: string;
+  };
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to load featured reviews");
+  }
+  return data;
+}
+
 export async function getRestaurantReviewSummary(restaurantId: string) {
   const res = await fetch(
     `${API_BASE_URL}/restaurants/${restaurantId}/reviews/summary`,
@@ -120,4 +136,43 @@ export async function getMyReviews(chefToken: string) {
     throw new Error(data.message || "Failed to load your reviews");
   }
   return data;
+}
+
+export async function uploadChefProfilePhoto(chefToken: string, file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`${API_BASE_URL}/chef/uploads/profile-photo`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${chefToken}` },
+    body: formData,
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    data?: { profilePhotoUrl: string; storedUrl?: string };
+    message?: string;
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to upload profile photo");
+  }
+
+  return data;
+}
+
+export async function getChefMe(chefToken: string) {
+  const res = await fetch(`${API_BASE_URL}/auth/chef-me`, {
+    headers: { Authorization: `Bearer ${chefToken}` },
+    cache: "no-store",
+  });
+  const data = (await res.json()) as {
+    success: boolean;
+    chef?: ChefProfile;
+    message?: string;
+  };
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to load chef profile");
+  }
+  return data.chef;
 }

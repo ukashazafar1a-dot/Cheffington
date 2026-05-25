@@ -21,10 +21,16 @@ export default function RestaurantSearch() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    const token = window.localStorage.getItem("chefToken");
+    if (!token) {
+      router.replace("/sign-in?returnUrl=/review");
+      return;
+    }
+
     getPublishedRestaurants()
       .then((res) => setAllRestaurants(res.data ?? []))
       .catch(() => setLoadError("Could not load restaurants. Try again later."));
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (searchInput.trim() === "") {

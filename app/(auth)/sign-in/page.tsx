@@ -1,11 +1,12 @@
 ﻿'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -39,9 +40,23 @@ export default function SignInPage() {
       }
 
       window.localStorage.setItem('chefToken', data.token);
-      window.localStorage.setItem('chefName', `${data.chef.firstName} ${data.chef.lastName}`);
+      const chefName = `${data.chef.firstName} ${data.chef.lastName}`.trim();
+      window.localStorage.setItem('chefName', chefName);
+      window.dispatchEvent(
+        new CustomEvent('chef-profile-updated', {
+          detail: {
+            name: chefName,
+            profilePhotoUrl: data.chef.profilePhotoUrl,
+          },
+        })
+      );
 
-      router.push('/individual-chef-page');
+      const returnUrl = searchParams.get('returnUrl');
+      const destination =
+        returnUrl?.startsWith('/') && !returnUrl.startsWith('//')
+          ? returnUrl
+          : '/individual-chef-page';
+      router.push(destination);
     } catch (err) {
       setError('Login failed. Please try again.');
     } finally {

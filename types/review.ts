@@ -2,6 +2,12 @@ export interface ReviewChef {
   id: string;
   firstName: string;
   lastName: string;
+  profilePhotoUrl?: string;
+}
+
+export interface FeaturedReviewRestaurant {
+  id: string;
+  name: string;
 }
 
 export interface PublicReview {
@@ -12,6 +18,13 @@ export interface PublicReview {
   createdAt: string;
   updatedAt?: string;
   chef?: ReviewChef;
+  restaurant?: FeaturedReviewRestaurant;
+}
+
+export interface FeaturedReviewsResponse {
+  success: boolean;
+  count: number;
+  data: PublicReview[];
 }
 
 export interface ReviewSummary {
