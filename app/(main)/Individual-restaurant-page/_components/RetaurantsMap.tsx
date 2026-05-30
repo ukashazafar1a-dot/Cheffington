@@ -1,6 +1,6 @@
 "use client";
 
-import Map from "@/components/Map";
+import GeocodedMap from "@/components/GeocodedMap";
 import { useState } from "react";
 
 type RestaurantsMapProps = {
@@ -15,14 +15,16 @@ type RestaurantsMapProps = {
 };
 
 const RestaurantsMap = ({
-    address = "123 Fake Street, Austin, TX 12345",
+    address,
     phone = "(555) 555-5555",
     website = "www.website.com",
-    lat = 30.2672,
-    lng = -97.7431,
-    locationName = "Chef Location",
+    lat,
+    lng,
+    locationName = "Location",
     compact = false,
 }: RestaurantsMapProps) => {
+    const displayAddress =
+        address?.trim() || "123 Fake Street, Austin, TX 12345";
     const [copied, setCopied] = useState<string | null>(null);
 
     const handleCopy = (text: string, type: string) => {
@@ -32,7 +34,8 @@ const RestaurantsMap = ({
     };
 
     const handleGetDirections = () => {
-        const encodedAddress = encodeURIComponent(address);
+        if (!displayAddress) return;
+        const encodedAddress = encodeURIComponent(displayAddress);
         window.open(`https://maps.google.com/?q=${encodedAddress}`, "_blank");
     };
 
@@ -49,7 +52,13 @@ const RestaurantsMap = ({
         <div className="bg-[#FF8400] rounded-3xl overflow-hidden">
             {/* Map Placeholder for Sidebar */}
             <div className={compact ? "h-48 md:h-52" : "md:h-111.75"}>
-                <Map lat={lat} lng={lng} name={locationName} />
+                <GeocodedMap
+                    address={displayAddress}
+                    lat={lat}
+                    lng={lng}
+                    name={locationName}
+                    className="w-full h-full min-h-48"
+                />
             </div>
 
             {/* Address & Contact Info */}
@@ -59,7 +68,7 @@ const RestaurantsMap = ({
                     className={`group relative ${compact ? "px-5 py-4" : "px-6 py-5 border-b border-black/10"}`}
                 >
                     <p className="font-extrabold text-sm text-black tracking-[-2%] leading-tight">
-                        {address}
+                        {displayAddress}
                     </p>
                     <button
                         onClick={handleGetDirections}
@@ -68,7 +77,7 @@ const RestaurantsMap = ({
                         Get Directions
                     </button>
                     <button
-                        onClick={() => handleCopy(address, "address")}
+                        onClick={() => handleCopy(displayAddress, "address")}
                         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
                         aria-label="Copy address"
                     >

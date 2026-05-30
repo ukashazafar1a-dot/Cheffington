@@ -1,6 +1,6 @@
 "use client";
 
-import Map from "@/components/Map";
+import GeocodedMap from "@/components/GeocodedMap";
 import { useState } from "react";
 
 type RestaurantsMapProps = {
@@ -16,8 +16,8 @@ const RestaurantsMap = ({
     address,
     phone,
     website,
-    lat = 30.2672,
-    lng = -97.7431,
+    lat,
+    lng,
     locationName = "Chef Location",
 }: RestaurantsMapProps) => {
     const displayAddress = address?.trim() || "Address not provided";
@@ -54,7 +54,18 @@ const RestaurantsMap = ({
         <div className="relative z-0 isolate overflow-hidden rounded-3xl bg-[#FF8400] [&_.leaflet-pane]:!z-[1] [&_.leaflet-top]:!z-[2] [&_.leaflet-container]:!z-0">
             {/* Map — keep Leaflet panes below navbar dropdowns */}
             <div className="relative z-0 md:h-111.75">
-                <Map lat={lat} lng={lng} name={locationName} />
+                <GeocodedMap
+                    address={address?.trim() || undefined}
+                    lat={lat}
+                    lng={lng}
+                    name={locationName}
+                    className="w-full h-full min-h-60"
+                    unavailableLabel={
+                        address?.trim()
+                            ? "Map unavailable for this address"
+                            : "Add an address to see the map"
+                    }
+                />
             </div>
 
             {/* Address & Contact Info */}

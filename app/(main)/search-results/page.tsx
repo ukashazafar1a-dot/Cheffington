@@ -1,5 +1,4 @@
 import Button from "@/components/Button";
-import Map from "@/components/Map";
 import { getPublishedRestaurants } from "@/lib/api-client";
 import {
   buildSearchResultsLabel,
@@ -8,6 +7,7 @@ import {
 } from "@/lib/filter-restaurants";
 import RestaurantCard from "./_components/restaurant-card";
 import SearchFiltersForm from "./_components/search-filters-form";
+import SearchResultsMap from "./_components/search-results-map";
 
 type Props = {
   searchParams: Promise<RestaurantSearchParams>;
@@ -100,7 +100,7 @@ export default async function SearchResultsPage({ searchParams }: Props) {
 
           <div className="w-full xl:w-[420px] flex-shrink-0">
             <div className="bg-amber-900 h-[280px] sm:h-[350px] md:h-[400px] xl:h-[447px] w-full rounded overflow-hidden border">
-              <Map lat={30.2672} lng={-97.7431} name="Restaurants" />
+              <SearchResultsMap location={defaults.location} />
             </div>
             <div className="w-full h-[280px] sm:h-[350px] md:h-[400px] xl:h-[447px] rounded overflow-hidden bg-gray-200 mt-5" />
           </div>
