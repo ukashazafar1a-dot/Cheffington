@@ -16,6 +16,56 @@ const API_BASE_URL =
 
 export type ApplicationType = "chef" | "business_owner";
 
+export const APPLICATION_DOC_ACCEPTED_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const;
+
+export const APPLICATION_DOC_MAX_BYTES = 10 * 1024 * 1024;
+
+export const APPLICATION_DOC_MAX_FILES = 10;
+
+export async function uploadApplicationDocument(
+  file: File,
+  firstName: string,
+  lastName: string
+) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("firstName", firstName);
+  formData.append("lastName", lastName);
+
+  const res = await fetch(`${API_BASE_URL}/chef-applications/upload-document`, {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    data?: { publicUrl: string; displayUrl?: string };
+    message?: string;
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to upload document");
+  }
+
+  return data.data!;
+}
+
+export async function uploadApplicationDocuments(
+  files: File[],
+  firstName: string,
+  lastName: string
+) {
+  const results = await Promise.all(
+    files.map((file) => uploadApplicationDocument(file, firstName, lastName))
+  );
+  return results.map((r) => r.publicUrl);
+}
+
 export async function submitApplication(body: Record<string, unknown>) {
   const res = await fetch(`${API_BASE_URL}/chef-applications`, {
     method: "POST",

@@ -8,7 +8,14 @@ import Button from "@/components/Button";
 import WelcomePopup from "./WelcomePopup";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
-import { submitApplication, type ApplicationType } from "@/lib/api-client";
+import {
+  submitApplication,
+  uploadApplicationDocuments,
+  APPLICATION_DOC_ACCEPTED_TYPES,
+  APPLICATION_DOC_MAX_BYTES,
+  APPLICATION_DOC_MAX_FILES,
+  type ApplicationType,
+} from "@/lib/api-client";
 
 const initialForm = {
   applicationType: "chef" as ApplicationType,
@@ -40,6 +47,8 @@ const JoinToCreateProfileForm = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [proofFiles, setProofFiles] = useState<File[]>([]);
+  const [proofUploadError, setProofUploadError] = useState("");
 
   const [formData, setFormData] = useState(() => {
     if (typeof window !== "undefined") {
@@ -93,6 +102,32 @@ const JoinToCreateProfileForm = () => {
         delete (payload as { jobTitle?: string }).jobTitle;
         delete (payload as { professionalEmail?: string }).professionalEmail;
         delete (payload as { professionalProof?: string }).professionalProof;
+        delete (payload as { applicationDocuments?: string[] }).applicationDocuments;
+      }
+
+      if (isChef) {
+        const hasLegacyProof =
+          typeof formData.professionalProof === "string" &&
+          formData.professionalProof.length > 0;
+
+        if (proofFiles.length === 0 && !hasLegacyProof) {
+          toast.error("Please upload at least one document or image");
+          setLoading(false);
+          return;
+        }
+
+        if (proofFiles.length > 0) {
+          const documentUrls = await uploadApplicationDocuments(
+            proofFiles,
+            formData.firstName,
+            formData.lastName
+          );
+          payload.applicationDocuments = documentUrls;
+          payload.professionalProof = documentUrls[0];
+        } else if (hasLegacyProof) {
+          payload.applicationDocuments = [formData.professionalProof];
+          payload.professionalProof = formData.professionalProof;
+        }
       }
 
       await submitApplication(payload);
@@ -101,6 +136,8 @@ const JoinToCreateProfileForm = () => {
       setShowPopup(true);
 
       setFormData(initialForm);
+      setProofFiles([]);
+      setProofUploadError("");
       localStorage.removeItem("chefForm");
     } catch (err: unknown) {
       const message =
@@ -389,15 +426,83 @@ const JoinToCreateProfileForm = () => {
                 </div>
 
                 <div className="mb-10">
+                  <label className="block mb-2 text-lg font-medium!">
+                    Professional Proof — documents and images (up to{" "}
+                    {APPLICATION_DOC_MAX_FILES})
+                  </label>
                   <input
-                    type="text"
-                    name="professionalProof"
-                    value={formData.professionalProof}
-                    placeholder="Professional Proof"
+                    type="file"
+                    multiple
+                    accept=".pdf,image/jpeg,image/png,image/webp"
                     className="input-field"
-                    onChange={handleChange}
-                    required={isChef}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.files ?? []);
+                      e.target.value = "";
+                      setProofUploadError("");
+
+                      if (selected.length === 0) return;
+
+                      const invalidType = selected.find(
+                        (file) =>
+                          !APPLICATION_DOC_ACCEPTED_TYPES.includes(
+                            file.type as (typeof APPLICATION_DOC_ACCEPTED_TYPES)[number]
+                          )
+                      );
+                      if (invalidType) {
+                        setProofUploadError(
+                          `"${invalidType.name}": use PDF, JPEG, PNG, or WebP.`
+                        );
+                        return;
+                      }
+
+                      const tooLarge = selected.find(
+                        (file) => file.size > APPLICATION_DOC_MAX_BYTES
+                      );
+                      if (tooLarge) {
+                        setProofUploadError(
+                          `"${tooLarge.name}" must be 10 MB or smaller.`
+                        );
+                        return;
+                      }
+
+                      setProofFiles((prev) => {
+                        const merged = [...prev, ...selected];
+                        if (merged.length > APPLICATION_DOC_MAX_FILES) {
+                          setProofUploadError(
+                            `Maximum ${APPLICATION_DOC_MAX_FILES} files allowed.`
+                          );
+                          return merged.slice(0, APPLICATION_DOC_MAX_FILES);
+                        }
+                        return merged;
+                      });
+                    }}
                   />
+                  {proofFiles.length > 0 ? (
+                    <ul className="mt-3 space-y-2">
+                      {proofFiles.map((file, index) => (
+                        <li
+                          key={`${file.name}-${file.size}-${index}`}
+                          className="flex items-center justify-between gap-3 text-sm text-gray-700"
+                        >
+                          <span className="truncate">{file.name}</span>
+                          <button
+                            type="button"
+                            className="shrink-0 text-red-600 underline"
+                            onClick={() =>
+                              setProofFiles((prev) =>
+                                prev.filter((_, i) => i !== index)
+                              )
+                            }
+                          >
+                            Remove
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  {proofUploadError ? (
+                    <p className="text-sm mt-2 text-red-600">{proofUploadError}</p>
+                  ) : null}
                 </div>
               </>
             )}
