@@ -16,6 +16,9 @@ export type ChefProfile = {
   professionalEmail?: string;
   status?: string;
   profilePhotoUrl?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  geocodePrecision?: "exact" | "city" | "region" | "none";
 };
 
 export function formatChefFullName(chef?: ChefProfile): string {

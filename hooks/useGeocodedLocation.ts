@@ -1,36 +1,53 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { geocodeAddress, type GeocodeResult } from "@/lib/geocode";
+import {
+  geocodeAddressWithFallback,
+  type AddressFields,
+  type GeocodePrecision,
+  type GeocodeResult,
+} from "@/lib/geocode";
+import { hasValidCoords } from "@/lib/restaurant-location";
 
 type UseGeocodedLocationOptions = {
   address?: string;
+  addressFields?: AddressFields;
   lat?: number;
   lng?: number;
+  geocodePrecision?: GeocodePrecision;
 };
 
 export function useGeocodedLocation({
   address,
+  addressFields,
   lat,
   lng,
+  geocodePrecision,
 }: UseGeocodedLocationOptions) {
-  const hasExplicitCoords =
-    typeof lat === "number" &&
-    typeof lng === "number" &&
-    !Number.isNaN(lat) &&
-    !Number.isNaN(lng);
+  const hasExplicitCoords = hasValidCoords(lat, lng);
 
-  const [coords, setCoords] = useState<GeocodeResult | null>(
-    hasExplicitCoords ? { lat: lat!, lng: lng! } : null
-  );
+  const [coords, setCoords] = useState<GeocodeResult | null>(() => {
+    if (hasExplicitCoords) {
+      return {
+        lat: lat!,
+        lng: lng!,
+        precision: geocodePrecision ?? "exact",
+      };
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(
     !hasExplicitCoords && Boolean(address?.trim())
   );
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    if (hasExplicitCoords) {
-      setCoords({ lat: lat!, lng: lng! });
+    if (hasValidCoords(lat, lng)) {
+      setCoords({
+        lat: lat!,
+        lng: lng!,
+        precision: geocodePrecision ?? "exact",
+      });
       setLoading(false);
       setFailed(false);
       return;
@@ -48,7 +65,7 @@ export function useGeocodedLocation({
     setLoading(true);
     setFailed(false);
 
-    geocodeAddress(trimmed).then((result) => {
+    geocodeAddressWithFallback(trimmed, addressFields).then((result) => {
       if (cancelled) return;
       if (result) {
         setCoords(result);
@@ -63,7 +80,7 @@ export function useGeocodedLocation({
     return () => {
       cancelled = true;
     };
-  }, [address, lat, lng]);
+  }, [address, addressFields, lat, lng, geocodePrecision]);
 
   return { coords, loading, failed };
 }

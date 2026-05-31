@@ -1,16 +1,7 @@
 import type { PublicRestaurant } from "@/types/restaurant";
 import RetaurantsMap from "@/app/(main)/Individual-restaurant-page/_components/RetaurantsMap";
-
-function formatMapAddress(restaurant: PublicRestaurant) {
-  return [
-    restaurant.addressLine1,
-    restaurant.addressLine2,
-    `${restaurant.city}, ${restaurant.state} ${restaurant.zipCode}`,
-    restaurant.country,
-  ]
-    .filter(Boolean)
-    .join(", ");
-}
+import { formatRestaurantAddress } from "@/lib/restaurant-location";
+import type { GeocodePrecision } from "@/lib/geocode";
 
 export default function RestaurantSidebar({
   restaurant,
@@ -64,7 +55,18 @@ export default function RestaurantSidebar({
       </section>
 
       <RetaurantsMap
-        address={formatMapAddress(restaurant)}
+        address={formatRestaurantAddress(restaurant)}
+        lat={restaurant.latitude ?? undefined}
+        lng={restaurant.longitude ?? undefined}
+        geocodePrecision={restaurant.geocodePrecision as GeocodePrecision | undefined}
+        addressFields={{
+          addressLine1: restaurant.addressLine1,
+          addressLine2: restaurant.addressLine2,
+          city: restaurant.city,
+          state: restaurant.state,
+          zipCode: restaurant.zipCode,
+          country: restaurant.country,
+        }}
         locationName={restaurant.name}
         compact
       />

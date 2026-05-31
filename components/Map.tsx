@@ -2,7 +2,8 @@
 
 import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useState } from 'react';
+import { zoomForPrecision, precisionLabel, type GeocodePrecision } from '@/lib/geocode';
+import { useLeafletIcon } from '@/hooks/useLeafletIcon';
 
 const MapContainer = dynamic(() => import('react-leaflet').then(m => m.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then(m => m.TileLayer), { ssr: false });
@@ -13,35 +14,21 @@ type Props = {
   lat: number;
   lng: number;
   name?: string;
+  precision?: GeocodePrecision;
 };
 
-export default function Map({ lat, lng, name }: Props) {
-  const [icon, setIcon] = useState<any>(null);
-
-  useEffect(() => {
-    import('leaflet').then((L) => {
-
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
-
-      const customIcon = new L.Icon({
-        iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-      });
-
-      setIcon(customIcon);
-    });
-  }, []);
-
+export default function Map({ lat, lng, name, precision = 'exact' }: Props) {
+  const icon = useLeafletIcon();
+  const zoom = zoomForPrecision(precision);
+  const approximate = precisionLabel(precision);
 
   if (!icon) return null;
 
   return (
-    <div className=" w-full h-full rounded overflow-hidden border border-gray-900">
+    <div className="relative w-full h-full rounded overflow-hidden border border-gray-900">
       <MapContainer
         center={[lat, lng]}
-        zoom={13}
+        zoom={zoom}
         scrollWheelZoom={false}
         className="w-full h-full min-h-60"
       >
@@ -54,6 +41,11 @@ export default function Map({ lat, lng, name }: Props) {
           <Popup>{name || "Location"}</Popup>
         </Marker>
       </MapContainer>
+      {approximate ? (
+        <p className="absolute bottom-2 left-2 right-2 rounded bg-black/70 px-2 py-1 text-center text-[10px] text-white">
+          {approximate}
+        </p>
+      ) : null}
     </div>
   );
 }

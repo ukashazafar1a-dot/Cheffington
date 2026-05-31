@@ -1,23 +1,28 @@
 "use client";
 
 import GeocodedMap from "@/components/GeocodedMap";
+import type { AddressFields, GeocodePrecision } from "@/lib/geocode";
 import { useState } from "react";
 
 type RestaurantsMapProps = {
     address?: string;
+    addressFields?: AddressFields;
     phone?: string;
     website?: string;
     lat?: number;
     lng?: number;
+    geocodePrecision?: GeocodePrecision;
     locationName?: string;
 };
 
 const RestaurantsMap = ({
     address,
+    addressFields,
     phone,
     website,
     lat,
     lng,
+    geocodePrecision,
     locationName = "Chef Location",
 }: RestaurantsMapProps) => {
     const displayAddress = address?.trim() || "Address not provided";
@@ -56,8 +61,10 @@ const RestaurantsMap = ({
             <div className="relative z-0 md:h-111.75">
                 <GeocodedMap
                     address={address?.trim() || undefined}
+                    addressFields={addressFields}
                     lat={lat}
                     lng={lng}
+                    geocodePrecision={geocodePrecision}
                     name={locationName}
                     className="w-full h-full min-h-60"
                     unavailableLabel={

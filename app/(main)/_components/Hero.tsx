@@ -20,11 +20,23 @@ const Hero = () => {
           </p>
         </div>
         <form
-          action="/search-results"
+          action="/restaurants"
           method="get"
           className="bg-transparent border-black border-3 px-4 py-5 rounded-[9px]"
         >
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+          <div className="grid grid-cols-1 items-end gap-6 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="flex flex-col space-y-2">
+              <label className="uppercase text-xl" htmlFor="hero-name">
+                Restaurant
+              </label>
+              <input
+                id="hero-name"
+                name="name"
+                type="text"
+                suppressHydrationWarning
+                className="bg-transparent border-b focus:border-black outline-none pb-1"
+              />
+            </div>
             <div className="flex flex-col space-y-2">
               <label className="uppercase text-xl" htmlFor="hero-cuisine">
                 Cuisine
@@ -61,7 +73,7 @@ const Hero = () => {
                 className="bg-transparent border-b focus:border-black outline-none pb-1"
               />
             </div>
-            <Button title="Let's Eat" type="submit" className="w-full md:w-auto" />
+            <Button title="Let's Eat" type="submit" className="w-full lg:w-auto" />
           </div>
         </form>
       </div>

@@ -1,14 +1,17 @@
 "use client";
 
 import GeocodedMap from "@/components/GeocodedMap";
+import type { AddressFields, GeocodePrecision } from "@/lib/geocode";
 import { useState } from "react";
 
 type RestaurantsMapProps = {
     address?: string;
+    addressFields?: AddressFields;
     phone?: string;
     website?: string;
     lat?: number;
     lng?: number;
+    geocodePrecision?: GeocodePrecision;
     locationName?: string;
     /** Public detail: map + address only; phone/website live in sidebar */
     compact?: boolean;
@@ -16,10 +19,12 @@ type RestaurantsMapProps = {
 
 const RestaurantsMap = ({
     address,
+    addressFields,
     phone = "(555) 555-5555",
     website = "www.website.com",
     lat,
     lng,
+    geocodePrecision,
     locationName = "Location",
     compact = false,
 }: RestaurantsMapProps) => {
@@ -54,8 +59,10 @@ const RestaurantsMap = ({
             <div className={compact ? "h-48 md:h-52" : "md:h-111.75"}>
                 <GeocodedMap
                     address={displayAddress}
+                    addressFields={addressFields}
                     lat={lat}
                     lng={lng}
+                    geocodePrecision={geocodePrecision}
                     name={locationName}
                     className="w-full h-full min-h-48"
                 />

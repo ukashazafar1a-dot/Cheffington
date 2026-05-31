@@ -2,6 +2,7 @@ import RestaurantsDetails from './RestaurantsDetails';
 import RestaurantsMap from './RetaurantsMap';
 
 import { formatChefAddress, type ChefProfile } from '@/types/chef';
+import type { GeocodePrecision } from '@/lib/geocode';
 
 interface HeroSectionProps {
   chef?: ChefProfile;
@@ -35,6 +36,17 @@ const HeroSection = ({
             <div className=" xl:w-[30%] w-full">
               <RestaurantsMap
                 address={address}
+                addressFields={{
+                  addressLine1: chef?.addressLine1,
+                  addressLine2: chef?.addressLine2,
+                  city: chef?.city,
+                  state: chef?.state,
+                  zipCode: chef?.zipCode,
+                  country: chef?.country,
+                }}
+                lat={chef?.latitude ?? undefined}
+                lng={chef?.longitude ?? undefined}
+                geocodePrecision={chef?.geocodePrecision as GeocodePrecision | undefined}
                 phone={chef?.phone}
                 website={chef?.website}
                 locationName={locationName}

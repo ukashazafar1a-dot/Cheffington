@@ -19,6 +19,9 @@ export interface PublicRestaurant {
   state: string;
   zipCode: string;
   country: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  geocodePrecision?: "exact" | "city" | "region" | "none";
   images?: string[];
   contentSections?: ContentSection[];
   createdAt?: string;
