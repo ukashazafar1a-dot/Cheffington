@@ -101,11 +101,9 @@ const JoinToCreateProfileForm = () => {
       if (isOwner) {
         delete (payload as { jobTitle?: string }).jobTitle;
         delete (payload as { professionalEmail?: string }).professionalEmail;
-        delete (payload as { professionalProof?: string }).professionalProof;
-        delete (payload as { applicationDocuments?: string[] }).applicationDocuments;
       }
 
-      if (isChef) {
+      if (isChef || isOwner) {
         const hasLegacyProof =
           typeof formData.professionalProof === "string" &&
           formData.professionalProof.length > 0;
@@ -120,7 +118,8 @@ const JoinToCreateProfileForm = () => {
           const documentUrls = await uploadApplicationDocuments(
             proofFiles,
             formData.firstName,
-            formData.lastName
+            formData.lastName,
+            formData.applicationType
           );
           payload.applicationDocuments = documentUrls;
           payload.professionalProof = documentUrls[0];
@@ -411,23 +410,25 @@ const JoinToCreateProfileForm = () => {
               </div>
             </div>
 
-            {isChef && (
+            {(isChef || isOwner) && (
               <>
-                <div className="mb-10">
-                  <input
-                    type="email"
-                    name="professionalEmail"
-                    value={formData.professionalEmail}
-                    placeholder="Professional email"
-                    className="input-field"
-                    onChange={handleChange}
-                    required={isChef}
-                  />
-                </div>
+                {isChef ? (
+                  <div className="mb-10">
+                    <input
+                      type="email"
+                      name="professionalEmail"
+                      value={formData.professionalEmail}
+                      placeholder="Professional email"
+                      className="input-field"
+                      onChange={handleChange}
+                      required={isChef}
+                    />
+                  </div>
+                ) : null}
 
                 <div className="mb-10">
                   <label className="block mb-2 text-lg font-medium!">
-                    Professional Proof — documents and images (up to{" "}
+                    {isOwner ? "Business Verification Documents" : "Professional Proof"} — documents and images (up to{" "}
                     {APPLICATION_DOC_MAX_FILES})
                   </label>
                   <input

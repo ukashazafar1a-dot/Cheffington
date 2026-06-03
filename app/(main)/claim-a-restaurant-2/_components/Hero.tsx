@@ -6,7 +6,7 @@ const Hero = () => {
             <HeroTitle className='mb-8'
                 title={
                     <>
-                        <span style={{ color: "#ff8400" }}>Log In</span> to Your Account
+                        Submit Your <span style={{ color: "#ff8400" }}>Claim</span> Details
                     </>
                 }
                 subtitle={

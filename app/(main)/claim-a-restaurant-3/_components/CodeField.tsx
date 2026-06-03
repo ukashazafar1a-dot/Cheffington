@@ -1,61 +1,28 @@
-'use client'
-import Button from "@/components/Button";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
-const CodeField = () => {
-    const handleClick = () => {
-        alert("Code submitted!");
-        redirect("/claim-a-restaurant-4")
-    }
+const CodeField = ({ claimId }: { claimId?: string }) => {
     return (
         <div className="">
-            <section>
-                <label className="text-2xl font-bold mb-6 block tracking[-8%] leading-1">
-                    Receive a code at @restaurantname.com
-                </label>
-
-                <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-stretch md:items-center">
-                    <input
-                        type="email"
-                        placeholder="Work Email"
-                        className="input-field h-17.25 border! bg-[#EFEFEF]! placeholder:pl-4!"
-                    />
-
-                    <Button title="Send" />
-                </div>
+            <section className="rounded-[9px] border-3 border-black bg-[#FF8000] p-6 md:px-9.75 md:py-10">
+                <h2 className="mb-4 text-2xl font-bold tracking[-8%] leading-1">
+                    Application status: Pending review
+                </h2>
+                {claimId ? (
+                    <p className="mb-3 text-lg">
+                        Claim ID: <span className="font-semibold">{claimId}</span>
+                    </p>
+                ) : null}
+                <p className="text-lg">
+                    Expected review time is usually 1-3 business days. We may contact you
+                    for additional proof before approval.
+                </p>
             </section>
-            {/* Phone Verification */}
-            <section className='my-18'>
-                <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 md:gap-6">
-                    <label className="text-2xl font-bold block tracking[-8%] leading-1">
-                        Receive a code at *restaurant phone number
-                    </label>
-                    {/* 
-                    <button className="button button--primary  ">
-                        SEND
-                    </button> */}
-                    <Button title="Send" className="" onClick={handleClick} />
-
-                </div>
-            </section>
-
-            {/* Code Box */}
-            <section className="bg-[#FF8000] md:py-14 md:px-9.75 p-6 rounded-[9px] shadow-sm">
-                <label className="text-2xl font-bold mb-7 block tracking[-8%] leading-1">
-                    Enter verification code
-                </label>
-
-                <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-stretch md:items-center">
-                    <input
-                        type="text"
-                        className="input-field md:h-[69px]  h-[69px] border! bg-[#EFEFEF]! placeholder:pl-4!"
-                    />
-                    <Button title="Claim" className="   bg-black! text-white!" onClick={handleClick} />
-
-                </div>
-            </section>
-            <p className="text-[20px] mt-20 text-center tracking-[-8%] leading-normal">Need assistance? <span> <Link href={'#'} className="underline"> Contact us. </Link></span></p>
+            <p className="text-[20px] mt-12 text-center tracking-[-8%] leading-normal">
+                Need assistance?{" "}
+                <span>
+                    <Link href={'/advertising'} className="underline">Contact us.</Link>
+                </span>
+            </p>
         </div>
     )
 }

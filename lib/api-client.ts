@@ -30,12 +30,14 @@ export const APPLICATION_DOC_MAX_FILES = 10;
 export async function uploadApplicationDocument(
   file: File,
   firstName: string,
-  lastName: string
+  lastName: string,
+  applicationType: ApplicationType
 ) {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("firstName", firstName);
   formData.append("lastName", lastName);
+  formData.append("applicationType", applicationType);
 
   const res = await fetch(`${API_BASE_URL}/chef-applications/upload-document`, {
     method: "POST",
@@ -58,10 +60,13 @@ export async function uploadApplicationDocument(
 export async function uploadApplicationDocuments(
   files: File[],
   firstName: string,
-  lastName: string
+  lastName: string,
+  applicationType: ApplicationType
 ) {
   const results = await Promise.all(
-    files.map((file) => uploadApplicationDocument(file, firstName, lastName))
+    files.map((file) =>
+      uploadApplicationDocument(file, firstName, lastName, applicationType)
+    )
   );
   return results.map((r) => r.publicUrl);
 }
@@ -225,4 +230,76 @@ export async function getChefMe(chefToken: string) {
     throw new Error(data.message || "Failed to load chef profile");
   }
   return data.chef;
+}
+
+export type RestaurantClaimPayload = {
+  restaurantId: string;
+  claimantName: string;
+  claimantEmail: string;
+  claimantPhone: string;
+  relationshipToBusiness:
+    | "owner"
+    | "manager"
+    | "authorized_representative"
+    | "other";
+  jobTitle?: string;
+  proofSummary: string;
+  proofDocumentUrls?: string[];
+};
+
+export const CLAIM_ATTACHMENT_ACCEPTED_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const;
+
+export const CLAIM_ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;
+
+export async function uploadRestaurantClaimAttachment(
+  file: File,
+  claimantName: string,
+  restaurantId: string
+) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("claimantName", claimantName);
+  formData.append("restaurantId", restaurantId);
+
+  const res = await fetch(`${API_BASE_URL}/restaurant-claims/upload-attachment`, {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    data?: { publicUrl: string; displayUrl?: string; key?: string };
+    message?: string;
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to upload attachment");
+  }
+
+  return data.data!;
+}
+
+export async function submitRestaurantClaim(body: RestaurantClaimPayload) {
+  const res = await fetch(`${API_BASE_URL}/restaurant-claims`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    message?: string;
+    data?: { _id: string };
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to submit claim");
+  }
+
+  return data;
 }

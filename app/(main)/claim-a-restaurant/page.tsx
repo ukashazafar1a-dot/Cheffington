@@ -4,81 +4,45 @@ import { useState, useRef, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-
-const DUMMY_RESTAURANTS = [
-  {
-    id: 1,
-    name: "The Italian Kitchen",
-    city: "New York",
-    state: "NY",
-    country: "USA",
-  },
-  {
-    id: 2,
-    name: "Sushi House",
-    city: "Los Angeles",
-    state: "CA",
-    country: "USA",
-  },
-  {
-    id: 3,
-    name: "La Bella Pizza",
-    city: "Chicago",
-    state: "IL",
-    country: "USA",
-  },
-  {
-    id: 4,
-    name: "Thai Paradise",
-    city: "San Francisco",
-    state: "CA",
-    country: "USA",
-  },
-  {
-    id: 5,
-    name: "The Burger Joint",
-    city: "Austin",
-    state: "TX",
-    country: "USA",
-  },
-  { id: 6, name: "French Bistro", city: "Boston", state: "MA", country: "USA" },
-  { id: 7, name: "Taco Fiesta", city: "Miami", state: "FL", country: "USA" },
-  { id: 8, name: "India House", city: "Seattle", state: "WA", country: "USA" },
-  {
-    id: 9,
-    name: "Dragon Palace",
-    city: "Portland",
-    state: "OR",
-    country: "USA",
-  },
-  {
-    id: 10,
-    name: "Mediterranean Grill",
-    city: "Denver",
-    state: "CO",
-    country: "USA",
-  },
-];
-
-interface Restaurant {
-  id: number;
-  name: string;
-  city: string;
-  state: string;
-  country: string;
-}
+import { useRouter } from "next/navigation";
+import { getPublishedRestaurants } from "@/lib/api-client";
+import type { PublicRestaurant } from "@/types/restaurant";
 
 export default function RestaurantSearch() {
+  const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
-  const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>(
-    [],
-  );
+  const [allRestaurants, setAllRestaurants] = useState<PublicRestaurant[]>([]);
+  const [filteredRestaurants, setFilteredRestaurants] = useState<
+    PublicRestaurant[]
+  >([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] =
-    useState<Restaurant | null>(null);
+    useState<PublicRestaurant | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    async function loadRestaurants() {
+      try {
+        setLoading(true);
+        const res = await getPublishedRestaurants();
+        setAllRestaurants(res.data ?? []);
+      } catch (loadError) {
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Failed to load restaurants"
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadRestaurants();
+  }, []);
 
   useEffect(() => {
     if (searchInput.trim() === "") {
@@ -87,13 +51,13 @@ export default function RestaurantSearch() {
       return;
     }
 
-    const filtered = DUMMY_RESTAURANTS.filter((r) =>
+    const filtered = allRestaurants.filter((r) =>
       r.name.toLowerCase().includes(searchInput.toLowerCase()),
     );
 
     setFilteredRestaurants(filtered);
     setShowDropdown(true);
-  }, [searchInput]);
+  }, [allRestaurants, searchInput]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -111,20 +75,20 @@ export default function RestaurantSearch() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelectRestaurant = (restaurant: Restaurant) => {
+  const handleSelectRestaurant = (restaurant: PublicRestaurant) => {
     setSelectedRestaurant(restaurant);
     setSearchInput(restaurant.name);
     setShowDropdown(false);
   };
 
-  const handleAddNew = () => {
-    alert(`Adding new restaurant: "${searchInput}"`);
-  };
-
   const handleSearch = () => {
-    if (selectedRestaurant) {
-      alert(`Searching for reviews of ${selectedRestaurant.name}`);
-    }
+    if (!selectedRestaurant) return;
+
+    const qs = new URLSearchParams({
+      restaurantId: selectedRestaurant._id,
+      restaurantName: selectedRestaurant.name,
+    });
+    router.push(`/claim-a-restaurant-2?${qs.toString()}`);
   };
 
   return (
@@ -160,15 +124,8 @@ export default function RestaurantSearch() {
                 />
               </div>
 
-              {/* Right side (Button) */}
-              {/* <Button
-                onClick={handleSearch}
-                disabled={!selectedRestaurant}
-                className="h-10 px-6 "
-              >
-                SEARCH
-              </Button> */}
               <button
+                type="button"
                 onClick={handleSearch}
                 disabled={!selectedRestaurant}
                 className="button button--primary max-md:w-full
@@ -200,9 +157,10 @@ export default function RestaurantSearch() {
                 {/* Results */}
                 {filteredRestaurants.map((restaurant) => (
                   <button
-                    key={restaurant.id}
+                    key={restaurant._id}
                     onClick={() => handleSelectRestaurant(restaurant)}
                     className="w-full text-left px-4 py-3  flex justify-between items-center"
+                    type="button"
                   >
                     <div>
                       <p className="body-title font-semibold">
@@ -214,9 +172,16 @@ export default function RestaurantSearch() {
                     </div>
                   </button>
                 ))}
+
+                {!loading && !filteredRestaurants.length && searchInput.trim() ? (
+                  <p className="px-4 py-3 text-sm text-gray-700">
+                    No matching restaurant found.
+                  </p>
+                ) : null}
               </div>
             )}
           </div>
+          {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
         </div>
       </div>
     </div>

@@ -1,7 +1,18 @@
 import ClaimRestaurantForm from "./_components/ClaimRestaurant";
-const ClaimPage = () => {
+
+type Props = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+const ClaimPage = async ({ searchParams }: Props) => {
+  const params = await searchParams;
+  const claimId =
+    typeof params.claimId === "string" ? params.claimId : undefined;
+  const restaurantName =
+    typeof params.restaurantName === "string" ? params.restaurantName : undefined;
+
   return (
-    <ClaimRestaurantForm />
+    <ClaimRestaurantForm claimId={claimId} restaurantName={restaurantName} />
   );
 };
 
