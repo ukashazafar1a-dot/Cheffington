@@ -1,10 +1,7 @@
-import StarRating from "@/components/StarRating";
-
 type ChefReviewCardProps = {
   chefName?: string;
   restaurantName?: string;
   profilePhotoUrl?: string;
-  rating?: number;
   title?: string;
   comment?: string;
   date?: string;
@@ -27,7 +24,6 @@ const ChefReviewCard = ({
   chefName = "Jane Doe",
   restaurantName = "Restaurant",
   profilePhotoUrl,
-  rating = 5,
   title,
   comment = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis commodo metus vitae urna eleifend, a tristique sapien fringilla. Aliquam scelerisque ante tellus, eget consequat mi sollicitudin vel.",
   date,
@@ -66,9 +62,6 @@ const ChefReviewCard = ({
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="mb-2">
-          <StarRating value={rating} readOnly size="sm" />
-        </div>
         {displayTitle ? (
           <h3 className="mb-2 text-xl font-bold leading-tight tracking-[2%]">{displayTitle}</h3>
         ) : null}

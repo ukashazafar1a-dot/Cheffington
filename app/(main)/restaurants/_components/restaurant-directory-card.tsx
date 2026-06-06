@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ChefReviewCountBadge from "@/components/ChefReviewCountBadge";
 import type { PublicRestaurant } from "@/types/restaurant";
 
 function formatAddress(r: PublicRestaurant) {
@@ -39,6 +40,7 @@ export default function RestaurantDirectoryCard({
         {restaurant.cuisine && (
           <p className="text-sm text-gray-600 mt-1">{restaurant.cuisine}</p>
         )}
+        <ChefReviewCountBadge count={restaurant.reviewCount ?? 0} className="mt-1" />
         <p className="text-sm text-gray-500 mt-1">{formatAddress(restaurant)}</p>
         {restaurant.description && (
           <p className="text-sm text-gray-600 mt-2 line-clamp-2">

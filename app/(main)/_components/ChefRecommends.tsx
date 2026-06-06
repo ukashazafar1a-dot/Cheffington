@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getFeaturedReviews } from "@/lib/api-client";
-import StarRating from "@/components/StarRating";
 
 export const dynamic = "force-dynamic";
 
@@ -87,9 +86,6 @@ export default async function ChefRecommends() {
                   </div>
 
                   <div className="flex min-w-0 basis-2/3 flex-col justify-center max-sm:basis-full">
-                    <div className="mb-2">
-                      <StarRating value={review.rating} readOnly size="sm" />
-                    </div>
                     <h4 className="mb-1 text-xl font-bold">{name}</h4>
                     {restaurantName && restaurantId ? (
                       <Link

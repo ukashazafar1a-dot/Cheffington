@@ -12,7 +12,6 @@ export interface FeaturedReviewRestaurant {
 
 export interface PublicReview {
   _id: string;
-  rating: number;
   title?: string;
   comment: string;
   createdAt: string;
@@ -28,7 +27,6 @@ export interface FeaturedReviewsResponse {
 }
 
 export interface ReviewSummary {
-  averageRating: number;
   reviewCount: number;
 }
 
@@ -50,7 +48,6 @@ export interface SubmitReviewResponse {
   data: {
     _id: string;
     restaurantId: string;
-    rating: number;
     comment: string;
     status: string;
   };
@@ -67,7 +64,6 @@ export interface MyReviewRestaurant {
 
 export interface MyReview {
   _id: string;
-  rating: number;
   title?: string;
   comment: string;
   status: string;

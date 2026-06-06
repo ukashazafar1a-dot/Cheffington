@@ -1,29 +1,23 @@
-import {
-  getRestaurantReviewSummary,
-  getRestaurantReviews,
-} from "@/lib/api-client";
+import { getRestaurantReviews } from "@/lib/api-client";
 import ChefReviewCard from "@/app/(main)/_components/ChefReviewCard";
 import WriteReviewLink from "@/components/WriteReviewLink";
-import StarRating from "@/components/StarRating";
+import ChefReviewCountBadge from "@/components/ChefReviewCountBadge";
 
 type Props = {
   restaurantId: string;
   restaurantName: string;
+  reviewCount?: number;
 };
 
 export default async function RestaurantReviews({
   restaurantId,
   restaurantName,
+  reviewCount = 0,
 }: Props) {
-  let summary = { averageRating: 0, reviewCount: 0 };
   let reviews: Awaited<ReturnType<typeof getRestaurantReviews>>["data"] = [];
 
   try {
-    const [summaryRes, reviewsRes] = await Promise.all([
-      getRestaurantReviewSummary(restaurantId),
-      getRestaurantReviews(restaurantId),
-    ]);
-    summary = summaryRes.data;
+    const reviewsRes = await getRestaurantReviews(restaurantId);
     reviews = reviewsRes.data ?? [];
   } catch {
     // Keep empty state if API unavailable
@@ -34,17 +28,7 @@ export default async function RestaurantReviews({
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Chef reviews</h2>
-          {summary.reviewCount > 0 ? (
-            <div className="mt-2 flex flex-wrap items-center gap-3">
-              <StarRating value={Math.round(summary.averageRating)} readOnly size="sm" />
-              <span className="text-sm text-gray-600">
-                {summary.averageRating.toFixed(1)} · {summary.reviewCount}{" "}
-                {summary.reviewCount === 1 ? "review" : "reviews"}
-              </span>
-            </div>
-          ) : (
-            <p className="mt-1 text-sm text-gray-500">No reviews yet.</p>
-          )}
+          <ChefReviewCountBadge count={reviewCount} className="mt-2 text-gray-600" />
         </div>
         <WriteReviewLink restaurantId={restaurantId} />
       </div>
@@ -61,7 +45,6 @@ export default async function RestaurantReviews({
                 chefName={chefName}
                 profilePhotoUrl={review.chef?.profilePhotoUrl}
                 restaurantName={restaurantName}
-                rating={review.rating}
                 title={review.title?.trim() || undefined}
                 comment={review.comment}
                 date={review.createdAt}

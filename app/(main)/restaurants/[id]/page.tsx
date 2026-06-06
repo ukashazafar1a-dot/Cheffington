@@ -31,6 +31,7 @@ export default async function RestaurantDetailPage({ params }: Props) {
             <RestaurantReviews
               restaurantId={id}
               restaurantName={restaurant.name}
+              reviewCount={restaurant.reviewCount ?? 0}
             />
           </main>
         </div>

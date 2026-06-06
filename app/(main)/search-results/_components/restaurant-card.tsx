@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ChefReviewCountBadge from "@/components/ChefReviewCountBadge";
 import type { PublicRestaurant } from "@/types/restaurant";
 import { formatRestaurantAddress } from "@/lib/filter-restaurants";
 
@@ -34,6 +35,11 @@ export default function RestaurantCard({
           {restaurant.cuisine && (
             <p className="text-sm sm:text-base mb-3">{restaurant.cuisine}</p>
           )}
+
+          <ChefReviewCountBadge
+            count={restaurant.reviewCount ?? 0}
+            className="mb-3"
+          />
 
           <Link href={`/restaurants/${restaurant._id}`}>
             <span className="button text-black font-bold py-2 px-4 rounded-lg inline-block mb-4 text-xs sm:text-sm md:text-base cursor-pointer">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ChefReviewCountBadge from "@/components/ChefReviewCountBadge";
 import type { PublicRestaurant } from "@/types/restaurant";
 
 function formatLocation(r: PublicRestaurant) {
@@ -46,6 +47,12 @@ export default function FeaturedRestaurantCard({
             {[restaurant.cuisine, formatLocation(restaurant)].filter(Boolean).join(" · ")}
           </p>
         )}
+        <ChefReviewCountBadge
+          count={restaurant.reviewCount ?? 0}
+          className={`mt-2 text-center text-xs uppercase tracking-wide ${
+            thumb ? "text-[#FFF1E1]" : ""
+          }`}
+        />
       </div>
     </Link>
   );

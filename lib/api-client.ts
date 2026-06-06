@@ -155,7 +155,6 @@ export async function getRestaurantReviewSummary(restaurantId: string) {
 export async function submitReview(
   body: {
     restaurantId: string;
-    rating: number;
     comment: string;
     title?: string;
   },

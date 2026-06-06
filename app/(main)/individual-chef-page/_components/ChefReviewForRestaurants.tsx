@@ -30,7 +30,6 @@ const ChefReviewForRestaurants = ({ chef, reviews }: Props) => {
               chefName={chefName}
               profilePhotoUrl={chef?.profilePhotoUrl}
               restaurantName={review.restaurant?.name ?? "Restaurant"}
-              rating={review.rating}
               title={review.title?.trim() || undefined}
               comment={review.comment}
               date={review.updatedAt ?? review.createdAt}

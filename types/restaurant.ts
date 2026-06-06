@@ -26,6 +26,7 @@ export interface PublicRestaurant {
   contentSections?: ContentSection[];
   createdAt?: string;
   updatedAt?: string;
+  reviewCount?: number;
 }
 
 export interface PublicRestaurantListResponse {

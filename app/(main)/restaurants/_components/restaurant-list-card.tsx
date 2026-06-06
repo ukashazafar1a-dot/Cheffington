@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight, MapPin } from "lucide-react";
+import ChefReviewCountBadge from "@/components/ChefReviewCountBadge";
 import type { PublicRestaurant } from "@/types/restaurant";
 import {
   formatRestaurantAddress,
@@ -69,6 +70,11 @@ export default function RestaurantListCard({
                 {restaurant.name}
               </h3>
             </Link>
+
+            <ChefReviewCountBadge
+              count={restaurant.reviewCount ?? 0}
+              className="mt-2"
+            />
 
             {restaurant.description ? (
               <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-gray-600 sm:text-base">

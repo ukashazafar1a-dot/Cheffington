@@ -1,7 +1,10 @@
+import ChefReviewCountBadge from "@/components/ChefReviewCountBadge";
+
 type RestaurantHeroCoverProps = {
   name: string;
   cuisine?: string;
   coverImageUrl?: string;
+  reviewCount?: number;
 };
 
 /**
@@ -11,6 +14,7 @@ const RestaurantHeroCover = ({
   name,
   cuisine,
   coverImageUrl,
+  reviewCount = 0,
 }: RestaurantHeroCoverProps) => {
   return (
     <div className="flex w-full flex-col gap-3">
@@ -53,6 +57,7 @@ const RestaurantHeroCover = ({
               {cuisine}
             </p>
           ) : null}
+          <ChefReviewCountBadge count={reviewCount} className="mt-1 md:text-base" />
         </div>
       </div>
     </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import Button from "@/components/Button";
-import StarRating from "@/components/StarRating";
 import { submitReview } from "@/lib/api-client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -13,7 +12,6 @@ type ReviewFromProps = {
 
 const ReviewFrom = ({ restaurantId, restaurantName }: ReviewFromProps) => {
   const router = useRouter();
-  const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [title, setTitle] = useState("");
   const [error, setError] = useState("");
@@ -34,11 +32,6 @@ const ReviewFrom = ({ restaurantId, restaurantName }: ReviewFromProps) => {
       return;
     }
 
-    if (rating < 1) {
-      setError("Please select a star rating.");
-      return;
-    }
-
     if (!comment.trim()) {
       setError("Please enter your review.");
       return;
@@ -49,7 +42,6 @@ const ReviewFrom = ({ restaurantId, restaurantName }: ReviewFromProps) => {
       const result = await submitReview(
         {
           restaurantId,
-          rating,
           comment: comment.trim(),
           title: title.trim() || undefined,
         },
@@ -93,11 +85,6 @@ const ReviewFrom = ({ restaurantId, restaurantName }: ReviewFromProps) => {
             {tag}
           </span>
         ))}
-      </div>
-
-      <div className="mb-6">
-        <p className="mb-2 text-sm font-medium">Your rating</p>
-        <StarRating value={rating} onChange={setRating} />
       </div>
 
       <div className="relative mb-4">
