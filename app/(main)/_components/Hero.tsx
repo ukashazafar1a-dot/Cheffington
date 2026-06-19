@@ -19,14 +19,10 @@ const Hero = () => {
             Restaurant reviews by Chef&apos;s, not your mom&apos;s cat sitter.
           </p>
         </div>
-        <form
-          action="/restaurants"
-          method="get"
-          className="bg-transparent border-black border-3 px-4 py-5 rounded-[9px]"
-        >
+        <form action="/restaurants" method="get" className="form-search-card">
           <div className="grid grid-cols-1 items-end gap-6 sm:grid-cols-2 lg:grid-cols-5">
             <div className="flex flex-col space-y-2">
-              <label className="uppercase text-xl" htmlFor="hero-name">
+              <label className="form-search-label" htmlFor="hero-name">
                 Restaurant
               </label>
               <input
@@ -34,11 +30,11 @@ const Hero = () => {
                 name="name"
                 type="text"
                 suppressHydrationWarning
-                className="bg-transparent border-b focus:border-black outline-none pb-1"
+                className="form-search-input"
               />
             </div>
             <div className="flex flex-col space-y-2">
-              <label className="uppercase text-xl" htmlFor="hero-cuisine">
+              <label className="form-search-label" htmlFor="hero-cuisine">
                 Cuisine
               </label>
               <input
@@ -46,11 +42,11 @@ const Hero = () => {
                 name="cuisine"
                 type="text"
                 suppressHydrationWarning
-                className="bg-transparent border-b focus:border-black outline-none pb-1"
+                className="form-search-input"
               />
             </div>
             <div className="flex flex-col space-y-2">
-              <label className="uppercase text-xl" htmlFor="hero-location">
+              <label className="form-search-label" htmlFor="hero-location">
                 Location
               </label>
               <input
@@ -58,11 +54,11 @@ const Hero = () => {
                 name="location"
                 type="text"
                 suppressHydrationWarning
-                className="bg-transparent border-b focus:border-black outline-none pb-1"
+                className="form-search-input"
               />
             </div>
             <div className="flex flex-col space-y-2">
-              <label className="uppercase text-xl" htmlFor="hero-chef">
+              <label className="form-search-label" htmlFor="hero-chef">
                 Chef
               </label>
               <input
@@ -70,7 +66,7 @@ const Hero = () => {
                 name="chef"
                 type="text"
                 suppressHydrationWarning
-                className="bg-transparent border-b focus:border-black outline-none pb-1"
+                className="form-search-input"
               />
             </div>
             <Button title="Let's Eat" type="submit" className="w-full lg:w-auto" />

@@ -77,25 +77,19 @@ const MasterpieceForm = () => {
         </div>
 
         {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="border-3 rounded-[9px] border-black md:px-10! md:py-12! py-8! px-4! page-width-narrow"
-        >
-
-          {/* Restaurant Name */}
-          <div className="mb-10">
-            <label className="block mb-2 text-lg font-medium">Restaurant Name</label>
+        <form onSubmit={handleSubmit} className="form-card page-width-narrow">
+          <div className="form-section">
+            <label className="form-label">Restaurant Name</label>
             <input
               name="restaurantName"
               value={formData.restaurantName}
               onChange={handleInputChange}
               type="text"
-              className="input-field placeholder:font-bold focus:placeholder:font-medium placeholder:text-black! focus:placeholder:text-black"
+              className="input-field"
             />
           </div>
 
-          {/* Cuisine + Phone */}
-          <div className="mb-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="form-section form-grid">
             <div>
               {/* <label className="block mb-2 text-lg font-medium">Cuisine</label> */}
               <input
@@ -104,7 +98,7 @@ const MasterpieceForm = () => {
                 onChange={handleInputChange}
                 type="text"
                 placeholder='Cuisine'
-                className="input-field placeholder:font-bold focus:placeholder:font-medium placeholder:text-black! focus:placeholder:text-black"
+                className="input-field"
               />
             </div>
             <div>
@@ -115,13 +109,13 @@ const MasterpieceForm = () => {
                 onChange={handleInputChange}
                 type="text"
                 placeholder='(555) 555-5555'
-                className="input-field placeholder:font-bold focus:placeholder:font-medium placeholder:text-black! focus:placeholder:text-black"
+                className="input-field"
               />
             </div>
           </div>
 
           {/* Website + Menu */}
-          <div className="mb-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="form-section form-grid">
             <div>
               {/* <label className="block mb-2 text-lg font-medium">Website URL</label> */}
               <input
@@ -130,7 +124,7 @@ const MasterpieceForm = () => {
                 onChange={handleInputChange}
                 type="text"
                 placeholder='Website URL'
-                className="input-field placeholder:font-bold focus:placeholder:font-medium placeholder:text-black! focus:placeholder:text-black"
+                className="input-field"
               />
             </div>
             <div>
@@ -141,14 +135,14 @@ const MasterpieceForm = () => {
                 onChange={handleInputChange}
                 type="text"
                 placeholder='Menu Link'
-                className="input-field placeholder:font-bold focus:placeholder:font-medium placeholder:text-black! focus:placeholder:text-black"
+                className="input-field"
               />
             </div>
           </div>
 
           {/* Address */}
-          <div className="mb-10">
-            <label className="block mb-2 text-lg font-medium">Restaurant Address</label>
+          <div className="form-section">
+            <label className="form-label">Restaurant Address</label>
             <div className="space-y-4">
               <input
                 name="addressLine1"
@@ -176,8 +170,8 @@ const MasterpieceForm = () => {
               </div>
             </div>
           </div>
-          <div className='mb-10'>
-            <p className="md:text-[20px] text-[18px] tracking-[-8%] leading-normal mb-4">Upload Logo  or Featured Image (optional)</p>
+          <div className="form-section">
+            <p className="form-label">Upload Logo or Featured Image (optional)</p>
 
             {/* File Upload with note */}
             <label className="block border-1 border-dashed border-black/50 md:py-20 md:px-12 px-4 py-10 text-center cursor-pointer bg-transparent rounded-lg">
@@ -190,8 +184,8 @@ const MasterpieceForm = () => {
           </div>
 
           {/* Amenities */}
-          <div className="mb-10">
-            <label className="block mb-4 text-lg font-medium">Check all that apply:</label>
+          <div className="form-section">
+            <label className="form-label">Check all that apply:</label>
 
             <div className="grid grid-cols-2 gap-y-3 mt-8 max-sm:gap-2">
               {amenities.map((item, idx) => (
@@ -209,13 +203,13 @@ const MasterpieceForm = () => {
           </div>
 
           {/* Description */}
-          <div className="mb-10">
-            <label className="block mb-2 text-lg font-medium">Write Brief Description</label>
+          <div className="form-section">
+            <label className="form-label">Write Brief Description</label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              className="border border-black md:h-80 h-44 p-4 input-field"
+              className="input-field h-44 md:h-80"
             />
           </div>
 

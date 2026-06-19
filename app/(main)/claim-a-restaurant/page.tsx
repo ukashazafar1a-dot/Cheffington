@@ -109,10 +109,9 @@ export default function RestaurantSearch() {
 
           {/* Search Box */}
           <div className="relative">
-            <div className=" bg-transparent border-3 rounded-[9px] md:py-4 px-4.5 p-4 md:flex items-end justify-between gap-4">
-              {/* Left side (Label + Input) */}
-              <div className="flex flex-col w-full max-md:mb-6">
-                <label className="text-black! mb-2">Your Business Name</label>
+            <div className="form-search-card md:flex items-end justify-between gap-4 md:py-4">
+              <div className="flex w-full flex-col max-md:mb-6">
+                <label className="form-search-label">Your Business Name</label>
 
                 <Input
                   ref={inputRef}
@@ -120,7 +119,7 @@ export default function RestaurantSearch() {
                   placeholder=""
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="bg-transparent border-0 border-b border-black rounded-none px-0 text-black focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-black"
+                  className="form-search-input min-h-0! rounded-none border-0 border-b border-black px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
 
@@ -145,7 +144,7 @@ export default function RestaurantSearch() {
                 {searchInput.trim() && (
                   <div className="px-4 py-3 border-b  flex items-center gap-3">
                     <Plus className="w-5 h-5 body-title" />
-                    <Link href="add-listing">
+                    <Link href="/add-listing">
                       <p className="body-title text-sm flex-1">
                         Don&apos;t see your establishment? Add an estabilshment
                         with this name

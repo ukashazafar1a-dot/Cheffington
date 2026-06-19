@@ -142,15 +142,15 @@ const ClaimRestaurantForm = () => {
 
   return (
     <div className="page-width-narrow max-sm:px-0!">
-      <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit} className="form-card">
         {restaurantName ? (
-          <p className="mb-5 text-lg">
+          <p className="form-field text-lg">
             Claiming: <span className="font-semibold">{restaurantName}</span>
           </p>
         ) : null}
 
-        <div className="mb-5.5">
-          <label className="mb-2 block text-lg font-medium!">Full Name</label>
+        <div className="form-field">
+          <label className="form-label">Full Name</label>
           <input
             required
             type="text"
@@ -158,12 +158,12 @@ const ClaimRestaurantForm = () => {
             onChange={(e) =>
               setForm((prev) => ({ ...prev, claimantName: e.target.value }))
             }
-            className="input-field border! border-black bg-[#EFEFEF]"
+            className="input-field"
           />
         </div>
 
-        <div className="mb-5.5">
-          <label className="mb-2 block text-lg font-medium!">Email</label>
+        <div className="form-field">
+          <label className="form-label">Email</label>
           <input
             required
             type="email"
@@ -171,12 +171,12 @@ const ClaimRestaurantForm = () => {
             onChange={(e) =>
               setForm((prev) => ({ ...prev, claimantEmail: e.target.value }))
             }
-            className="input-field border! border-black bg-[#EFEFEF]"
+            className="input-field"
           />
         </div>
 
-        <div className="mb-5.5">
-          <label className="mb-2 block text-lg font-medium!">Phone</label>
+        <div className="form-field">
+          <label className="form-label">Phone</label>
           <input
             required
             type="text"
@@ -184,14 +184,12 @@ const ClaimRestaurantForm = () => {
             onChange={(e) =>
               setForm((prev) => ({ ...prev, claimantPhone: e.target.value }))
             }
-            className="input-field border! border-black bg-[#EFEFEF]"
+            className="input-field"
           />
         </div>
 
-        <div className="mb-5.5">
-          <label className="mb-2 block text-lg font-medium!">
-            Relationship to Business
-          </label>
+        <div className="form-field">
+          <label className="form-label">Relationship to Business</label>
           <select
             value={form.relationshipToBusiness}
             onChange={(e) =>
@@ -204,7 +202,7 @@ const ClaimRestaurantForm = () => {
                   | "other",
               }))
             }
-            className="input-field border! border-black bg-[#EFEFEF]"
+            className="input-field"
           >
             <option value="owner">Owner</option>
             <option value="manager">Manager</option>
@@ -215,36 +213,32 @@ const ClaimRestaurantForm = () => {
           </select>
         </div>
 
-        <div className="mb-5.5">
-          <label className="mb-2 block text-lg font-medium!">
-            Job Title (optional)
-          </label>
+        <div className="form-field">
+          <label className="form-label">Job Title (optional)</label>
           <input
             type="text"
             value={form.jobTitle}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, jobTitle: e.target.value }))
             }
-            className="input-field border! border-black bg-[#EFEFEF]"
+            className="input-field"
           />
         </div>
 
-        <div className="mb-5.5">
-          <label className="mb-2 block text-lg font-medium!">
-            Ownership Proof Summary
-          </label>
+        <div className="form-field">
+          <label className="form-label">Ownership Proof Summary</label>
           <textarea
             required
             value={form.proofSummary}
             onChange={(e) =>
               setForm((prev) => ({ ...prev, proofSummary: e.target.value }))
             }
-            className="input-field min-h-32 border! border-black bg-[#EFEFEF]"
+            className="input-field min-h-32"
           />
         </div>
 
-        <div className="mb-5.5">
-          <label className="mb-2 block text-lg font-medium!">
+        <div className="form-field">
+          <label className="form-label">
             Upload Proof Documents / Pictures (optional)
           </label>
           <input
@@ -253,9 +247,9 @@ const ClaimRestaurantForm = () => {
             accept={CLAIM_ATTACHMENT_ACCEPTED_TYPES.join(",")}
             onChange={onSelectAttachments}
             disabled={uploading || submitting}
-            className="input-field border! border-black bg-[#EFEFEF]"
+            className="input-field"
           />
-          <p className="mt-2 text-xs text-neutral-700">
+          <p className="form-hint">
             Allowed: PDF, JPG, PNG, WebP. Max{" "}
             {Math.floor(CLAIM_ATTACHMENT_MAX_BYTES / (1024 * 1024))} MB each.
           </p>
@@ -293,7 +287,7 @@ const ClaimRestaurantForm = () => {
           ) : null}
         </div>
 
-        {error ? <p className="mb-4 text-sm text-red-600">{error}</p> : null}
+        {error ? <p className="form-error mb-4">{error}</p> : null}
 
         <Button
           className="w-full!"

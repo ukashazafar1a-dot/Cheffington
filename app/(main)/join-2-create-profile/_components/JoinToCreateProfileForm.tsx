@@ -166,7 +166,7 @@ const JoinToCreateProfileForm = () => {
 
           <form
             onSubmit={handleSubmit}
-            className="border-3 rounded-[9px] border-black md:px-10! md:py-12! py-8! px-4! page-width-narrow"
+            className="form-card page-width-narrow"
           >
             <div className="flex flex-wrap gap-3 justify-center mb-10">
               <button
@@ -191,7 +191,7 @@ const JoinToCreateProfileForm = () => {
 
             {/* Full Name */}
             <div className="mb-10">
-              <label className="block mb-2 text-lg font-medium!">
+              <label className="form-label">
                 Full Name
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -220,7 +220,7 @@ const JoinToCreateProfileForm = () => {
             <div className="mb-10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block mb-2 text-lg font-medium!">
+                  <label className="form-label">
                     Email
                   </label>
                   <input
@@ -233,7 +233,7 @@ const JoinToCreateProfileForm = () => {
                   />
                 </div>
                 <div>
-                  <label className="block mb-2 text-lg font-medium!">
+                  <label className="form-label">
                     Phone
                   </label>
                   <input
@@ -252,7 +252,7 @@ const JoinToCreateProfileForm = () => {
             <div className="mb-10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative">
-                  <label className="block mb-2 text-lg font-medium!">
+                  <label className="form-label">
                     Create Password
                   </label>
                   <input
@@ -274,7 +274,7 @@ const JoinToCreateProfileForm = () => {
                 </div>
 
                 <div className="relative">
-                  <label className="block mb-2 text-lg font-medium!">
+                  <label className="form-label">
                     Verify Password
                   </label>
                   <input
@@ -303,7 +303,7 @@ const JoinToCreateProfileForm = () => {
             <div className="mb-10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block mb-2 text-lg font-medium!">
+                  <label className="form-label">
                     {isOwner ? "Business / Restaurant Name" : "Current Restaurant"}
                   </label>
                   <input
@@ -316,7 +316,7 @@ const JoinToCreateProfileForm = () => {
                   />
                 </div>
                 <div>
-                  <label className="block mb-2 text-lg font-medium!">
+                  <label className="form-label">
                     Website
                   </label>
                   <input
@@ -332,7 +332,7 @@ const JoinToCreateProfileForm = () => {
 
             {isChef && (
               <div className="mb-10">
-                <label className="block mb-2 text-lg font-medium!">
+                <label className="form-label">
                   Job Title
                 </label>
                 <input
@@ -348,7 +348,7 @@ const JoinToCreateProfileForm = () => {
 
             {/* Address */}
             <div className="mb-10">
-              <label className="block mb-2 text-lg font-medium!">
+              <label className="form-label">
                 {isOwner ? "Business Address" : "Restaurant Address"}
               </label>
 
@@ -427,7 +427,7 @@ const JoinToCreateProfileForm = () => {
                 ) : null}
 
                 <div className="mb-10">
-                  <label className="block mb-2 text-lg font-medium!">
+                  <label className="form-label">
                     {isOwner ? "Business Verification Documents" : "Professional Proof"} — documents and images (up to{" "}
                     {APPLICATION_DOC_MAX_FILES})
                   </label>
@@ -510,7 +510,7 @@ const JoinToCreateProfileForm = () => {
 
             {/* Print Name */}
             <div className="mb-8">
-              <label className="block mb-2 text-lg font-medium!">
+              <label className="form-label">
                 Print Name
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

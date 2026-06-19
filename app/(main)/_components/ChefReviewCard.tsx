@@ -5,10 +5,12 @@ type ChefReviewCardProps = {
   title?: string;
   comment?: string;
   date?: string;
+  /** Hide restaurant label when already on that restaurant's page */
+  showRestaurantName?: boolean;
 };
 
 function formatReviewDate(dateStr?: string) {
-  if (!dateStr) return "Month XX, YEAR";
+  if (!dateStr) return "";
   try {
     return new Date(dateStr).toLocaleDateString("en-US", {
       month: "long",
@@ -25,10 +27,12 @@ const ChefReviewCard = ({
   restaurantName = "Restaurant",
   profilePhotoUrl,
   title,
-  comment = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis commodo metus vitae urna eleifend, a tristique sapien fringilla. Aliquam scelerisque ante tellus, eget consequat mi sollicitudin vel.",
+  comment = "",
   date,
+  showRestaurantName = true,
 }: ChefReviewCardProps) => {
   const displayTitle = title?.trim();
+  const formattedDate = formatReviewDate(date);
   const initials = chefName
     .split(/\s+/)
     .filter(Boolean)
@@ -37,9 +41,9 @@ const ChefReviewCard = ({
     .join("");
 
   return (
-    <div className="flex flex-col gap-4 border-b pb-8 last:border-0 last:pb-0 sm:flex-row md:gap-8 sm:pb-10">
-      <div className="flex w-full shrink-0 flex-col items-center gap-3 text-center sm:w-36 max-sm:flex-row max-sm:items-center max-sm:gap-4 max-sm:text-left">
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-300 sm:h-24 sm:w-24 md:h-28 md:w-28">
+    <article className="flex gap-4 border-b border-black/10 py-6 first:pt-0 last:border-b-0 last:pb-0 md:gap-6 md:py-8">
+      <div className="shrink-0">
+        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-black/10 bg-[#FFF1E1] md:h-20 md:w-20">
           {profilePhotoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -48,33 +52,42 @@ const ChefReviewCard = ({
               className="h-full w-full object-cover"
             />
           ) : (
-            <span className="text-lg font-bold text-gray-600">{initials}</span>
+            <span className="text-base font-bold text-[#FF8400] md:text-lg">
+              {initials}
+            </span>
           )}
-        </div>
-        <div className="flex min-w-0 flex-col items-center gap-1 max-sm:items-start">
-          <p className="w-full text-sm font-bold leading-tight tracking-[2%]">{chefName}</p>
-          {restaurantName ? (
-            <p className="w-full text-sm font-bold uppercase leading-tight tracking-[2%] underline">
-              {restaurantName}
-            </p>
-          ) : null}
         </div>
       </div>
 
-      <div className="flex-1 min-w-0">
-        {displayTitle ? (
-          <h3 className="mb-2 text-xl font-bold leading-tight tracking-[2%]">{displayTitle}</h3>
+      <div className="min-w-0 flex-1">
+        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <p className="text-base font-bold text-gray-900 md:text-lg">{chefName}</p>
+          {formattedDate ? (
+            <time className="shrink-0 text-xs text-gray-500 md:text-sm">
+              {formattedDate}
+            </time>
+          ) : null}
+        </div>
+
+        {showRestaurantName && restaurantName ? (
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#c45f00] underline underline-offset-2">
+            {restaurantName}
+          </p>
         ) : null}
-        <p
-          className={`text-xl font-normal uppercase leading-tight tracking-[2%] ${displayTitle ? "mb-4 md:mb-6" : "mb-3 md:mb-4"}`}
-        >
-          {formatReviewDate(date)}
-        </p>
-        <p className="text-justify text-sm font-bold leading-relaxed md:text-xl">
-          {comment}
-        </p>
+
+        {displayTitle ? (
+          <h3 className="mb-2 text-lg font-bold leading-snug text-gray-900">
+            {displayTitle}
+          </h3>
+        ) : null}
+
+        {comment ? (
+          <p className="text-base leading-relaxed text-gray-800 md:text-lg">
+            {comment}
+          </p>
+        ) : null}
       </div>
-    </div>
+    </article>
   );
 };
 

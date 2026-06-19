@@ -10,10 +10,10 @@ const AddListing = () => {
                 <h1 className="title  md:pb-11 pb-6 text-center">
                     Add an <span className="text-[#FF8400]">Establishment</span>
                 </h1>
-                <form className="border-3 rounded-[9px] border-black md:px-10! md:py-12! py-8! px-4! page-width-narrow">
+                <form className="form-card page-width-narrow">
                     <div className="space-y-6">
                         <div>
-                            <label className="">Restaurant Name*</label>
+                            <label className="form-label">Restaurant Name*</label>
                             <input type="text" className="input-field transition-colors " />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -26,11 +26,11 @@ const AddListing = () => {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="">Website URL</label>
+                                <label className="form-label">Website URL</label>
                                 <input type="url" className="input-field" />
                             </div>
                             <div>
-                                <label className="">Link to Menu</label>
+                                <label className="form-label">Link to Menu</label>
                                 <input type="url" className="input-field" />
                             </div>
                         </div>
@@ -53,7 +53,7 @@ const AddListing = () => {
                     </div>
                     {/* File Upload */}
                     <div className="mt-10 ">
-                        <label className="block">
+                        <label className="form-label">
                             Upload Logo or Featured Image (optional)
                         </label>
                         <label className="block mt-8 border border-dashed md:py-26 md:px-12 px-4 py-10 text-center cursor-pointer bg-transparent ">
@@ -71,7 +71,7 @@ const AddListing = () => {
                     </div>
                     {/* Checkboxes */}
                     <div className="mt-10">
-                        <label className="">Check all that apply:</label>
+                        <label className="form-label">Check all that apply:</label>
                         <div className="grid grid-cols-2 gap-y-3 mt-8 max-sm:gap-2">
                             {[
                                 "Takes Reservations", "Full Bar", "Pet Friendly", "Wine & Beer",
@@ -101,7 +101,7 @@ const AddListing = () => {
                             <textarea
                                 value={value}
                                 onChange={(e) => setValue(e.target.value)}
-                                className="border border-black md:h-96 h-44 p-4 input-field"
+                                className="input-field h-44 md:h-96"
                             />
                             {!value && (
                                 <span className="pointer-events-none absolute md:bottom-6 md:left-10 bottom-2.5 left-2.5 md:text-[20px] sm:text-[16px] text-[14px] text-black/60">

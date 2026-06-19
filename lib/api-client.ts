@@ -302,3 +302,98 @@ export async function submitRestaurantClaim(body: RestaurantClaimPayload) {
 
   return data;
 }
+
+export const ADVERTISING_ASSET_ACCEPTED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const;
+
+export const ADVERTISING_ASSET_MAX_BYTES = 5 * 1024 * 1024;
+
+export async function getAdPlacements() {
+  const res = await fetch(`${API_BASE_URL}/advertising/placements`, {
+    cache: "no-store",
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    data?: import("@/types/advertising").AdPricingPayload;
+    message?: string;
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to load ad placements");
+  }
+
+  return data.data ?? { columns: [], rows: [], placements: [] };
+}
+
+export async function uploadAdvertisingAsset(file: File, businessName: string) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("businessName", businessName);
+
+  const res = await fetch(`${API_BASE_URL}/advertising/upload-asset`, {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    data?: { publicUrl: string; displayUrl?: string; key?: string };
+    message?: string;
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to upload ad image");
+  }
+
+  return data.data!;
+}
+
+export async function submitAdRequest(
+  body: import("@/types/advertising").AdRequestPayload
+) {
+  const res = await fetch(`${API_BASE_URL}/advertising/requests`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    message?: string;
+    data?: { _id: string };
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to submit advertising request");
+  }
+
+  return data;
+}
+
+export async function getActiveAd(
+  slot: string
+): Promise<import("@/types/advertising").ActiveAdSlotResponse> {
+  const res = await fetch(`${API_BASE_URL}/advertising/active/${slot}`, {
+    cache: "no-store",
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    data?: import("@/types/advertising").ActiveAdCampaign | null;
+    slotSize?: import("@/types/advertising").AdSlotSize | null;
+    message?: string;
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to load ad");
+  }
+
+  return {
+    ad: data.data ?? null,
+    slotSize: data.slotSize ?? null,
+  };
+}

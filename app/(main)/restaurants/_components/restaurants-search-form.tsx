@@ -1,20 +1,13 @@
 import Button from "@/components/Button";
 import type { RestaurantDirectoryParams } from "@/lib/filter-restaurants-directory";
 
-const inputClass =
-  "min-h-0! bg-transparent border-b border-black outline-none pb-2 text-sm sm:text-base w-full";
-
 export default function RestaurantsSearchForm({
   defaults,
 }: {
   defaults: RestaurantDirectoryParams;
 }) {
   return (
-    <form
-      action="/restaurants"
-      method="get"
-      className="mb-8 rounded-[9px] border-3 border-black bg-transparent px-4 py-5 sm:px-5 md:px-6"
-    >
+    <form action="/restaurants" method="get" className="form-search-card mb-8">
       {defaults.near === "1" && defaults.nearLat && defaults.nearLng ? (
         <>
           <input type="hidden" name="near" value="1" />
@@ -28,10 +21,7 @@ export default function RestaurantsSearchForm({
 
       <div className="grid grid-cols-1 items-end gap-5 sm:grid-cols-2 lg:grid-cols-5 lg:gap-6">
         <div className="flex flex-col space-y-2">
-          <label
-            className="text-base uppercase sm:text-lg md:text-xl"
-            htmlFor="restaurants-name"
-          >
+          <label className="form-search-label" htmlFor="restaurants-name">
             Restaurant name
           </label>
           <input
@@ -40,16 +30,13 @@ export default function RestaurantsSearchForm({
             type="text"
             defaultValue={defaults.name ?? ""}
             suppressHydrationWarning
-            className={inputClass}
+            className="form-search-input"
             placeholder=""
           />
         </div>
 
         <div className="flex flex-col space-y-2">
-          <label
-            className="text-base uppercase sm:text-lg md:text-xl"
-            htmlFor="restaurants-cuisine"
-          >
+          <label className="form-search-label" htmlFor="restaurants-cuisine">
             Cuisine
           </label>
           <input
@@ -58,15 +45,12 @@ export default function RestaurantsSearchForm({
             type="text"
             defaultValue={defaults.cuisine ?? ""}
             suppressHydrationWarning
-            className={inputClass}
+            className="form-search-input"
           />
         </div>
 
         <div className="flex flex-col space-y-2">
-          <label
-            className="text-base uppercase sm:text-lg md:text-xl"
-            htmlFor="restaurants-location"
-          >
+          <label className="form-search-label" htmlFor="restaurants-location">
             Location
           </label>
           <input
@@ -75,15 +59,12 @@ export default function RestaurantsSearchForm({
             type="text"
             defaultValue={defaults.location ?? ""}
             suppressHydrationWarning
-            className={inputClass}
+            className="form-search-input"
           />
         </div>
 
         <div className="flex flex-col space-y-2">
-          <label
-            className="text-base uppercase sm:text-lg md:text-xl"
-            htmlFor="restaurants-chef"
-          >
+          <label className="form-search-label" htmlFor="restaurants-chef">
             Chef
           </label>
           <input
@@ -92,7 +73,7 @@ export default function RestaurantsSearchForm({
             type="text"
             defaultValue={defaults.chef ?? ""}
             suppressHydrationWarning
-            className={inputClass}
+            className="form-search-input"
           />
         </div>
 

@@ -7,14 +7,10 @@ export default function SearchFiltersForm({
   defaults: RestaurantSearchParams;
 }) {
   return (
-    <form
-      action="/search-results"
-      method="get"
-      className="bg-transparent border-2 border-black rounded-[9px] p-4 sm:p-5 md:p-6"
-    >
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 items-end">
+    <form action="/search-results" method="get" className="form-search-card">
+      <div className="grid grid-cols-1 items-end gap-5 sm:grid-cols-2 md:gap-6 lg:grid-cols-4">
         <div className="flex flex-col space-y-2">
-          <label className="uppercase text-base sm:text-lg md:text-xl" htmlFor="search-cuisine">
+          <label className="form-search-label" htmlFor="search-cuisine">
             Cuisine
           </label>
           <input
@@ -23,12 +19,12 @@ export default function SearchFiltersForm({
             type="text"
             defaultValue={defaults.cuisine ?? ""}
             suppressHydrationWarning
-            className="bg-transparent border-b border-black outline-none pb-2 text-sm sm:text-base w-full"
+            className="form-search-input"
           />
         </div>
 
         <div className="flex flex-col space-y-2">
-          <label className="uppercase text-base sm:text-lg md:text-xl" htmlFor="search-location">
+          <label className="form-search-label" htmlFor="search-location">
             Location
           </label>
           <input
@@ -37,12 +33,12 @@ export default function SearchFiltersForm({
             type="text"
             defaultValue={defaults.location ?? ""}
             suppressHydrationWarning
-            className="bg-transparent border-b border-black outline-none pb-2 text-sm sm:text-base w-full"
+            className="form-search-input"
           />
         </div>
 
         <div className="flex flex-col space-y-2">
-          <label className="uppercase text-base sm:text-lg md:text-xl" htmlFor="search-chef">
+          <label className="form-search-label" htmlFor="search-chef">
             Chef
           </label>
           <input
@@ -51,7 +47,7 @@ export default function SearchFiltersForm({
             type="text"
             defaultValue={defaults.chef ?? ""}
             suppressHydrationWarning
-            className="bg-transparent border-b border-black outline-none pb-2 text-sm sm:text-base w-full"
+            className="form-search-input"
           />
         </div>
 

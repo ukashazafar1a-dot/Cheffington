@@ -2,6 +2,8 @@ import type { PublicRestaurant } from "@/types/restaurant";
 import RetaurantsMap from "@/app/(main)/Individual-restaurant-page/_components/RetaurantsMap";
 import { formatRestaurantAddress } from "@/lib/restaurant-location";
 import type { GeocodePrecision } from "@/lib/geocode";
+import AdSlot from "@/components/AdSlot";
+import { SITE_AD_SLOTS } from "@/lib/ad-slot-keys";
 
 export default function RestaurantSidebar({
   restaurant,
@@ -69,6 +71,12 @@ export default function RestaurantSidebar({
         }}
         locationName={restaurant.name}
         compact
+      />
+
+      <AdSlot
+        slot={SITE_AD_SLOTS.RESTAURANT_SIDEBAR}
+        variant="sidebar"
+        className="w-full"
       />
     </div>
   );

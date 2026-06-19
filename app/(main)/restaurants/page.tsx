@@ -16,6 +16,8 @@ import {
 import RestaurantListCard from "./_components/restaurant-list-card";
 import RestaurantsSearchForm from "./_components/restaurants-search-form";
 import RestaurantsToolbar from "./_components/restaurants-toolbar";
+import RestaurantsListAd from "./_components/restaurants-list-ad";
+import RestaurantsTopAd from "@/components/ads/RestaurantsTopAd";
 
 type Props = {
   searchParams: Promise<RestaurantDirectoryParams>;
@@ -98,6 +100,8 @@ export default async function RestaurantsPage({ searchParams }: Props) {
 
         <RestaurantsSearchForm defaults={defaults} />
 
+        <RestaurantsTopAd />
+
         {error && (
           <p className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-600">
             {error}
@@ -131,16 +135,18 @@ export default async function RestaurantsPage({ searchParams }: Props) {
               {hasNearCoords ? ` within ${NEAR_ME_RADIUS_KM} km` : ""}
             </p>
             <div className="grid gap-5 md:gap-6">
-              {displayRestaurants.map((restaurant) => {
+              {displayRestaurants.map((restaurant, index) => {
                 const distanceKm = hasNearCoords
                   ? getRestaurantDistanceKm(restaurant, nearLat, nearLng)
                   : null;
                 return (
-                  <RestaurantListCard
-                    key={restaurant._id}
-                    restaurant={restaurant}
-                    distanceKm={distanceKm ?? undefined}
-                  />
+                  <div key={restaurant._id}>
+                    <RestaurantListCard
+                      restaurant={restaurant}
+                      distanceKm={distanceKm ?? undefined}
+                    />
+                    {index === 1 ? <RestaurantsListAd /> : null}
+                  </div>
                 );
               })}
             </div>

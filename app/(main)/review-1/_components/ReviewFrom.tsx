@@ -62,7 +62,7 @@ const ReviewFrom = ({ restaurantId, restaurantName }: ReviewFromProps) => {
   };
 
   return (
-    <div className="rounded-[9px] border-3 border-black px-4 py-8 md:px-7 md:py-20">
+    <div className="form-card md:px-7 md:py-20">
       {restaurantName ? (
         <p className="mb-4 text-sm font-medium text-gray-700">
           Reviewing: <span className="font-bold text-gray-900">{restaurantName}</span>
@@ -93,19 +93,19 @@ const ReviewFrom = ({ restaurantId, restaurantName }: ReviewFromProps) => {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Review title (optional)"
-          className="input-field mb-4 w-full border border-black p-3"
+          className="input-field mb-4"
           maxLength={120}
         />
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           placeholder="Positive reviews only. Negative reviews will be removed and your account will be flagged."
-          className="input-field h-44 border border-black p-4 md:h-96"
+          className="input-field h-44 md:h-96"
         />
         <p className="mt-1 text-xs text-gray-500">{comment.trim().length} characters</p>
       </div>
 
-      {error ? <p className="mb-4 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="form-error mb-4">{error}</p> : null}
 
       <div className="relative mt-10 flex justify-center">
         <Button

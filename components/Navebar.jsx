@@ -6,13 +6,13 @@ import { useState } from "react";
 
 export default function Navbar() {
   const navLinks = [
-    { name: "JOIN", url: "join" },
-    { name: "ABOUT", url: "about" },
-    { name: "REVIEW", url: "review" },
-    { name: "RESTAURANTS", url: "restaurants" },
-    { name: "ADD LISTING", url: "add-listing" },
-    { name: "CLAIM RESTAURANT", url: "claim-a-restaurant" },
-    { name: "ADVERTISE", url: "advertising" },
+    { name: "JOIN", url: "/join" },
+    { name: "ABOUT", url: "/about" },
+    { name: "REVIEW", url: "/review" },
+    { name: "RESTAURANTS", url: "/restaurants" },
+    { name: "ADD LISTING", url: "/add-listing" },
+    { name: "CLAIM RESTAURANT", url: "/claim-a-restaurant" },
+    { name: "ADVERTISE", url: "/advertising" },
   ];
   const [open, setOpen] = useState(false);
 

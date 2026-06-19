@@ -65,52 +65,40 @@ function SignInForm() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 font-sans">
+    <div className="flex min-h-screen flex-col items-center justify-center p-4">
       <div className="w-full max-w-2xl">
-        <h1 className="title font-bold text-center mb-10 text-black tracking-tight">
+        <h1 className="title mb-10 text-center font-bold tracking-tight text-black">
           Sign In
         </h1>
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label className="block text-sm font-medium mb-2 text-black">
-              Email Address
-            </label>
+        <form className="form-card space-y-6" onSubmit={handleSubmit}>
+          <div className="form-field">
+            <label className="form-label">Email Address</label>
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               type="email"
               placeholder="chef@example.com"
-              className="w-full p-4 bg-[#EDEDED] border border-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
+              className="input-field"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2 text-black">
-              Password
-            </label>
+          <div className="form-field">
+            <label className="form-label">Password</label>
             <input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
               placeholder="Enter your password"
-              className="w-full p-4 bg-[#EDEDED] border border-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
+              className="input-field"
             />
           </div>
 
-          {error ? (
-            <div className="text-sm text-red-600 bg-red-50 rounded p-3">{error}</div>
-          ) : null}
+          {error ? <div className="form-error">{error}</div> : null}
 
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="keep-signed-in"
-              className="w-5 h-5 border-gray-400 rounded bg-[#FDF0E0] accent-orange-400"
-            />
-            <label htmlFor="keep-signed-in" className="text-sm text-black">
-              Keep me signed in
-            </label>
+          <div className="form-checkbox-row">
+            <input type="checkbox" id="keep-signed-in" />
+            <label htmlFor="keep-signed-in">Keep me signed in</label>
           </div>
 
           <button
@@ -153,7 +141,7 @@ export default function SignInPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center p-4 font-sans">
+        <div className="min-h-screen flex items-center justify-center p-4">
           Loading...
         </div>
       }

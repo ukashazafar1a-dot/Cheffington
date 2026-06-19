@@ -63,13 +63,13 @@ export default function Navbar() {
   const router = useRouter();
 
   const allNavLinks = [
-    { name: "JOIN", url: "join", chefsOnly: false },
-    { name: "ABOUT", url: "about", chefsOnly: false },
-    { name: "REVIEW", url: "review", chefsOnly: true },
-    { name: "RESTAURANTS", url: "restaurants", chefsOnly: false },
-    { name: "ADD LISTING", url: "add-listing", chefsOnly: false },
-    { name: "CLAIM RESTAURANT", url: "claim-a-restaurant", chefsOnly: false },
-    { name: "ADVERTISE", url: "advertising", chefsOnly: false },
+    { name: "JOIN", url: "/join", chefsOnly: false },
+    { name: "ABOUT", url: "/about", chefsOnly: false },
+    { name: "REVIEW", url: "/review", chefsOnly: true },
+    { name: "RESTAURANTS", url: "/restaurants", chefsOnly: false },
+    { name: "ADD LISTING", url: "/add-listing", chefsOnly: false },
+    { name: "CLAIM RESTAURANT", url: "/claim-a-restaurant", chefsOnly: false },
+    { name: "ADVERTISE", url: "/advertising", chefsOnly: false },
   ];
 
   const [open, setOpen] = useState(false);
@@ -250,12 +250,12 @@ export default function Navbar() {
           <ul className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 xl:gap-x-5">
             {navLinks.map((item) => (
               <li key={item.url} className="shrink-0">
-                <a
+                <Link
                   className="body-subtitle whitespace-nowrap text-lg font-bold uppercase tracking-tight transition hover:text-black/60 lg:text-xl xl:text-2xl"
                   href={item.url}
                 >
                   {item.name}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -299,13 +299,13 @@ export default function Navbar() {
             <ul className="flex flex-col space-y-7">
               {navLinks.map((item) => (
                 <li key={item.url}>
-                  <a
+                  <Link
                     href={item.url}
                     onClick={() => setOpen(false)}
                     className="block w-full text-2xl font-black uppercase tracking-tight"
                   >
                     {item.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
 
