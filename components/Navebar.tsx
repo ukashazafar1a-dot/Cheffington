@@ -67,7 +67,6 @@ export default function Navbar() {
     { name: "ABOUT", url: "/about", chefsOnly: false },
     { name: "REVIEW", url: "/review", chefsOnly: true },
     { name: "RESTAURANTS", url: "/restaurants", chefsOnly: false },
-    { name: "ADD LISTING", url: "/add-listing", chefsOnly: false },
     { name: "CLAIM RESTAURANT", url: "/claim-a-restaurant", chefsOnly: false },
     { name: "ADVERTISE", url: "/advertising", chefsOnly: false },
   ];

@@ -5,8 +5,9 @@ import Button from "@/components/Button";
 import {
   ADVERTISING_ASSET_ACCEPTED_TYPES,
   ADVERTISING_ASSET_MAX_BYTES,
+  createAdCheckoutSession,
+  getAdCheckoutSessionStatus,
   getAdPlacements,
-  submitAdRequest,
   uploadAdvertisingAsset,
 } from "@/lib/api-client";
 import type { AdPlacement, AdPricingPayload, AdPricingRow } from "@/types/advertising";
@@ -83,6 +84,65 @@ export default function AdvertisingRequestForm() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get("payment");
+    const sessionId = params.get("session_id");
+
+    if (payment === "cancelled") {
+      setError("Payment was cancelled. You can submit again when ready.");
+      window.history.replaceState({}, "", "/advertising");
+      return;
+    }
+
+    if (payment !== "success" || !sessionId) return;
+
+    let cancelled = false;
+
+    const verifyPayment = async () => {
+      try {
+        setVerifyingPayment(true);
+        setError("");
+        const status = await getAdCheckoutSessionStatus(sessionId);
+
+        if (cancelled) return;
+
+        if (status.paid) {
+          setSuccess(
+            `Payment received for ${status.businessName}. Our team will review your ad and email you when it is approved.`
+          );
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          setError(
+            "We are still confirming your payment. Please refresh this page in a moment or check your email."
+          );
+        }
+      } catch (verifyError) {
+        if (!cancelled) {
+          setError(
+            verifyError instanceof Error
+              ? verifyError.message
+              : "Failed to verify payment"
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setVerifyingPayment(false);
+          window.history.replaceState({}, "", "/advertising");
+        }
+      }
+    };
+
+    verifyPayment();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     getAdPlacements()
@@ -206,7 +266,7 @@ export default function AdvertisingRequestForm() {
     try {
       setSubmitting(true);
       setError("");
-      const response = await submitAdRequest({
+      const checkout = await createAdCheckoutSession({
         businessName: form.businessName.trim(),
         contactName: form.contactName.trim(),
         contactEmail: form.contactEmail.trim(),
@@ -219,22 +279,26 @@ export default function AdvertisingRequestForm() {
         message: form.message.trim() || undefined,
       });
 
-      setSuccess(
-        response.message ||
-          "Your advertising request was submitted. Our team will contact you about payment and scheduling."
-      );
-      resetFormState();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.location.href = checkout.checkoutUrl;
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Failed to submit request"
+          : "Failed to start payment"
       );
-    } finally {
       setSubmitting(false);
     }
   };
+
+  if (verifyingPayment) {
+    return (
+      <div className="mt-14 w-full page-width-narrow px-4 sm:px-0">
+        <div className="form-card py-16 text-center text-gray-600">
+          Confirming your payment…
+        </div>
+      </div>
+    );
+  }
 
   if (success) {
     return (
@@ -245,7 +309,7 @@ export default function AdvertisingRequestForm() {
           </div>
           <div className="space-y-3">
             <h2 className="text-2xl font-bold text-gray-900 md:text-3xl">
-              Request submitted
+              Payment received
             </h2>
             <p className="mx-auto max-w-lg text-base text-gray-600 md:text-lg">
               {success}
@@ -327,7 +391,7 @@ export default function AdvertisingRequestForm() {
         )}
 
         <p className="text-center text-sm text-gray-500">
-          Payment is handled manually after approval. Stripe checkout coming soon.
+          Pay securely with Stripe when you submit your ad request below.
         </p>
       </section>
 
@@ -338,7 +402,7 @@ export default function AdvertisingRequestForm() {
           </h2>
           <p className={sectionSubtitle}>
             Anyone can advertise on Cheffington — no restaurant listing required.
-            Submit your details and our team will follow up.
+            Submit your details and pay securely to send your request for review.
           </p>
         </div>
 
@@ -495,7 +559,7 @@ export default function AdvertisingRequestForm() {
                         — set price per day in admin for an accurate estimate
                       </span>
                     ) : (
-                      " — payment after approval"
+                      " — charged via Stripe at checkout (AUD)"
                     )}
                   </p>
                 </div>
@@ -569,7 +633,7 @@ export default function AdvertisingRequestForm() {
 
             <div className="flex justify-center pt-2">
               <Button
-                title={submitting ? "Submitting..." : "Submit request"}
+                title={submitting ? "Redirecting to payment..." : "Pay & submit request"}
                 type="submit"
                 disabled={!isValid || submitting || uploading}
               />

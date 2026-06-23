@@ -10,7 +10,6 @@ export default function Navbar() {
     { name: "ABOUT", url: "/about" },
     { name: "REVIEW", url: "/review" },
     { name: "RESTAURANTS", url: "/restaurants" },
-    { name: "ADD LISTING", url: "/add-listing" },
     { name: "CLAIM RESTAURANT", url: "/claim-a-restaurant" },
     { name: "ADVERTISE", url: "/advertising" },
   ];

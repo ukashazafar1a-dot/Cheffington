@@ -352,6 +352,51 @@ export async function uploadAdvertisingAsset(file: File, businessName: string) {
   return data.data!;
 }
 
+export async function createAdCheckoutSession(
+  body: import("@/types/advertising").AdRequestPayload
+) {
+  const res = await fetch(`${API_BASE_URL}/advertising/checkout-session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    message?: string;
+    data?: import("@/types/advertising").AdCheckoutSessionResponse;
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to start payment");
+  }
+
+  if (!data.data?.checkoutUrl) {
+    throw new Error("Payment could not be started. Please try again.");
+  }
+
+  return data.data;
+}
+
+export async function getAdCheckoutSessionStatus(sessionId: string) {
+  const res = await fetch(
+    `${API_BASE_URL}/advertising/checkout-session/${encodeURIComponent(sessionId)}/status`,
+    { cache: "no-store" }
+  );
+
+  const data = (await res.json()) as {
+    success: boolean;
+    message?: string;
+    data?: import("@/types/advertising").AdCheckoutStatusResponse;
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to verify payment");
+  }
+
+  return data.data!;
+}
+
 export async function submitAdRequest(
   body: import("@/types/advertising").AdRequestPayload
 ) {

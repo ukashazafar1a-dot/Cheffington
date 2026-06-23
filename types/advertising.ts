@@ -51,6 +51,20 @@ export interface AdRequestPayload {
   message?: string;
 }
 
+export interface AdCheckoutSessionResponse {
+  checkoutUrl: string;
+  sessionId: string;
+  adRequestId: string;
+}
+
+export interface AdCheckoutStatusResponse {
+  paid: boolean;
+  paymentStatus: string;
+  businessName: string;
+  placementKey: string;
+  reviewStatus: string;
+}
+
 export interface AdSlotSize {
   width: number;
   height: number;
