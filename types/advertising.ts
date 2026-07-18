@@ -46,9 +46,15 @@ export interface AdRequestPayload {
   websiteUrl: string;
   placementKey: string;
   days: number;
+  targetRegionKey: string;
   adImageUrl?: string;
   needsDesign?: boolean;
   message?: string;
+}
+
+export interface AdTargetRegion {
+  key: string;
+  label: string;
 }
 
 export interface AdCheckoutSessionResponse {
@@ -80,6 +86,8 @@ export interface ActiveAdCampaign {
   startDate: string;
   endDate: string;
   status: "scheduled" | "active" | "expired" | "cancelled";
+  targetRegionKey?: string;
+  targetRegionLabel?: string | null;
 }
 
 export interface ActiveAdSlotResponse {

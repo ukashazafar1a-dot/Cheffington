@@ -329,6 +329,24 @@ export async function getAdPlacements() {
   return data.data ?? { columns: [], rows: [], placements: [] };
 }
 
+export async function getAdTargetRegions() {
+  const res = await fetch(`${API_BASE_URL}/advertising/regions`, {
+    cache: "no-store",
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    data?: import("@/types/advertising").AdTargetRegion[];
+    message?: string;
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to load ad target regions");
+  }
+
+  return data.data ?? [];
+}
+
 export async function uploadAdvertisingAsset(file: File, businessName: string) {
   const formData = new FormData();
   formData.append("file", file);
@@ -420,9 +438,25 @@ export async function submitAdRequest(
 }
 
 export async function getActiveAd(
-  slot: string
+  slot: string,
+  region?: string | null,
+  options?: { strictRegion?: boolean }
 ): Promise<import("@/types/advertising").ActiveAdSlotResponse> {
-  const res = await fetch(`${API_BASE_URL}/advertising/active/${slot}`, {
+  const params = new URLSearchParams();
+  const regionKey = String(region || "").trim();
+  if (regionKey) {
+    params.set("region", regionKey);
+  }
+  if (options?.strictRegion) {
+    params.set("strictRegion", "1");
+  }
+
+  const query = params.toString();
+  const url = `${API_BASE_URL}/advertising/active/${encodeURIComponent(slot)}${
+    query ? `?${query}` : ""
+  }`;
+
+  const res = await fetch(url, {
     cache: "no-store",
   });
 

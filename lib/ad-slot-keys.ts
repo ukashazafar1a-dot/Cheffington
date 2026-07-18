@@ -11,6 +11,12 @@ export const SITE_AD_SLOTS = {
   HOMEPAGE_FEATURED: "homepage_featured",
   /** Restaurant detail — left sidebar */
   RESTAURANT_SIDEBAR: "restaurant_sidebar",
+  /** Restaurant detail — below hero */
+  RESTAURANT_TOP: "restaurant_top",
+  /** Restaurant detail — top of main (right) column */
+  RESTAURANT_RIGHT_RAIL: "restaurant_right_rail",
+  /** Restaurant detail — above chef reviews */
+  RESTAURANT_REVIEWS_TOP: "restaurant_reviews_top",
   /** Chef profile — sidebar */
   CHEF_SIDEBAR: "chef_sidebar",
   /** Restaurants directory — below search, above results */
@@ -48,6 +54,21 @@ export const SITE_AD_SLOT_GUIDE: {
     key: SITE_AD_SLOTS.RESTAURANT_SIDEBAR,
     label: "Restaurant sidebar",
     where: "Restaurant detail page, left column",
+  },
+  {
+    key: SITE_AD_SLOTS.RESTAURANT_TOP,
+    label: "Restaurant top banner",
+    where: "Restaurant detail page, below hero",
+  },
+  {
+    key: SITE_AD_SLOTS.RESTAURANT_RIGHT_RAIL,
+    label: "Restaurant right rail",
+    where: "Restaurant detail page, top of main column",
+  },
+  {
+    key: SITE_AD_SLOTS.RESTAURANT_REVIEWS_TOP,
+    label: "Restaurant reviews banner",
+    where: "Restaurant detail page, above chef reviews",
   },
   {
     key: SITE_AD_SLOTS.CHEF_SIDEBAR,

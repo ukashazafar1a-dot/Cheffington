@@ -3,12 +3,17 @@
 import AdSlot from "@/components/AdSlot";
 import { SITE_AD_SLOTS } from "@/lib/ad-slot-keys";
 
-export default function RestaurantsListAd() {
+export default function RestaurantsListAd({
+  region = null,
+}: {
+  region?: string | null;
+}) {
   return (
     <AdSlot
       slot={SITE_AD_SLOTS.RESTAURANTS_LIST}
       variant="inline"
       className="my-2"
+      region={region}
     />
   );
 }

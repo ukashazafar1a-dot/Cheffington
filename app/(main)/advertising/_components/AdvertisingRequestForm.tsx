@@ -8,9 +8,15 @@ import {
   createAdCheckoutSession,
   getAdCheckoutSessionStatus,
   getAdPlacements,
+  getAdTargetRegions,
   uploadAdvertisingAsset,
 } from "@/lib/api-client";
-import type { AdPlacement, AdPricingPayload, AdPricingRow } from "@/types/advertising";
+import type {
+  AdPlacement,
+  AdPricingPayload,
+  AdPricingRow,
+  AdTargetRegion,
+} from "@/types/advertising";
 import { MAX_AD_DAYS, MIN_AD_DAYS } from "@/types/advertising";
 
 const sectionTitle = "title text-center text-4xl md:text-5xl";
@@ -61,6 +67,7 @@ function createInitialFormState() {
     contactPhone: "",
     websiteUrl: "",
     placementKey: "",
+    targetRegionKey: "",
     days: "",
     needsDesign: false,
     message: "",
@@ -73,6 +80,7 @@ export default function AdvertisingRequestForm() {
     rows: [],
     placements: [],
   });
+  const [regions, setRegions] = useState<AdTargetRegion[]>([]);
   const [loadingPlacements, setLoadingPlacements] = useState(true);
   const [form, setForm] = useState(createInitialFormState);
   const [formKey, setFormKey] = useState(0);
@@ -145,9 +153,10 @@ export default function AdvertisingRequestForm() {
   }, []);
 
   useEffect(() => {
-    getAdPlacements()
-      .then((data) => {
-        setPricing(data);
+    Promise.all([getAdPlacements(), getAdTargetRegions()])
+      .then(([pricingData, regionData]) => {
+        setPricing(pricingData);
+        setRegions(regionData);
       })
       .catch((loadError) => {
         setError(
@@ -206,6 +215,7 @@ export default function AdvertisingRequestForm() {
         form.contactPhone.trim() &&
         form.websiteUrl.trim() &&
         form.placementKey &&
+        form.targetRegionKey &&
         hasValidDays &&
         (form.needsDesign || adImageUrl)
     );
@@ -261,7 +271,7 @@ export default function AdvertisingRequestForm() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isValid || !form.placementKey) return;
+    if (!isValid || !form.placementKey || !form.targetRegionKey) return;
 
     try {
       setSubmitting(true);
@@ -273,6 +283,7 @@ export default function AdvertisingRequestForm() {
         contactPhone: form.contactPhone.trim(),
         websiteUrl: form.websiteUrl.trim(),
         placementKey: form.placementKey,
+        targetRegionKey: form.targetRegionKey,
         days: dayCount,
         needsDesign: form.needsDesign,
         adImageUrl: form.needsDesign ? undefined : adImageUrl,
@@ -506,6 +517,32 @@ export default function AdvertisingRequestForm() {
                       </option>
                     ))}
                   </select>
+                </div>
+                <div className="form-field">
+                  <label className="form-label">Target area *</label>
+                  <select
+                    className="input-field"
+                    value={form.targetRegionKey}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        targetRegionKey: e.target.value,
+                      }))
+                    }
+                    required
+                  >
+                    <option value="" disabled>
+                      Select where your ad should appear
+                    </option>
+                    {regions.map((region) => (
+                      <option key={region.key} value={region.key}>
+                        {region.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="form-hint">
+                    Your ad will appear for visitors browsing this area.
+                  </p>
                 </div>
                 <div className="form-field">
                   <label className="form-label">Number of days *</label>

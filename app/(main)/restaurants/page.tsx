@@ -8,6 +8,7 @@ import {
   getRestaurantDistanceKm,
   NEAR_ME_RADIUS_KM,
 } from "@/lib/restaurant-location";
+import { resolveRegionFromLocationQuery } from "@/lib/ad-target-region";
 import {
   parseRestaurantSort,
   sortRestaurants,
@@ -18,6 +19,7 @@ import RestaurantsSearchForm from "./_components/restaurants-search-form";
 import RestaurantsToolbar from "./_components/restaurants-toolbar";
 import RestaurantsListAd from "./_components/restaurants-list-ad";
 import RestaurantsTopAd from "@/components/ads/RestaurantsTopAd";
+import PersistDirectoryAdRegion from "./_components/persist-directory-ad-region";
 
 type Props = {
   searchParams: Promise<RestaurantDirectoryParams>;
@@ -72,6 +74,8 @@ export default async function RestaurantsPage({ searchParams }: Props) {
       ? restaurantSortLabel(sortOption)
       : null;
 
+  const directoryAdRegion = resolveRegionFromLocationQuery(defaults.location);
+
   return (
     <section className="py-8 md:py-12">
       <div className="page-width px-4 sm:px-6 lg:px-8">
@@ -100,7 +104,9 @@ export default async function RestaurantsPage({ searchParams }: Props) {
 
         <RestaurantsSearchForm defaults={defaults} />
 
-        <RestaurantsTopAd />
+        <PersistDirectoryAdRegion location={defaults.location} />
+
+        <RestaurantsTopAd region={directoryAdRegion} />
 
         {error && (
           <p className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-600">
@@ -145,7 +151,9 @@ export default async function RestaurantsPage({ searchParams }: Props) {
                       restaurant={restaurant}
                       distanceKm={distanceKm ?? undefined}
                     />
-                    {index === 1 ? <RestaurantsListAd /> : null}
+                    {index === 1 ? (
+                      <RestaurantsListAd region={directoryAdRegion} />
+                    ) : null}
                   </div>
                 );
               })}

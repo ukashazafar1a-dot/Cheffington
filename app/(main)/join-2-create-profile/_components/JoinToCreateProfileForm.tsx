@@ -103,17 +103,33 @@ const JoinToCreateProfileForm = () => {
         delete (payload as { professionalEmail?: string }).professionalEmail;
       }
 
-      if (isChef || isOwner) {
-        const hasLegacyProof =
-          typeof formData.professionalProof === "string" &&
-          formData.professionalProof.length > 0;
+      const hasLegacyProof =
+        typeof formData.professionalProof === "string" &&
+        formData.professionalProof.length > 0;
+      const hasProofUpload = proofFiles.length > 0 || hasLegacyProof;
+      const hasProfessionalEmail = Boolean(
+        String(formData.professionalEmail || "").trim()
+      );
 
-        if (proofFiles.length === 0 && !hasLegacyProof) {
+      if (isChef) {
+        if (!hasProfessionalEmail && !hasProofUpload) {
+          toast.error(
+            "Provide a professional/business email or upload proof of employment"
+          );
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (isOwner) {
+        if (!hasProofUpload) {
           toast.error("Please upload at least one document or image");
           setLoading(false);
           return;
         }
+      }
 
+      if ((isChef || isOwner) && hasProofUpload) {
         if (proofFiles.length > 0) {
           const documentUrls = await uploadApplicationDocuments(
             proofFiles,
@@ -127,6 +143,12 @@ const JoinToCreateProfileForm = () => {
           payload.applicationDocuments = [formData.professionalProof];
           payload.professionalProof = formData.professionalProof;
         }
+      }
+
+      if (isChef && !hasProofUpload) {
+        delete (payload as { professionalProof?: string }).professionalProof;
+        delete (payload as { applicationDocuments?: string[] })
+          .applicationDocuments;
       }
 
       await submitApplication(payload);
@@ -414,23 +436,38 @@ const JoinToCreateProfileForm = () => {
               <>
                 {isChef ? (
                   <div className="mb-10">
+                    <label className="form-label">
+                      Professional / Business Email (optional if you upload proof)
+                    </label>
                     <input
                       type="email"
                       name="professionalEmail"
                       value={formData.professionalEmail}
-                      placeholder="Professional email"
+                      placeholder="e.g. chef@yourrestaurant.com"
                       className="input-field"
                       onChange={handleChange}
-                      required={isChef}
                     />
+                    <p className="mt-2 text-sm text-gray-600">
+                      Prefer a work/business email. Don&apos;t have one? Upload proof
+                      of employment below instead.
+                    </p>
                   </div>
                 ) : null}
 
                 <div className="mb-10">
                   <label className="form-label">
-                    {isOwner ? "Business Verification Documents" : "Professional Proof"} — documents and images (up to{" "}
-                    {APPLICATION_DOC_MAX_FILES})
+                    {isOwner
+                      ? "Business Verification Documents"
+                      : "Upload Proof of Employment"}{" "}
+                    — documents and images (up to {APPLICATION_DOC_MAX_FILES})
+                    {isChef ? " (optional if you enter a professional email)" : ""}
                   </label>
+                  {isChef ? (
+                    <p className="mb-3 text-sm text-gray-600">
+                      Don&apos;t have a professional email? Just upload a pay stub or
+                      proof of employment here!
+                    </p>
+                  ) : null}
                   <input
                     type="file"
                     multiple

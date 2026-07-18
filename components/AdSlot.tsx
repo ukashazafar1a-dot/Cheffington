@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import type { ActiveAdCampaign, AdSlotSize } from "@/types/advertising";
 import { getActiveAd } from "@/lib/api-client";
+import {
+  getStoredVisitorRegion,
+  setStoredVisitorRegion,
+} from "@/lib/ad-target-region";
 
 type AdSlotProps = {
   slot: string;
@@ -10,6 +14,10 @@ type AdSlotProps = {
   variant?: "sidebar" | "banner" | "inline";
   /** Light card around label + creative (sidebar / inline) */
   showCard?: boolean;
+  /** Preferred geo region for this slot (e.g. from restaurant city) */
+  region?: string | null;
+  /** Use strict matching for explicit page-region slots; unknown/non-matching => no ad */
+  strictRegion?: boolean;
 };
 
 const VARIANT_FALLBACK_SIZE: Record<
@@ -26,6 +34,9 @@ const SLOT_FALLBACK_SIZE: Record<string, AdSlotSize> = {
   homepage_featured: { width: 970, height: 250, sizeLabel: "970×250" },
   restaurant_sidebar: { width: 300, height: 600, sizeLabel: "300×600" },
   restaurant_sidebar1: { width: 300, height: 600, sizeLabel: "300×600" },
+  restaurant_top: { width: 728, height: 90, sizeLabel: "728×90" },
+  restaurant_right_rail: { width: 300, height: 250, sizeLabel: "300×250" },
+  restaurant_reviews_top: { width: 728, height: 90, sizeLabel: "728×90" },
 };
 
 function resolveSlotSize(
@@ -68,6 +79,8 @@ export default function AdSlot({
   className = "",
   variant = "sidebar",
   showCard,
+  region = null,
+  strictRegion = false,
 }: AdSlotProps) {
   const useCard = showCard ?? (variant === "sidebar" || variant === "inline");
   const fillWidth = variant === "sidebar" || variant === "inline";
@@ -76,8 +89,15 @@ export default function AdSlot({
 
   useEffect(() => {
     let cancelled = false;
+    const explicitRegion = String(region || "").trim();
+    if (explicitRegion) {
+      setStoredVisitorRegion(explicitRegion);
+    }
+    const resolvedRegion = strictRegion
+      ? explicitRegion || null
+      : explicitRegion || getStoredVisitorRegion() || null;
 
-    getActiveAd(slot)
+    getActiveAd(slot, resolvedRegion, { strictRegion })
       .then(({ ad: activeAd, slotSize: activeSlotSize }) => {
         if (!cancelled) {
           setAd(activeAd);
@@ -94,7 +114,7 @@ export default function AdSlot({
     return () => {
       cancelled = true;
     };
-  }, [slot]);
+  }, [slot, region, strictRegion]);
 
   if (ad === undefined || !ad?.imageUrl) {
     return null;
