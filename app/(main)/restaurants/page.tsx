@@ -1,5 +1,9 @@
 import { Suspense } from "react";
-import { getPublishedRestaurants } from "@/lib/api-client";
+import { getAdTargetRegionMapping, getPublishedRestaurants } from "@/lib/api-client";
+import {
+  DEFAULT_TARGET_REGION_MAPPING,
+  resolveRegionFromLocationQuery,
+} from "@/lib/ad-target-region";
 import {
   filterRestaurantsDirectory,
   type RestaurantDirectoryParams,
@@ -8,7 +12,6 @@ import {
   getRestaurantDistanceKm,
   NEAR_ME_RADIUS_KM,
 } from "@/lib/restaurant-location";
-import { resolveRegionFromLocationQuery } from "@/lib/ad-target-region";
 import {
   parseRestaurantSort,
   sortRestaurants,
@@ -74,7 +77,13 @@ export default async function RestaurantsPage({ searchParams }: Props) {
       ? restaurantSortLabel(sortOption)
       : null;
 
-  const directoryAdRegion = resolveRegionFromLocationQuery(defaults.location);
+  const regionMapping = await getAdTargetRegionMapping().catch(
+    () => DEFAULT_TARGET_REGION_MAPPING
+  );
+  const directoryAdRegion = resolveRegionFromLocationQuery(
+    defaults.location,
+    regionMapping
+  );
 
   return (
     <section className="py-8 md:py-12">
@@ -104,7 +113,10 @@ export default async function RestaurantsPage({ searchParams }: Props) {
 
         <RestaurantsSearchForm defaults={defaults} />
 
-        <PersistDirectoryAdRegion location={defaults.location} />
+        <PersistDirectoryAdRegion
+          location={defaults.location}
+          regions={regionMapping}
+        />
 
         <RestaurantsTopAd region={directoryAdRegion} />
 

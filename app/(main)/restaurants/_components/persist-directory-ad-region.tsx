@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import {
   resolveRegionFromLocationQuery,
   setStoredVisitorRegion,
+  type TargetRegionMapping,
 } from "@/lib/ad-target-region";
 
 /**
@@ -11,15 +12,17 @@ import {
  */
 export default function PersistDirectoryAdRegion({
   location,
+  regions,
 }: {
   location?: string;
+  regions: TargetRegionMapping[];
 }) {
   useEffect(() => {
-    const key = resolveRegionFromLocationQuery(location);
+    const key = resolveRegionFromLocationQuery(location, regions);
     if (key) {
       setStoredVisitorRegion(key);
     }
-  }, [location]);
+  }, [location, regions]);
 
   return null;
 }

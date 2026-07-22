@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
-import { getPublishedRestaurant } from "@/lib/api-client";
-import { resolveRegionFromCityState } from "@/lib/ad-target-region";
+import { getAdTargetRegionMapping, getPublishedRestaurant } from "@/lib/api-client";
+import {
+  DEFAULT_TARGET_REGION_MAPPING,
+  resolveRegionFromCityState,
+} from "@/lib/ad-target-region";
 import HeroSection from "../../Individual-restaurant-page/_components/HeroSection";
 import RestaurantSidebar from "./_components/restaurant-sidebar";
 import RestaurantContentSections from "./_components/restaurant-content-sections";
@@ -28,9 +31,13 @@ export default async function RestaurantDetailPage({ params }: Props) {
     notFound();
   }
 
+  const regionMapping = await getAdTargetRegionMapping().catch(
+    () => DEFAULT_TARGET_REGION_MAPPING
+  );
   const adRegion = resolveRegionFromCityState(
     restaurant.city,
-    restaurant.state
+    restaurant.state,
+    regionMapping
   );
 
   return (
@@ -40,7 +47,7 @@ export default async function RestaurantDetailPage({ params }: Props) {
         <RestaurantPageTopAd region={adRegion} />
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,30%)_minmax(0,1fr)] gap-8 lg:gap-10 items-start">
           <aside className="min-w-0">
-            <RestaurantSidebar restaurant={restaurant} />
+            <RestaurantSidebar restaurant={restaurant} adRegion={adRegion} />
           </aside>
           <main className="min-w-0">
             <RestaurantRightRailAd region={adRegion} />

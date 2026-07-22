@@ -347,6 +347,24 @@ export async function getAdTargetRegions() {
   return data.data ?? [];
 }
 
+export async function getAdTargetRegionMapping() {
+  const res = await fetch(`${API_BASE_URL}/advertising/regions?scope=mapping`, {
+    cache: "no-store",
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    data?: import("@/lib/ad-target-region").TargetRegionMapping[];
+    message?: string;
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to load ad target region mapping");
+  }
+
+  return data.data ?? [];
+}
+
 export async function uploadAdvertisingAsset(file: File, businessName: string) {
   const formData = new FormData();
   formData.append("file", file);

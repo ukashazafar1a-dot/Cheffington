@@ -4,12 +4,13 @@ import { formatRestaurantAddress } from "@/lib/restaurant-location";
 import type { GeocodePrecision } from "@/lib/geocode";
 import AdSlot from "@/components/AdSlot";
 import { SITE_AD_SLOTS } from "@/lib/ad-slot-keys";
-import { resolveRegionFromCityState } from "@/lib/ad-target-region";
 
 export default function RestaurantSidebar({
   restaurant,
+  adRegion = null,
 }: {
   restaurant: PublicRestaurant;
+  adRegion?: string | null;
 }) {
   const address = [
     restaurant.addressLine1,
@@ -25,11 +26,6 @@ export default function RestaurantSidebar({
       ? restaurant.website
       : `https://${restaurant.website}`
     : null;
-
-  const adRegion = resolveRegionFromCityState(
-    restaurant.city,
-    restaurant.state
-  );
 
   return (
     <div className="flex w-full flex-col gap-6 lg:sticky lg:top-24 lg:z-10">
