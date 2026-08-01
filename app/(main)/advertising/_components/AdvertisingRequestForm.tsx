@@ -6,9 +6,11 @@ import {
   ADVERTISING_ASSET_ACCEPTED_TYPES,
   ADVERTISING_ASSET_MAX_BYTES,
   createAdCheckoutSession,
+  createAdSubscriptionCheckoutSession,
   getAdCheckoutSessionStatus,
   getAdPlacements,
   getAdTargetRegions,
+  getChefSubscriptionPlans,
   uploadAdvertisingAsset,
 } from "@/lib/api-client";
 import type {
@@ -16,8 +18,14 @@ import type {
   AdPricingPayload,
   AdPricingRow,
   AdTargetRegion,
+  ChefSubscriptionPlan,
 } from "@/types/advertising";
 import { MAX_AD_DAYS, MIN_AD_DAYS } from "@/types/advertising";
+
+// Q5: monthly chef subscription plans enabled (controlled by env var on the backend).
+// When false (default), nothing on the form changes — billingMode stays "one_time".
+const CHEF_SUBSCRIPTIONS_ENABLED =
+  process.env.NEXT_PUBLIC_CHEF_SUBSCRIPTIONS_ENABLED === "true";
 
 const sectionTitle = "title text-center text-4xl md:text-5xl";
 const sectionSubtitle = "subtitle mx-auto mt-3 max-w-2xl text-center text-xl md:text-2xl";
@@ -81,6 +89,7 @@ export default function AdvertisingRequestForm() {
     placements: [],
   });
   const [regions, setRegions] = useState<AdTargetRegion[]>([]);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<ChefSubscriptionPlan[]>([]);
   const [loadingPlacements, setLoadingPlacements] = useState(true);
   const [form, setForm] = useState(createInitialFormState);
   const [formKey, setFormKey] = useState(0);
@@ -93,6 +102,8 @@ export default function AdvertisingRequestForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [verifyingPayment, setVerifyingPayment] = useState(false);
+  // Q5: "one_time" is the default — subscription mode only shown when feature flag is on
+  const [billingMode, setBillingMode] = useState<"one_time" | "subscription">("one_time");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -110,38 +121,61 @@ export default function AdvertisingRequestForm() {
     if (payment !== "success" || !sessionId) return;
 
     let cancelled = false;
+    const maxAttempts = 8;
+    const retryDelayMs = 1500;
+
+    const clearCheckoutQuery = () => {
+      window.history.replaceState({}, "", "/advertising");
+    };
 
     const verifyPayment = async () => {
-      try {
-        setVerifyingPayment(true);
-        setError("");
-        const status = await getAdCheckoutSessionStatus(sessionId);
+      setVerifyingPayment(true);
+      setError("");
 
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         if (cancelled) return;
 
-        if (status.paid) {
-          setSuccess(
-            `Payment received for ${status.businessName}. Our team will review your ad and email you when it is approved.`
-          );
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        } else {
+        try {
+          const status = await getAdCheckoutSessionStatus(sessionId);
+          if (cancelled) return;
+
+          if (status.paid) {
+            setSuccess(
+              `Advertising request received for ${status.businessName}. Our team will review your ad and email you when it is approved.`
+            );
+            setVerifyingPayment(false);
+            clearCheckoutQuery();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            return;
+          }
+
+          if (attempt < maxAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+            continue;
+          }
+
           setError(
             "We are still confirming your payment. Please refresh this page in a moment or check your email."
           );
-        }
-      } catch (verifyError) {
-        if (!cancelled) {
+        } catch (verifyError) {
+          if (cancelled) return;
+
+          if (attempt < maxAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+            continue;
+          }
+
           setError(
             verifyError instanceof Error
               ? verifyError.message
               : "Failed to verify payment"
           );
         }
-      } finally {
-        if (!cancelled) {
-          setVerifyingPayment(false);
-          window.history.replaceState({}, "", "/advertising");
-        }
+      }
+
+      if (!cancelled) {
+        setVerifyingPayment(false);
+        // Keep session_id in the URL so a manual refresh can retry verification.
       }
     };
 
@@ -153,10 +187,17 @@ export default function AdvertisingRequestForm() {
   }, []);
 
   useEffect(() => {
-    Promise.all([getAdPlacements(), getAdTargetRegions()])
-      .then(([pricingData, regionData]) => {
+    Promise.all([
+      getAdPlacements(),
+      getAdTargetRegions(),
+      CHEF_SUBSCRIPTIONS_ENABLED
+        ? getChefSubscriptionPlans()
+        : Promise.resolve([] as ChefSubscriptionPlan[]),
+    ])
+      .then(([pricingData, regionData, planData]) => {
         setPricing(pricingData);
         setRegions(regionData);
+        setSubscriptionPlans(planData);
       })
       .catch((loadError) => {
         setError(
@@ -171,6 +212,23 @@ export default function AdvertisingRequestForm() {
   const placements = pricing.placements;
   const sortedColumns = [...pricing.columns].sort((a, b) => a.order - b.order);
   const sortedRows = [...pricing.rows].sort((a, b) => a.order - b.order);
+
+  const subscriptionPlanByKey = useMemo(() => {
+    const map = new Map<string, ChefSubscriptionPlan>();
+    for (const plan of subscriptionPlans) {
+      map.set(plan.placementKey, plan);
+    }
+    return map;
+  }, [subscriptionPlans]);
+
+  const placementOptions = useMemo(() => {
+    if (billingMode !== "subscription") return placements;
+    return placements.filter((p) => subscriptionPlanByKey.has(p.key));
+  }, [placements, billingMode, subscriptionPlanByKey]);
+
+  const selectedSubscriptionPlan = form.placementKey
+    ? subscriptionPlanByKey.get(form.placementKey)
+    : undefined;
 
   const resetFormState = () => {
     setForm(createInitialFormState());
@@ -208,7 +266,7 @@ export default function AdvertisingRequestForm() {
       : null;
 
   const isValid = useMemo(() => {
-    return Boolean(
+    const base = Boolean(
       form.businessName.trim() &&
         form.contactName.trim() &&
         form.contactEmail.trim() &&
@@ -216,10 +274,19 @@ export default function AdvertisingRequestForm() {
         form.websiteUrl.trim() &&
         form.placementKey &&
         form.targetRegionKey &&
-        hasValidDays &&
         (form.needsDesign || adImageUrl)
     );
-  }, [form, adImageUrl, hasValidDays]);
+    if (billingMode === "subscription") {
+      return base && Boolean(selectedSubscriptionPlan);
+    }
+    return base && hasValidDays;
+  }, [
+    form,
+    adImageUrl,
+    hasValidDays,
+    billingMode,
+    selectedSubscriptionPlan,
+  ]);
 
   const onSelectImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -276,7 +343,8 @@ export default function AdvertisingRequestForm() {
     try {
       setSubmitting(true);
       setError("");
-      const checkout = await createAdCheckoutSession({
+
+      const payload = {
         businessName: form.businessName.trim(),
         contactName: form.contactName.trim(),
         contactEmail: form.contactEmail.trim(),
@@ -284,11 +352,17 @@ export default function AdvertisingRequestForm() {
         websiteUrl: form.websiteUrl.trim(),
         placementKey: form.placementKey,
         targetRegionKey: form.targetRegionKey,
-        days: dayCount,
+        days: billingMode === "subscription" ? 30 : dayCount,
         needsDesign: form.needsDesign,
         adImageUrl: form.needsDesign ? undefined : adImageUrl,
         message: form.message.trim() || undefined,
-      });
+      };
+
+      // Q5: route to subscription endpoint when monthly plan is selected
+      const checkout =
+        billingMode === "subscription"
+          ? await createAdSubscriptionCheckoutSession(payload)
+          : await createAdCheckoutSession(payload);
 
       window.location.href = checkout.checkoutUrl;
     } catch (submitError) {
@@ -493,6 +567,44 @@ export default function AdvertisingRequestForm() {
 
             <div className="form-section space-y-6 border-t border-black/10 pt-8">
               <h3 className="body-title">Campaign</h3>
+
+              {/* Q5: billing mode selector — only shown when feature flag is on */}
+              {CHEF_SUBSCRIPTIONS_ENABLED ? (
+                <div className="form-field">
+                  <label className="form-label">Billing type *</label>
+                  <select
+                    className="input-field"
+                    value={billingMode}
+                    onChange={(e) => {
+                      const nextMode = e.target.value as
+                        | "one_time"
+                        | "subscription";
+                      setBillingMode(nextMode);
+                      if (
+                        nextMode === "subscription" &&
+                        form.placementKey &&
+                        !subscriptionPlanByKey.has(form.placementKey)
+                      ) {
+                        setForm((prev) => ({ ...prev, placementKey: "" }));
+                      }
+                    }}
+                  >
+                    <option value="one_time">One-time ad (pay per day)</option>
+                    <option value="subscription">
+                      Monthly chef plan (auto-renews · first month free with your
+                      personal promo code)
+                    </option>
+                  </select>
+                  {billingMode === "subscription" ? (
+                    <p className="form-hint">
+                      Enter the personal promo code from your chef approval email
+                      on the Stripe checkout page for your first month free. A card
+                      is required for automatic monthly renewal.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
               <div className="form-grid">
                 <div className="form-field">
                   <label className="form-label">Placement *</label>
@@ -510,13 +622,29 @@ export default function AdvertisingRequestForm() {
                     <option value="" disabled>
                       Select a placement
                     </option>
-                    {placements.map((placement) => (
-                      <option key={placement.key} value={placement.key}>
-                        {placement.name}
-                        {placement.priceLabel ? ` — ${placement.priceLabel}` : ""}
-                      </option>
-                    ))}
+                    {placementOptions.map((placement) => {
+                      const subPlan = subscriptionPlanByKey.get(placement.key);
+                      const monthlyLabel =
+                        billingMode === "subscription" && subPlan?.monthlyPrice
+                          ? ` — ${subPlan.currency.toUpperCase()} $${formatMoney(subPlan.monthlyPrice)}/month`
+                          : placement.priceLabel
+                            ? ` — ${placement.priceLabel}`
+                            : "";
+                      return (
+                        <option key={placement.key} value={placement.key}>
+                          {placement.name}
+                          {monthlyLabel}
+                        </option>
+                      );
+                    })}
                   </select>
+                  {billingMode === "subscription" &&
+                  placementOptions.length === 0 ? (
+                    <p className="form-hint text-amber-700">
+                      No monthly Stripe plans are configured yet. Use one-time
+                      checkout, or ask admin to add a monthly price in Stripe.
+                    </p>
+                  ) : null}
                 </div>
                 <div className="form-field">
                   <label className="form-label">Target area *</label>
@@ -571,34 +699,59 @@ export default function AdvertisingRequestForm() {
                         ),
                       }));
                     }}
-                    required
+                    required={billingMode !== "subscription"}
+                    disabled={billingMode === "subscription"}
                   />
-                  <p className="form-hint">
-                    Enter any number from {MIN_AD_DAYS} to {MAX_AD_DAYS} days.
-                  </p>
+                  {billingMode === "subscription" ? (
+                    <p className="form-hint">
+                      Monthly plans run for one billing cycle (30 days) and
+                      auto-renew each month.
+                    </p>
+                  ) : (
+                    <p className="form-hint">
+                      Enter any number from {MIN_AD_DAYS} to {MAX_AD_DAYS} days.
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {selectedPlacement && hasValidDays ? (
+              {selectedPlacement && (billingMode === "subscription" || hasValidDays) ? (
                 <div className="rounded-xl border border-[#FF8400]/25 bg-[#fff8f2] px-5 py-4">
                   <p className="text-sm font-medium text-gray-800">
-                    Estimated total
+                    {billingMode === "subscription" ? "Monthly plan" : "Estimated total"}
                   </p>
-                  <p className="mt-1 text-2xl font-bold text-[#FF8400]">
-                    ${formatMoney(estimatedTotal ?? 0)}
-                  </p>
-                  <p className="mt-1 text-sm text-gray-600">
-                    ${formatMoney(pricePerDay)} / day × {dayCount}{" "}
-                    {dayCount === 1 ? "day" : "days"}
-                    {pricePerDay === 0 ? (
-                      <span className="text-amber-700">
-                        {" "}
-                        — set price per day in admin for an accurate estimate
-                      </span>
-                    ) : (
-                      " — charged via Stripe at checkout (AUD)"
-                    )}
-                  </p>
+                  {billingMode === "subscription" ? (
+                    <>
+                      <p className="mt-1 text-2xl font-bold text-[#FF8400]">
+                        {selectedSubscriptionPlan?.monthlyPrice != null
+                          ? `${selectedSubscriptionPlan.currency.toUpperCase()} $${formatMoney(selectedSubscriptionPlan.monthlyPrice)} / month`
+                          : "Monthly plan (Stripe)"}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-600">
+                        Billed monthly via Stripe. First month free with your
+                        personal promo code at checkout. Card required for automatic
+                        renewal.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mt-1 text-2xl font-bold text-[#FF8400]">
+                        ${formatMoney(estimatedTotal ?? 0)}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-600">
+                        ${formatMoney(pricePerDay)} / day × {dayCount}{" "}
+                        {dayCount === 1 ? "day" : "days"}
+                        {pricePerDay === 0 ? (
+                          <span className="text-amber-700">
+                            {" "}
+                            — set price per day in admin for an accurate estimate
+                          </span>
+                        ) : (
+                          " — charged via Stripe at checkout (AUD)"
+                        )}
+                      </p>
+                    </>
+                  )}
                 </div>
               ) : null}
             </div>
@@ -670,7 +823,13 @@ export default function AdvertisingRequestForm() {
 
             <div className="flex justify-center pt-2">
               <Button
-                title={submitting ? "Redirecting to payment..." : "Pay & submit request"}
+                title={
+                  submitting
+                    ? "Redirecting to payment..."
+                    : billingMode === "subscription"
+                      ? "Subscribe & submit request"
+                      : "Pay & submit request"
+                }
                 type="submit"
                 disabled={!isValid || submitting || uploading}
               />

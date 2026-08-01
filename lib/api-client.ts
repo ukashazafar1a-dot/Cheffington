@@ -14,7 +14,7 @@ import type {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
 
-export type ApplicationType = "chef" | "business_owner";
+export type ApplicationType = "chef" | "business_owner" | "public";
 
 export const APPLICATION_DOC_ACCEPTED_TYPES = [
   "application/pdf",
@@ -347,6 +347,25 @@ export async function getAdTargetRegions() {
   return data.data ?? [];
 }
 
+/** Q5 — monthly plans for each active ad placement (empty when feature flag is off). */
+export async function getChefSubscriptionPlans() {
+  const res = await fetch(`${API_BASE_URL}/advertising/subscription-plans`, {
+    cache: "no-store",
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    data?: import("@/types/advertising").ChefSubscriptionPlan[];
+    message?: string;
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to load subscription plans");
+  }
+
+  return data.data ?? [];
+}
+
 export async function getAdTargetRegionMapping() {
   const res = await fetch(`${API_BASE_URL}/advertising/regions?scope=mapping`, {
     cache: "no-store",
@@ -409,6 +428,42 @@ export async function createAdCheckoutSession(
 
   if (!data.data?.checkoutUrl) {
     throw new Error("Payment could not be started. Please try again.");
+  }
+
+  return data.data;
+}
+
+/**
+ * Q5 — Chef subscription checkout (monthly auto-renew).
+ * Only available when CHEF_SUBSCRIPTIONS_ENABLED=true on the backend.
+ * Uses the same payload shape as the one-time checkout.
+ */
+export async function createAdSubscriptionCheckoutSession(
+  body: import("@/types/advertising").AdRequestPayload
+) {
+  const res = await fetch(
+    `${API_BASE_URL}/advertising/subscription-checkout-session`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }
+  );
+
+  const data = (await res.json()) as {
+    success: boolean;
+    message?: string;
+    data?: import("@/types/advertising").AdCheckoutSessionResponse & {
+      billingMode?: string;
+    };
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to start subscription checkout");
+  }
+
+  if (!data.data?.checkoutUrl) {
+    throw new Error("Subscription checkout could not be started. Please try again.");
   }
 
   return data.data;

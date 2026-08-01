@@ -50,13 +50,16 @@ const JoinToCreateProfileForm = () => {
   const [proofFiles, setProofFiles] = useState<File[]>([]);
   const [proofUploadError, setProofUploadError] = useState("");
 
-  const [formData, setFormData] = useState(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("chefForm");
-      return saved ? JSON.parse(saved) : initialForm;
+  const [formData, setFormData] = useState(initialForm);
+
+  // Clear any leftover draft so refresh always starts with a clean form
+  useEffect(() => {
+    try {
+      localStorage.removeItem("chefForm");
+    } catch {
+      // ignore storage errors
     }
-    return initialForm;
-  });
+  }, []);
 
   useEffect(() => {
     const t = searchParams.get("type");
@@ -70,25 +73,27 @@ const JoinToCreateProfileForm = () => {
 
   const isChef = formData.applicationType === "chef";
   const isOwner = formData.applicationType === "business_owner";
+  const isPublic = formData.applicationType === "public";
 
   const setApplicationType = (applicationType: ApplicationType) => {
-    setFormData((prev: typeof initialForm) => {
-      const updated = { ...prev, applicationType };
-      localStorage.setItem("chefForm", JSON.stringify(updated));
-      return updated;
-    });
+    setFormData((prev: typeof initialForm) => ({
+      ...prev,
+      applicationType,
+    }));
+    // Clear proof uploads when switching away from chef/owner verification flows
+    if (applicationType === "public") {
+      setProofFiles([]);
+      setProofUploadError("");
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
 
-    const updated = {
+    setFormData({
       ...formData,
       [name]: type === "checkbox" ? checked : value,
-    };
-
-    setFormData(updated);
-    localStorage.setItem("chefForm", JSON.stringify(updated));
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -97,10 +102,20 @@ const JoinToCreateProfileForm = () => {
     try {
       setLoading(true);
 
-      const payload = { ...formData };
-      if (isOwner) {
+      const payload: typeof formData & { applicationDocuments?: string[] } = {
+        ...formData,
+      };
+      if (isOwner || isPublic) {
         delete (payload as { jobTitle?: string }).jobTitle;
         delete (payload as { professionalEmail?: string }).professionalEmail;
+      }
+      if (isPublic) {
+        delete (payload as { professionalProof?: string }).professionalProof;
+        delete (payload as { applicationDocuments?: string[] })
+          .applicationDocuments;
+        if (!payload.currentRestaurant) {
+          payload.currentRestaurant = "";
+        }
       }
 
       const hasLegacyProof =
@@ -129,6 +144,7 @@ const JoinToCreateProfileForm = () => {
         }
       }
 
+      // Public individuals: no proof documents or professional email required
       if ((isChef || isOwner) && hasProofUpload) {
         if (proofFiles.length > 0) {
           const documentUrls = await uploadApplicationDocuments(
@@ -321,12 +337,16 @@ const JoinToCreateProfileForm = () => {
               </div>
             </div>
 
-            {/* Restaurant / business */}
+            {/* Restaurant / business / optional org for public */}
             <div className="mb-10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="form-label">
-                    {isOwner ? "Business / Restaurant Name" : "Current Restaurant"}
+                    {isOwner
+                      ? "Business / Restaurant Name"
+                      : isPublic
+                        ? "Organization (optional)"
+                        : "Current Restaurant"}
                   </label>
                   <input
                     type="text"
@@ -334,7 +354,8 @@ const JoinToCreateProfileForm = () => {
                     value={formData.currentRestaurant}
                     className="input-field"
                     onChange={handleChange}
-                    required
+                    required={!isPublic}
+                    placeholder={isPublic ? "Optional" : undefined}
                   />
                 </div>
                 <div>
@@ -371,7 +392,11 @@ const JoinToCreateProfileForm = () => {
             {/* Address */}
             <div className="mb-10">
               <label className="form-label">
-                {isOwner ? "Business Address" : "Restaurant Address"}
+                {isOwner
+                  ? "Business Address"
+                  : isPublic
+                    ? "Your Address"
+                    : "Restaurant Address"}
               </label>
 
               <input

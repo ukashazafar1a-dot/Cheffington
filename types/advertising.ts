@@ -31,6 +31,17 @@ export interface AdPlacement {
   cells?: Record<string, string>;
 }
 
+/** Q5 — monthly chef subscription plan (Option B: Stripe Price ID required) */
+export interface ChefSubscriptionPlan {
+  id: string;
+  placementKey: string;
+  label: string;
+  placementName: string;
+  monthlyPrice: number | null;
+  stripePriceId: string;
+  currency: string;
+}
+
 export interface AdPricingPayload {
   columns: AdPricingColumn[];
   rows: AdPricingRow[];
