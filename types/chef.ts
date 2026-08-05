@@ -15,11 +15,20 @@ export type ChefProfile = {
   website?: string;
   professionalEmail?: string;
   status?: string;
+  applicationType?: "chef" | "business_owner" | "public";
   profilePhotoUrl?: string;
   latitude?: number | null;
   longitude?: number | null;
   geocodePrecision?: "exact" | "city" | "region" | "none";
 };
+
+export function formatAccountRoleLabel(
+  applicationType?: string | null
+): string {
+  if (applicationType === "business_owner") return "Business Owner";
+  if (applicationType === "public") return "Member";
+  return "Chef";
+}
 
 export function formatChefFullName(chef?: ChefProfile): string {
   if (!chef) return "";

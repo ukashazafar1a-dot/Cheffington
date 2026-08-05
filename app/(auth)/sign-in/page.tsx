@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
+
 function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -18,7 +21,7 @@ function SignInForm() {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/chef-login', {
+      const res = await fetch(`${API_BASE_URL}/auth/chef-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,12 +32,7 @@ function SignInForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        const msg = data.message || 'Unable to sign in';
-        setError(
-          msg.includes('business owner')
-            ? `${msg} Sign in at http://localhost:3002/login`
-            : msg
-        );
+        setError(data.message || 'Unable to sign in');
         setLoading(false);
         return;
       }
@@ -42,11 +40,24 @@ function SignInForm() {
       window.localStorage.setItem('chefToken', data.token);
       const chefName = `${data.chef.firstName} ${data.chef.lastName}`.trim();
       window.localStorage.setItem('chefName', chefName);
+      if (data.chef.applicationType) {
+        window.localStorage.setItem(
+          'chefApplicationType',
+          data.chef.applicationType
+        );
+      }
       window.dispatchEvent(
         new CustomEvent('chef-profile-updated', {
           detail: {
             name: chefName,
             profilePhotoUrl: data.chef.profilePhotoUrl,
+            roleLabel:
+              data.chef.applicationType === 'business_owner'
+                ? 'Business Owner'
+                : data.chef.applicationType === 'public'
+                  ? 'Member'
+                  : 'Chef',
+            applicationType: data.chef.applicationType,
           },
         })
       );

@@ -750,6 +750,10 @@ export default function AdvertisingRequestForm() {
                           " — charged via Stripe at checkout (AUD)"
                         )}
                       </p>
+                      <p className="mt-2 text-sm text-gray-600">
+                        Have a launch discount code? Enter it on the Stripe
+                        payment page.
+                      </p>
                     </>
                   )}
                 </div>

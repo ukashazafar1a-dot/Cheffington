@@ -2,6 +2,10 @@
 
 import { sitedata } from "@/data/site";
 import { getChefMe } from "@/lib/api-client";
+import {
+  formatAccountRoleLabel,
+  type ChefProfile,
+} from "@/types/chef";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -10,11 +14,20 @@ import { useRouter } from "next/navigation";
 type ChefNavSession = {
   name: string;
   profilePhotoUrl?: string;
+  roleLabel?: string;
+  applicationType?: ChefProfile["applicationType"];
 };
 
 function chefNameFromStorage() {
   if (typeof window === "undefined") return "";
   return window.localStorage.getItem("chefName")?.trim() || "";
+}
+
+function roleFromStorage() {
+  if (typeof window === "undefined") return "";
+  return formatAccountRoleLabel(
+    window.localStorage.getItem("chefApplicationType")
+  );
 }
 
 function chefInitials(name: string) {
@@ -76,8 +89,9 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [chefSession, setChefSession] = useState<ChefNavSession | null>(null);
 
+  const isChefAccount = chefSession?.applicationType !== "business_owner";
   const navLinks = isLoggedIn
-    ? allNavLinks
+    ? allNavLinks.filter((item) => (item.chefsOnly ? isChefAccount : true))
     : allNavLinks.filter((item) => !item.chefsOnly);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -93,24 +107,32 @@ export default function Navbar() {
     setIsLoggedIn(true);
 
     const fallbackName = chefNameFromStorage() || "Chef";
+    const fallbackRole = roleFromStorage() || "Chef";
     setChefSession((prev) => ({
       name: prev?.name || fallbackName,
       profilePhotoUrl: prev?.profilePhotoUrl,
+      roleLabel: prev?.roleLabel || fallbackRole,
+      applicationType: prev?.applicationType,
     }));
 
     try {
       const chef = await getChefMe(token);
       const name =
         `${chef?.firstName ?? ""} ${chef?.lastName ?? ""}`.trim() || fallbackName;
+      const applicationType = chef?.applicationType || "chef";
+      const roleLabel = formatAccountRoleLabel(applicationType);
       if (name) {
         window.localStorage.setItem("chefName", name);
       }
+      window.localStorage.setItem("chefApplicationType", applicationType);
       setChefSession({
         name,
         profilePhotoUrl: chef?.profilePhotoUrl,
+        roleLabel,
+        applicationType,
       });
     } catch {
-      setChefSession({ name: fallbackName });
+      setChefSession({ name: fallbackName, roleLabel: fallbackRole });
     }
   }, []);
 
@@ -120,9 +142,20 @@ export default function Navbar() {
     const handleProfileUpdated = (event: Event) => {
       const detail = (event as CustomEvent<ChefNavSession>).detail;
       if (detail?.name) {
+        if (detail.applicationType) {
+          window.localStorage.setItem(
+            "chefApplicationType",
+            detail.applicationType
+          );
+        }
         setChefSession({
           name: detail.name,
           profilePhotoUrl: detail.profilePhotoUrl,
+          roleLabel:
+            detail.roleLabel ||
+            formatAccountRoleLabel(detail.applicationType) ||
+            roleFromStorage(),
+          applicationType: detail.applicationType,
         });
         setIsLoggedIn(true);
         return;
@@ -158,6 +191,7 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("chefToken");
     localStorage.removeItem("chefName");
+    localStorage.removeItem("chefApplicationType");
 
     setIsLoggedIn(false);
     setChefSession(null);
@@ -167,6 +201,7 @@ export default function Navbar() {
   };
 
   const chefDisplayName = chefSession?.name || "Chef";
+  const roleLabel = chefSession?.roleLabel || "Chef";
 
   const desktopAuth = (
     <div className="relative z-[1200] shrink-0" ref={dropdownRef}>
@@ -175,7 +210,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setProfileOpen(!profileOpen)}
-            className="flex max-w-[9.5rem] cursor-pointer items-center gap-2 rounded-full py-1 pl-0.5 pr-2 transition hover:bg-black/5 xl:max-w-[11rem]"
+            className="flex max-w-[11rem] cursor-pointer items-center gap-2 rounded-full py-1 pl-0.5 pr-2 transition hover:bg-black/5 xl:max-w-[13rem]"
             aria-expanded={profileOpen}
             aria-haspopup="true"
           >
@@ -185,13 +220,24 @@ export default function Navbar() {
               sizeClass="h-8 w-8"
               subtle
             />
-            <span className="truncate text-sm font-normal normal-case text-black/75">
-              {chefDisplayName}
+            <span className="min-w-0 text-left">
+              <span className="block truncate text-sm font-normal normal-case text-black/75">
+                {chefDisplayName}
+              </span>
+              <span className="block truncate text-[11px] font-medium normal-case text-black/45">
+                {roleLabel}
+              </span>
             </span>
           </button>
 
           {profileOpen && (
             <div className="absolute right-0 top-full z-[1300] mt-2 w-52 overflow-hidden rounded-lg border-2 border-black bg-white shadow-lg shadow-black/20">
+              <div className="border-b border-black/10 px-5 py-3">
+                <p className="truncate text-sm font-semibold text-black">
+                  {chefDisplayName}
+                </p>
+                <p className="text-xs font-medium text-[#FF8400]">{roleLabel}</p>
+              </div>
               <Link
                 href="/individual-chef-page"
                 className="block px-5 py-3.5 text-base font-bold transition hover:bg-gray-100"
@@ -322,8 +368,13 @@ export default function Navbar() {
                         profilePhotoUrl={chefSession?.profilePhotoUrl}
                         sizeClass="h-14 w-14"
                       />
-                      <span className="text-base font-normal normal-case text-black/75">
-                        {chefDisplayName}
+                      <span className="min-w-0">
+                        <span className="block text-base font-normal normal-case text-black/75">
+                          {chefDisplayName}
+                        </span>
+                        <span className="block text-sm font-medium normal-case text-[#FF8400]">
+                          {roleLabel}
+                        </span>
                       </span>
                     </Link>
                   </li>

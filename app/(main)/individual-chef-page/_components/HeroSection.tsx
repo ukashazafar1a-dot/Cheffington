@@ -8,12 +8,14 @@ interface HeroSectionProps {
   chef?: ChefProfile;
   reviewCount?: number;
   onPhotoUpdated?: (displayUrl: string) => void;
+  roleLabel?: string;
 }
 
 const HeroSection = ({
   chef,
   reviewCount = 0,
   onPhotoUpdated,
+  roleLabel,
 }: HeroSectionProps) => {
   const address = formatChefAddress(chef);
   const locationName =
@@ -31,6 +33,7 @@ const HeroSection = ({
                 chef={chef}
                 reviewCount={reviewCount}
                 onPhotoUpdated={onPhotoUpdated}
+                roleLabel={roleLabel}
               />
             </div>
             <div className=" xl:w-[30%] w-full">
