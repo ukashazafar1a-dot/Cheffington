@@ -30,6 +30,17 @@ const CHEF_SUBSCRIPTIONS_ENABLED =
 const sectionTitle = "title text-center text-4xl md:text-5xl";
 const sectionSubtitle = "subtitle mx-auto mt-3 max-w-2xl text-center text-xl md:text-2xl";
 
+/** Display-only: recommended creative size for a placement (does not affect checkout). */
+function getPlacementSizeLabel(placement: AdPlacement | undefined): string {
+  if (!placement) return "";
+  const fromLabel = String(placement.sizeLabel || "").trim();
+  if (fromLabel) return fromLabel;
+  const width = Number(placement.width);
+  const height = Number(placement.height);
+  if (width > 0 && height > 0) return `${width}×${height}`;
+  return "";
+}
+
 function getPricePerDay(
   placement: AdPlacement | undefined,
   row: AdPricingRow | undefined
@@ -252,6 +263,7 @@ export default function AdvertisingRequestForm() {
     sortedColumns[sortedColumns.length - 1]?.id;
 
   const selectedPlacement = placements.find((p) => p.key === form.placementKey);
+  const selectedPlacementSize = getPlacementSizeLabel(selectedPlacement);
   const selectedRow = sortedRows.find((row) => row.slotKey === form.placementKey);
   const dayCount = Number(form.days);
   const hasValidDays =
@@ -624,6 +636,8 @@ export default function AdvertisingRequestForm() {
                     </option>
                     {placementOptions.map((placement) => {
                       const subPlan = subscriptionPlanByKey.get(placement.key);
+                      const sizeLabel = getPlacementSizeLabel(placement);
+                      const sizePart = sizeLabel ? ` (${sizeLabel})` : "";
                       const monthlyLabel =
                         billingMode === "subscription" && subPlan?.monthlyPrice
                           ? ` — ${subPlan.currency.toUpperCase()} $${formatMoney(subPlan.monthlyPrice)}/month`
@@ -633,11 +647,20 @@ export default function AdvertisingRequestForm() {
                       return (
                         <option key={placement.key} value={placement.key}>
                           {placement.name}
+                          {sizePart}
                           {monthlyLabel}
                         </option>
                       );
                     })}
                   </select>
+                  {selectedPlacementSize ? (
+                    <p className="form-hint">
+                      Recommended image size:{" "}
+                      <span className="font-semibold text-black">
+                        {selectedPlacementSize} pixels
+                      </span>
+                    </p>
+                  ) : null}
                   {billingMode === "subscription" &&
                   placementOptions.length === 0 ? (
                     <p className="form-hint text-amber-700">
@@ -783,6 +806,21 @@ export default function AdvertisingRequestForm() {
               {!form.needsDesign ? (
                 <div className="form-field space-y-3">
                   <label className="form-label">Upload your ad image</label>
+                  {selectedPlacementSize ? (
+                    <p className="form-hint">
+                      Use{" "}
+                      <span className="font-semibold text-black">
+                        {selectedPlacementSize} pixels
+                      </span>{" "}
+                      for this placement so the ad displays correctly. JPEG, PNG,
+                      or WebP.
+                    </p>
+                  ) : (
+                    <p className="form-hint">
+                      Select a placement above to see the required image size.
+                      JPEG, PNG, or WebP.
+                    </p>
+                  )}
                   <input
                     ref={fileInputRef}
                     type="file"
