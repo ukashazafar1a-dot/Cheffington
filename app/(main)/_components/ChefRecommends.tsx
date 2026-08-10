@@ -57,7 +57,7 @@ export default async function ChefRecommends() {
         <p className="subtitle md:mb-12 mb-8 text-center">
           No bad reviews. Only great food.
         </p>
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
+        <div className="flex flex-wrap justify-start gap-4">
           {reviews.map((review) => {
             const name = chefDisplayName(review.chef);
             const quote = review.comment?.trim() || "";
@@ -67,10 +67,10 @@ export default async function ChefRecommends() {
             return (
               <article
                 key={review._id}
-                className="relative flex min-h-[300px] flex-col justify-end overflow-hidden bg-[#D9D9D9] p-4 text-left md:p-8"
+                className="w-full max-w-[320px] overflow-hidden rounded-2xl border-2 border-black bg-white p-3.5 text-left shadow-[3px_3px_0_0_#000] transition-transform duration-200 hover:-translate-y-0.5 sm:w-[320px]"
               >
-                <div className="flex items-start gap-6 max-sm:flex-wrap">
-                  <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#56A8F5] md:h-32 md:w-32">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-black bg-[#FFF1E1]">
                     {review.chef?.profilePhotoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -79,23 +79,25 @@ export default async function ChefRecommends() {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <span className="text-2xl font-bold text-white md:text-3xl">
+                      <span className="text-sm font-bold text-[#FF8400]">
                         {chefInitials(name)}
                       </span>
                     )}
                   </div>
 
-                  <div className="flex min-w-0 basis-2/3 flex-col justify-center max-sm:basis-full">
-                    <h4 className="mb-1 text-xl font-bold">{name}</h4>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="truncate text-sm font-bold leading-tight">
+                      {name}
+                    </h4>
                     {restaurantName && restaurantId ? (
                       <Link
                         href={`/restaurants/${restaurantId}`}
-                        className="mb-2 text-sm font-bold uppercase underline hover:text-black/70"
+                        className="mb-1 block truncate text-[11px] font-bold uppercase tracking-wide text-[#FF8400] underline-offset-2 hover:underline"
                       >
                         {restaurantName}
                       </Link>
                     ) : null}
-                    <p className="text-xl font-normal leading-tight tracking-tight">
+                    <p className="line-clamp-2 text-sm leading-snug text-black/75">
                       &ldquo;{quote}&rdquo;
                     </p>
                   </div>
