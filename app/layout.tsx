@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Footer from "../components/Footer"
 import Navebar from "../components/Navebar"
+import LaunchingSoonBanner from "../components/LaunchingSoonBanner"
 import SiteHeaderAd from "../components/ads/SiteHeaderAd"
 import SiteFooterAd from "../components/ads/SiteFooterAd"
 import { Toaster } from 'react-hot-toast'
@@ -25,6 +26,7 @@ export default function RootLayout({
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <body className="" suppressHydrationWarning>
         <Navebar />
+        <LaunchingSoonBanner />
         <SiteHeaderAd />
         {children}
         <Toaster position="top-right" />
