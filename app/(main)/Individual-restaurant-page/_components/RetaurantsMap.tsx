@@ -39,9 +39,24 @@ const RestaurantsMap = ({
     };
 
     const handleGetDirections = () => {
-        if (!displayAddress) return;
-        const encodedAddress = encodeURIComponent(displayAddress);
-        window.open(`https://maps.google.com/?q=${encodedAddress}`, "_blank");
+        let query = "";
+        if (
+            typeof lat === "number" &&
+            Number.isFinite(lat) &&
+            typeof lng === "number" &&
+            Number.isFinite(lng)
+        ) {
+            query = `${lat},${lng}`;
+        } else if (displayAddress?.trim()) {
+            query = displayAddress.trim();
+        } else {
+            return;
+        }
+        window.open(
+            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
+            "_blank",
+            "noopener,noreferrer"
+        );
     };
 
     const handlePhoneClick = () => {

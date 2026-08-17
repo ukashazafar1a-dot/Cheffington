@@ -72,18 +72,7 @@ export function filterRestaurantsDirectory(
         if (!locationHaystack.includes(location)) return false;
       }
 
-      if (chef) {
-        const chefHaystack = [
-          restaurant.name,
-          restaurant.description,
-          restaurant.cuisine,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        if (!chefHaystack.includes(chef)) return false;
-      }
-
+      // Chef name search is handled on the restaurants page via /api/chefs.
       return true;
     });
   }

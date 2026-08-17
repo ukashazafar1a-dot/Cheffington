@@ -45,9 +45,15 @@ export default async function RestaurantReviews({
               <ChefReviewCard
                 key={review._id}
                 chefName={chefName}
+                chefId={review.chef?.id}
                 profilePhotoUrl={review.chef?.profilePhotoUrl}
                 restaurantName={restaurantName}
                 showRestaurantName={false}
+                affiliations={
+                  review.chef?.affiliatedRestaurants?.map(
+                    (restaurant) => restaurant.name
+                  ) ?? []
+                }
                 title={review.title?.trim() || undefined}
                 comment={review.comment}
                 date={review.createdAt}

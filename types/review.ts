@@ -3,6 +3,9 @@ export interface ReviewChef {
   firstName: string;
   lastName: string;
   profilePhotoUrl?: string;
+  currentRestaurant?: string;
+  jobTitle?: string;
+  affiliatedRestaurants?: Array<{ id: string; name: string }>;
 }
 
 export interface FeaturedReviewRestaurant {

@@ -42,6 +42,24 @@ export default function Button({
   );
 
   if (href) {
+    const isExternal = /^https?:\/\//i.test(href);
+    if (isExternal) {
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={classes}
+          aria-disabled={isDisabled}
+          onClick={(e) => {
+            if (isDisabled) e.preventDefault();
+          }}
+        >
+          {content}
+        </a>
+      );
+    }
+
     return (
       <Link
         href={href}

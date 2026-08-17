@@ -36,7 +36,7 @@ const HeroSection = ({
                 roleLabel={roleLabel}
               />
             </div>
-            <div className=" xl:w-[30%] w-full">
+            <div className="relative z-20 xl:w-[30%] w-full">
               <RestaurantsMap
                 address={address}
                 addressFields={{

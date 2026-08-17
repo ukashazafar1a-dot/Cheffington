@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import HeroSection from "./_components/HeroSection";
 import ChefReviewForRestaurants from "./_components/ChefReviewForRestaurants";
 import Adertising from "./_components/Adertising";
-import ChefWebsiteButton from "./_components/ChefWebsiteButton";
+import EditChefProfileForm from "./_components/EditChefProfileForm";
 import type { ChefProfile } from "@/types/chef";
 import { formatAccountRoleLabel } from "@/types/chef";
 import type { MyReview } from "@/types/review";
@@ -20,17 +20,19 @@ export default function IndividualChefPage() {
   const [reviews, setReviews] = useState<MyReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [token, setToken] = useState("");
 
   useEffect(() => {
     const loadProfile = async () => {
-      const token = window.localStorage.getItem("chefToken");
-      if (!token) {
+      const chefToken = window.localStorage.getItem("chefToken");
+      if (!chefToken) {
         router.push("/sign-in?returnUrl=/individual-chef-page");
         return;
       }
+      setToken(chefToken);
 
       try {
-        const chefData = await getChefMe(token);
+        const chefData = await getChefMe(chefToken);
         setChef(chefData);
         if (chefData?.applicationType) {
           window.localStorage.setItem(
@@ -39,10 +41,9 @@ export default function IndividualChefPage() {
           );
         }
 
-        // Reviews are chef-only; business owners still get their profile page.
         if (chefData?.applicationType !== "business_owner") {
           try {
-            const reviewsRes = await getMyReviews(token);
+            const reviewsRes = await getMyReviews(chefToken);
             setReviews(reviewsRes.data ?? []);
           } catch {
             setReviews([]);
@@ -112,7 +113,15 @@ export default function IndividualChefPage() {
       />
 
       <div className="relative z-0 -mt-8 flex flex-col page-width">
-        <ChefWebsiteButton website={chef?.website} />
+        {!isBusinessOwner && token && chef ? (
+          <div className="mb-4 mt-6 w-full xl:w-[68%]">
+            <EditChefProfileForm
+              chef={chef}
+              token={token}
+              onSaved={(updated) => setChef(updated)}
+            />
+          </div>
+        ) : null}
 
         {isBusinessOwner ? (
           <div className="mb-18 rounded-xl border border-black/10 bg-white px-6 py-8">

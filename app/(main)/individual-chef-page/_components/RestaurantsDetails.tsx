@@ -14,6 +14,22 @@ type RestaurantsDetailsProps = {
   roleLabel?: string;
 };
 
+function SocialLink({ href, label }: { href?: string; label: string }) {
+  const url = href?.trim();
+  if (!url) return null;
+  const normalized = url.startsWith('http') ? url : `https://${url}`;
+  return (
+    <a
+      href={normalized}
+      target="_blank"
+      rel="noreferrer"
+      className="text-sm font-semibold text-[#FF8400] underline underline-offset-2"
+    >
+      {label}
+    </a>
+  );
+}
+
 const RestaurantsDetails = ({
   chef,
   reviewCount = 0,
@@ -53,6 +69,11 @@ const RestaurantsDetails = ({
                 {subtitle}
               </p>
             ) : null}
+            <div className="mt-3 flex flex-wrap gap-4">
+              <SocialLink href={chef?.instagramUrl} label="Instagram" />
+              <SocialLink href={chef?.facebookUrl} label="Facebook" />
+              <SocialLink href={chef?.spotifyUrl} label="Spotify" />
+            </div>
           </div>
         </div>
       </div>

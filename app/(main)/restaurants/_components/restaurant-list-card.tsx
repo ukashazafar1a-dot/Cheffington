@@ -71,6 +71,12 @@ export default function RestaurantListCard({
               </h3>
             </Link>
 
+            {restaurant.tagline?.trim() ? (
+              <p className="mt-1 text-sm italic text-gray-500">
+                {restaurant.tagline.trim()}
+              </p>
+            ) : null}
+
             <ChefReviewCountBadge
               count={restaurant.reviewCount ?? 0}
               className="mt-2"

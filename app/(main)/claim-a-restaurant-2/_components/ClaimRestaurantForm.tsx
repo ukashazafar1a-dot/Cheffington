@@ -149,6 +149,16 @@ const ClaimRestaurantForm = () => {
           </p>
         ) : null}
 
+        {!restaurantId ? (
+          <p className="form-error mb-4">
+            Restaurant is missing.{" "}
+            <a href="/claim-a-restaurant" className="underline font-semibold">
+              Go back and select a restaurant
+            </a>{" "}
+            from the list before sending a claim.
+          </p>
+        ) : null}
+
         <div className="form-field">
           <label className="form-label">Full Name</label>
           <input

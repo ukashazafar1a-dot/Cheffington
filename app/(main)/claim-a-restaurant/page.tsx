@@ -79,10 +79,16 @@ export default function RestaurantSearch() {
     setSelectedRestaurant(restaurant);
     setSearchInput(restaurant.name);
     setShowDropdown(false);
+    setError(null);
   };
 
   const handleSearch = () => {
-    if (!selectedRestaurant) return;
+    if (!selectedRestaurant) {
+      setError(
+        "Select a restaurant from the list, or add it if it isn’t listed."
+      );
+      return;
+    }
 
     const qs = new URLSearchParams({
       restaurantId: selectedRestaurant._id,
@@ -118,7 +124,24 @@ export default function RestaurantSearch() {
                   type="text"
                   placeholder=""
                   value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSearchInput(value);
+                    setError(null);
+                    if (
+                      selectedRestaurant &&
+                      value.trim().toLowerCase() !==
+                        selectedRestaurant.name.trim().toLowerCase()
+                    ) {
+                      setSelectedRestaurant(null);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleSearch();
+                    }
+                  }}
                   className="form-search-input min-h-0! rounded-none border-0 border-b border-black px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
@@ -126,7 +149,6 @@ export default function RestaurantSearch() {
               <button
                 type="button"
                 onClick={handleSearch}
-                disabled={!selectedRestaurant}
                 className="button button--primary max-md:w-full
                 "
               >

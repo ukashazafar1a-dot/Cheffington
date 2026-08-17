@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getPublishedRestaurants } from "@/lib/api-client";
 import FeaturedRestaurantCard from "./featured-restaurant-card";
+import RotatingKissLine from "./RotatingKissLine";
 
 export default async function RestaurantsList() {
   let featured: Awaited<ReturnType<typeof getPublishedRestaurants>>["data"] = [];
@@ -13,16 +14,21 @@ export default async function RestaurantsList() {
     featured = [];
   }
 
+  const cuisines = [
+    ...new Set(
+      (featured ?? [])
+        .map((r) => r.cuisine?.trim())
+        .filter((value): value is string => Boolean(value))
+    ),
+  ];
+
   return (
     <section className="lg:my-32 my-24 max-sm:my-18">
       <div className="text-center page-width">
         <h2 className="title md:text-7xl font-black tracking-tighter mb-4">
           The Chef&apos;s Kiss
         </h2>
-        <p className="subtitle font-bold md:mb-12 mb-8">
-          Best place for <span className="text-[#FF8400]">Pakistani Food</span>{" "}
-          in <span className="text-[#FF8400]">San Francisco</span>
-        </p>
+        <RotatingKissLine cuisines={cuisines} />
 
         {featured.length === 0 ? (
           <p className="text-gray-600 mb-8">

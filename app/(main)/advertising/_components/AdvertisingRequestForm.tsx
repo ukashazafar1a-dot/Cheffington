@@ -8,6 +8,7 @@ import {
   createAdCheckoutSession,
   createAdSubscriptionCheckoutSession,
   getAdCheckoutSessionStatus,
+  getAdPlacementAvailability,
   getAdPlacements,
   getAdTargetRegions,
   getChefSubscriptionPlans,
@@ -15,6 +16,7 @@ import {
 } from "@/lib/api-client";
 import type {
   AdPlacement,
+  AdPlacementAvailability,
   AdPricingPayload,
   AdPricingRow,
   AdTargetRegion,
@@ -109,6 +111,9 @@ export default function AdvertisingRequestForm() {
   const [adImagePreview, setAdImagePreview] = useState("");
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [slotAvailability, setSlotAvailability] =
+    useState<AdPlacementAvailability | null>(null);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -149,6 +154,15 @@ export default function AdvertisingRequestForm() {
         try {
           const status = await getAdCheckoutSessionStatus(sessionId);
           if (cancelled) return;
+
+          if (status.reviewStatus === "rejected") {
+            setError(
+              "This placement was already booked for that region. If you were charged, a refund has been issued."
+            );
+            setVerifyingPayment(false);
+            clearCheckoutQuery();
+            return;
+          }
 
           if (status.paid) {
             setSuccess(
@@ -220,6 +234,37 @@ export default function AdvertisingRequestForm() {
       .finally(() => setLoadingPlacements(false));
   }, []);
 
+  useEffect(() => {
+    if (!form.placementKey || !form.targetRegionKey) {
+      setSlotAvailability(null);
+      return;
+    }
+
+    let cancelled = false;
+    setCheckingAvailability(true);
+
+    getAdPlacementAvailability(form.placementKey, form.targetRegionKey)
+      .then((availability) => {
+        if (!cancelled) {
+          setSlotAvailability(availability);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSlotAvailability(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setCheckingAvailability(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [form.placementKey, form.targetRegionKey]);
+
   const placements = pricing.placements;
   const sortedColumns = [...pricing.columns].sort((a, b) => a.order - b.order);
   const sortedRows = [...pricing.rows].sort((a, b) => a.order - b.order);
@@ -286,7 +331,8 @@ export default function AdvertisingRequestForm() {
         form.websiteUrl.trim() &&
         form.placementKey &&
         form.targetRegionKey &&
-        (form.needsDesign || adImageUrl)
+        (form.needsDesign || adImageUrl) &&
+        slotAvailability?.available !== false
     );
     if (billingMode === "subscription") {
       return base && Boolean(selectedSubscriptionPlan);
@@ -298,6 +344,7 @@ export default function AdvertisingRequestForm() {
     hasValidDays,
     billingMode,
     selectedSubscriptionPlan,
+    slotAvailability,
   ]);
 
   const onSelectImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -694,6 +741,15 @@ export default function AdvertisingRequestForm() {
                   <p className="form-hint">
                     Your ad will appear for visitors browsing this area.
                   </p>
+                  {checkingAvailability ? (
+                    <p className="form-hint">Checking availability…</p>
+                  ) : null}
+                  {slotAvailability?.available === false ? (
+                    <p className="form-error mt-2">
+                      {slotAvailability.message ||
+                        "This placement is already booked for that region."}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="form-field">
                   <label className="form-label">Number of days *</label>
@@ -770,7 +826,7 @@ export default function AdvertisingRequestForm() {
                             — set price per day in admin for an accurate estimate
                           </span>
                         ) : (
-                          " — charged via Stripe at checkout (AUD)"
+                          " — charged via Stripe at checkout (USD)"
                         )}
                       </p>
                       <p className="mt-2 text-sm text-gray-600">
@@ -873,7 +929,7 @@ export default function AdvertisingRequestForm() {
                       : "Pay & submit request"
                 }
                 type="submit"
-                disabled={!isValid || submitting || uploading}
+                disabled={!isValid || submitting || uploading || checkingAvailability}
               />
             </div>
           </form>

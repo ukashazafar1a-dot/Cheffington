@@ -2,6 +2,7 @@
 
 import GeocodedMap from "@/components/GeocodedMap";
 import type { AddressFields, GeocodePrecision } from "@/lib/geocode";
+import { displayWebsiteLabel, toExternalHref } from "@/types/chef";
 import { useState } from "react";
 
 type RestaurantsMapProps = {
@@ -28,6 +29,8 @@ const RestaurantsMap = ({
     const displayAddress = address?.trim() || "Address not provided";
     const displayPhone = phone?.trim() || "Phone not provided";
     const displayWebsite = website?.trim();
+    const websiteHref = toExternalHref(displayWebsite);
+    const websiteLabel = displayWebsiteLabel(displayWebsite);
     const [copied, setCopied] = useState<string | null>(null);
 
     const handleCopy = (text: string, type: string) => {
@@ -37,9 +40,24 @@ const RestaurantsMap = ({
     };
 
     const handleGetDirections = () => {
-        if (!address?.trim()) return;
-        const encodedAddress = encodeURIComponent(address);
-        window.open(`https://maps.google.com/?q=${encodedAddress}`, "_blank");
+        let query = "";
+        if (
+            typeof lat === "number" &&
+            Number.isFinite(lat) &&
+            typeof lng === "number" &&
+            Number.isFinite(lng)
+        ) {
+            query = `${lat},${lng}`;
+        } else if (address?.trim()) {
+            query = address.trim();
+        } else {
+            return;
+        }
+        window.open(
+            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
+            "_blank",
+            "noopener,noreferrer"
+        );
     };
 
     const handlePhoneClick = () => {
@@ -47,18 +65,9 @@ const RestaurantsMap = ({
         window.open(`tel:${phone.replace(/[^0-9]/g, "")}`, "_blank");
     };
 
-    const handleWebsiteClick = () => {
-        if (!displayWebsite) return;
-        const url = displayWebsite.startsWith("http")
-            ? displayWebsite
-            : `https://${displayWebsite}`;
-        window.open(url, "_blank");
-    };
-
     return (
-        <div className="relative z-0 isolate overflow-hidden rounded-3xl bg-[#FF8400] [&_.leaflet-pane]:!z-[1] [&_.leaflet-top]:!z-[2] [&_.leaflet-container]:!z-0">
-            {/* Map — keep Leaflet panes below navbar dropdowns */}
-            <div className="relative z-0 md:h-111.75">
+        <div className="relative z-20 isolate overflow-hidden rounded-3xl bg-[#FF8400] [&_.leaflet-pane]:!z-[1] [&_.leaflet-top]:!z-[2] [&_.leaflet-container]:!z-0">
+            <div className="relative z-0 h-48 overflow-hidden md:h-52">
                 <GeocodedMap
                     address={address?.trim() || undefined}
                     addressFields={addressFields}
@@ -66,7 +75,7 @@ const RestaurantsMap = ({
                     lng={lng}
                     geocodePrecision={geocodePrecision}
                     name={locationName}
-                    className="w-full h-full min-h-60"
+                    className="h-full w-full"
                     unavailableLabel={
                         address?.trim()
                             ? "Map unavailable for this address"
@@ -75,8 +84,7 @@ const RestaurantsMap = ({
                 />
             </div>
 
-            {/* Address & Contact Info */}
-            <div className="flex flex-col text-center">
+            <div className="relative z-20 flex flex-col text-center">
                 {/* Address Section */}
                 <div className="px-6 py-5 border-b border-black/10 group relative">
                     <p className="font-extrabold text-sm text-black tracking-[-2%] leading-tight">
@@ -92,7 +100,7 @@ const RestaurantsMap = ({
                     ) : null}
                     <button
                         onClick={() => address?.trim() && handleCopy(address, "address")}
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity"
                         aria-label="Copy address"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -119,7 +127,7 @@ const RestaurantsMap = ({
                     </button>
                     <button
                         onClick={() => phone?.trim() && handleCopy(phone, "phone")}
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity"
                         aria-label="Copy phone number"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -135,18 +143,20 @@ const RestaurantsMap = ({
                 </div>
 
                 {/* Website Section */}
-                {displayWebsite ? (
+                {websiteHref ? (
                 <div className="px-6 py-4 group relative">
+                    <a
+                        href={websiteHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="relative z-20 inline-block w-full cursor-pointer font-extrabold tracking-[-2%] text-sm text-black underline underline-offset-2 hover:text-white"
+                    >
+                        {websiteLabel || displayWebsite}
+                    </a>
                     <button
                         type="button"
-                        onClick={handleWebsiteClick}
-                        className="font-extrabold tracking-[-2%] text-sm text-black hover:underline w-full"
-                    >
-                        {displayWebsite}
-                    </button>
-                    <button
-                        onClick={() => handleCopy(displayWebsite, "website")}
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => displayWebsite && handleCopy(displayWebsite, "website")}
+                        className="absolute top-2 right-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity"
                         aria-label="Copy website"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

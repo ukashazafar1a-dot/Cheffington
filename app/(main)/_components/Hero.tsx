@@ -1,7 +1,33 @@
 import Button from "@/components/Button";
 import Image from "next/image";
+import RestaurantNameSuggest from "./RestaurantNameSuggest";
 
-const Hero = () => {
+const DEFAULT_SUBTITLE =
+  "Restaurant reviews by chefs, not your mom's cat sitter.";
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
+
+async function getHomepageSubtitle() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/site-copy`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return DEFAULT_SUBTITLE;
+    const json = await res.json();
+    const value = json?.data?.homepage_subtitle;
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+    return DEFAULT_SUBTITLE;
+  } catch {
+    return DEFAULT_SUBTITLE;
+  }
+}
+
+const Hero = async () => {
+  const subtitle = await getHomepageSubtitle();
+
   return (
     <section>
       <div className="page-width">
@@ -15,23 +41,15 @@ const Hero = () => {
         </div>
         <div className="text-center mb-14">
           <h1 className="title mb-2">Eat Like a Chef.</h1>
-          <p className="subtitle">
-            Restaurant reviews by Chef&apos;s, not your mom&apos;s cat sitter.
-          </p>
+          <p className="subtitle">{subtitle}</p>
         </div>
-        <form action="/restaurants" method="get" className="form-search-card">
+        <form action="/restaurants" method="get" className="form-search-card relative z-20 overflow-visible">
           <div className="grid grid-cols-1 items-end gap-6 sm:grid-cols-2 lg:grid-cols-5">
-            <div className="flex flex-col space-y-2">
+            <div className="relative z-20 flex flex-col space-y-2">
               <label className="form-search-label" htmlFor="hero-name">
                 Restaurant
               </label>
-              <input
-                id="hero-name"
-                name="name"
-                type="text"
-                suppressHydrationWarning
-                className="form-search-input"
-              />
+              <RestaurantNameSuggest id="hero-name" name="name" />
             </div>
             <div className="flex flex-col space-y-2">
               <label className="form-search-label" htmlFor="hero-cuisine">

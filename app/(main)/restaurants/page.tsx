@@ -1,5 +1,11 @@
 import { Suspense } from "react";
-import { getAdTargetRegionMapping, getPublishedRestaurants } from "@/lib/api-client";
+import Link from "next/link";
+import {
+  getAdTargetRegionMapping,
+  getPublishedRestaurants,
+  searchPublicChefs,
+  type PublicChef,
+} from "@/lib/api-client";
 import {
   DEFAULT_TARGET_REGION_MAPPING,
   resolveRegionFromLocationQuery,
@@ -23,6 +29,7 @@ import RestaurantsToolbar from "./_components/restaurants-toolbar";
 import RestaurantsListAd from "./_components/restaurants-list-ad";
 import RestaurantsTopAd from "@/components/ads/RestaurantsTopAd";
 import PersistDirectoryAdRegion from "./_components/persist-directory-ad-region";
+import { formatChefFullName } from "@/types/chef";
 
 type Props = {
   searchParams: Promise<RestaurantDirectoryParams>;
@@ -46,12 +53,27 @@ export default async function RestaurantsPage({ searchParams }: Props) {
     ReturnType<typeof getPublishedRestaurants>
   >["data"] = [];
   let error: string | null = null;
+  let chefResults: PublicChef[] = [];
+  let chefSearchError: string | null = null;
 
   try {
     const res = await getPublishedRestaurants();
     restaurants = res.data ?? [];
   } catch (e) {
     error = e instanceof Error ? e.message : "Failed to load restaurants";
+  }
+
+  const chefQuery = defaults.chef?.trim() ?? "";
+  if (chefQuery.length >= 2) {
+    try {
+      chefResults = await searchPublicChefs(chefQuery);
+    } catch (chefError) {
+      chefSearchError =
+        chefError instanceof Error
+          ? chefError.message
+          : "Failed to search chefs";
+      chefResults = [];
+    }
   }
 
   const nearActive = defaults.near === "1";
@@ -67,6 +89,38 @@ export default async function RestaurantsPage({ searchParams }: Props) {
   );
 
   let displayRestaurants = filtered;
+
+  if (chefQuery.length >= 2 && chefResults.length > 0) {
+    const relatedIds = new Set<string>();
+
+    for (const chef of chefResults) {
+      for (const id of chef.relatedRestaurantIds ?? []) {
+        relatedIds.add(String(id));
+      }
+      for (const restaurant of chef.affiliatedRestaurants ?? []) {
+        relatedIds.add(String(restaurant._id));
+      }
+      for (const restaurant of chef.ownedRestaurants ?? []) {
+        relatedIds.add(String(restaurant._id));
+      }
+      const workplace = chef.currentRestaurant?.trim().toLowerCase();
+      if (workplace) {
+        for (const restaurant of restaurants) {
+          if (restaurant.name?.toLowerCase().includes(workplace)) {
+            relatedIds.add(restaurant._id);
+          }
+        }
+      }
+    }
+
+    displayRestaurants = displayRestaurants.filter((restaurant) =>
+      relatedIds.has(restaurant._id)
+    );
+  } else if (chefQuery.length >= 2 && chefResults.length === 0) {
+    // Chef search with no chef matches should not fall back to random restaurants.
+    displayRestaurants = [];
+  }
+
   if (!hasNearCoords) {
     displayRestaurants = sortRestaurants(displayRestaurants, sortOption);
   }
@@ -84,6 +138,12 @@ export default async function RestaurantsPage({ searchParams }: Props) {
     defaults.location,
     regionMapping
   );
+
+  const noResults =
+    !error &&
+    !chefSearchError &&
+    displayRestaurants.length === 0 &&
+    chefResults.length === 0;
 
   return (
     <section className="py-8 md:py-12">
@@ -126,21 +186,61 @@ export default async function RestaurantsPage({ searchParams }: Props) {
           </p>
         )}
 
-        {!error && displayRestaurants.length === 0 && (
+        {chefSearchError ? (
+          <p className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-600">
+            {chefSearchError}
+          </p>
+        ) : null}
+
+        {chefResults.length > 0 ? (
+          <div className="mb-10">
+            <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">
+              {chefResults.length} chef{chefResults.length === 1 ? "" : "s"} found
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {chefResults.map((chef) => {
+                const name = formatChefFullName(chef) || "Chef";
+                return (
+                  <Link
+                    key={chef._id}
+                    href={`/chefs/${chef._id}`}
+                    className="rounded-2xl border-2 border-black bg-white p-4 shadow-[3px_3px_0_0_#000] transition hover:-translate-y-0.5"
+                  >
+                    <p className="text-lg font-bold">{name}</p>
+                    {chef.currentRestaurant ? (
+                      <p className="mt-1 text-sm font-semibold text-[#FF8400]">
+                        {chef.currentRestaurant}
+                      </p>
+                    ) : null}
+                    {chef.jobTitle ? (
+                      <p className="mt-1 text-sm text-gray-600">{chef.jobTitle}</p>
+                    ) : null}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        {noResults && (
           <div className="rounded-2xl border border-dashed border-gray-300 bg-white/60 px-6 py-16 text-center">
             <p className="text-lg font-semibold text-gray-800">
               {hasNearCoords
                 ? `No restaurants within ${NEAR_ME_RADIUS_KM} km`
-                : hasSearchFilters
-                  ? "No restaurants match your search"
-                  : "No restaurants published yet"}
+                : chefQuery.length >= 2
+                  ? "No chefs match that name"
+                  : hasSearchFilters
+                    ? "No restaurants match your search"
+                    : "No restaurants published yet"}
             </p>
             <p className="mt-2 text-sm text-gray-500">
               {hasNearCoords
                 ? "Try turning off Near me or adjust your search filters."
-                : hasSearchFilters
-                  ? "Try a different name, cuisine, or location."
-                  : "Check back soon for new listings."}
+                : chefQuery.length >= 2
+                  ? "Chefs appear in search after their application is approved. Try the first or last name."
+                  : hasSearchFilters
+                    ? "Try a different name, cuisine, location, or chef."
+                    : "Check back soon for new listings."}
             </p>
           </div>
         )}

@@ -3,6 +3,7 @@ import ChefReviewCountBadge from "@/components/ChefReviewCountBadge";
 type RestaurantHeroCoverProps = {
   name: string;
   cuisine?: string;
+  tagline?: string;
   coverImageUrl?: string;
   reviewCount?: number;
 };
@@ -13,6 +14,7 @@ type RestaurantHeroCoverProps = {
 const RestaurantHeroCover = ({
   name,
   cuisine,
+  tagline,
   coverImageUrl,
   reviewCount = 0,
 }: RestaurantHeroCoverProps) => {
@@ -55,6 +57,11 @@ const RestaurantHeroCover = ({
           {cuisine ? (
             <p className="text-sm tracking-[-0.04em] text-gray-600 md:text-lg md:leading-7 leading-6">
               {cuisine}
+            </p>
+          ) : null}
+          {tagline?.trim() ? (
+            <p className="mt-0.5 text-sm italic text-gray-500 md:text-base">
+              {tagline.trim()}
             </p>
           ) : null}
           <ChefReviewCountBadge count={reviewCount} className="mt-1 md:text-base" />

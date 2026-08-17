@@ -231,6 +231,124 @@ export async function getChefMe(chefToken: string) {
   return data.chef;
 }
 
+export async function updateChefMe(
+  chefToken: string,
+  body: Partial<
+    Pick<
+      ChefProfile,
+      | "firstName"
+      | "lastName"
+      | "jobTitle"
+      | "currentRestaurant"
+      | "currentRestaurantUrl"
+      | "website"
+      | "bio"
+      | "instagramUrl"
+      | "facebookUrl"
+      | "spotifyUrl"
+      | "affiliatedRestaurantIds"
+    >
+  >
+) {
+  const res = await fetch(`${API_BASE_URL}/auth/chef-me`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${chefToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    chef?: ChefProfile;
+    message?: string;
+  };
+
+  if (!res.ok || !data.chef) {
+    throw new Error(data.message || "Failed to update profile");
+  }
+
+  return data.chef;
+}
+
+export type PublicChef = {
+  _id: string;
+  firstName?: string;
+  lastName?: string;
+  jobTitle?: string;
+  currentRestaurant?: string;
+  currentRestaurantUrl?: string;
+  bio?: string;
+  website?: string;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  spotifyUrl?: string;
+  profilePhotoUrl?: string;
+  affiliatedRestaurantIds?: string[];
+  affiliatedRestaurants?: {
+    _id: string;
+    name: string;
+    city?: string;
+    state?: string;
+    cuisine?: string;
+    images?: string[];
+  }[];
+  ownedRestaurants?: {
+    _id: string;
+    name: string;
+    city?: string;
+    state?: string;
+    cuisine?: string;
+    images?: string[];
+  }[];
+  relatedRestaurantIds?: string[];
+  reviews?: {
+    _id: string;
+    title?: string;
+    comment?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    restaurant?: {
+      id: string;
+      name: string;
+      city?: string;
+      state?: string;
+    };
+  }[];
+};
+
+export async function searchPublicChefs(q: string) {
+  const params = new URLSearchParams({ q: q.trim(), limit: "20" });
+  const res = await fetch(`${API_BASE_URL}/chefs?${params}`, {
+    cache: "no-store",
+  });
+  const data = (await res.json()) as {
+    success: boolean;
+    data?: PublicChef[];
+    message?: string;
+  };
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to search chefs");
+  }
+  return data.data ?? [];
+}
+
+export async function getPublicChef(id: string) {
+  const res = await fetch(`${API_BASE_URL}/chefs/${id}`, {
+    cache: "no-store",
+  });
+  const data = (await res.json()) as {
+    success: boolean;
+    data?: PublicChef;
+    message?: string;
+  };
+  if (!res.ok || !data.data) {
+    throw new Error(data.message || "Chef not found");
+  }
+  return data.data;
+}
+
 export type RestaurantClaimPayload = {
   restaurantId: string;
   claimantName: string;
@@ -303,6 +421,57 @@ export async function submitRestaurantClaim(body: RestaurantClaimPayload) {
   return data;
 }
 
+export type RestaurantSuggestionPayload = {
+  submitterName?: string;
+  submitterEmail?: string;
+  name: string;
+  cuisine: string;
+  city: string;
+  phone?: string;
+  website?: string;
+  menuUrl?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
+  description?: string;
+  features?: string[];
+};
+
+export async function submitRestaurantSuggestion(
+  body: RestaurantSuggestionPayload
+) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  const token =
+    typeof window !== "undefined"
+      ? window.localStorage.getItem("chefToken")
+      : null;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_BASE_URL}/restaurant-suggestions`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    message?: string;
+    data?: { _id: string; status: string };
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to submit restaurant");
+  }
+
+  return data;
+}
+
 export const ADVERTISING_ASSET_ACCEPTED_TYPES = [
   "image/jpeg",
   "image/png",
@@ -327,6 +496,38 @@ export async function getAdPlacements() {
   }
 
   return data.data ?? { columns: [], rows: [], placements: [] };
+}
+
+export async function getAdPlacementAvailability(
+  placementKey: string,
+  targetRegionKey: string
+) {
+  const params = new URLSearchParams({
+    placementKey,
+    targetRegionKey,
+  });
+  const res = await fetch(
+    `${API_BASE_URL}/advertising/availability?${params.toString()}`,
+    { cache: "no-store" }
+  );
+
+  const data = (await res.json()) as {
+    success: boolean;
+    data?: import("@/types/advertising").AdPlacementAvailability;
+    message?: string;
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to check placement availability");
+  }
+
+  return (
+    data.data ?? {
+      available: true,
+      conflictType: null,
+      message: null,
+    }
+  );
 }
 
 export async function getAdTargetRegions() {

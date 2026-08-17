@@ -1,5 +1,6 @@
 import Button from "@/components/Button";
 import type { RestaurantDirectoryParams } from "@/lib/filter-restaurants-directory";
+import RestaurantNameSuggest from "@/app/(main)/_components/RestaurantNameSuggest";
 
 export default function RestaurantsSearchForm({
   defaults,
@@ -7,7 +8,7 @@ export default function RestaurantsSearchForm({
   defaults: RestaurantDirectoryParams;
 }) {
   return (
-    <form action="/restaurants" method="get" className="form-search-card mb-8">
+    <form action="/restaurants" method="get" className="form-search-card relative z-20 mb-8 overflow-visible">
       {defaults.near === "1" && defaults.nearLat && defaults.nearLng ? (
         <>
           <input type="hidden" name="near" value="1" />
@@ -20,18 +21,14 @@ export default function RestaurantsSearchForm({
       ) : null}
 
       <div className="grid grid-cols-1 items-end gap-5 sm:grid-cols-2 lg:grid-cols-5 lg:gap-6">
-        <div className="flex flex-col space-y-2">
+        <div className="relative z-20 flex flex-col space-y-2">
           <label className="form-search-label" htmlFor="restaurants-name">
             Restaurant name
           </label>
-          <input
+          <RestaurantNameSuggest
             id="restaurants-name"
             name="name"
-            type="text"
             defaultValue={defaults.name ?? ""}
-            suppressHydrationWarning
-            className="form-search-input"
-            placeholder=""
           />
         </div>
 

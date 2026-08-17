@@ -25,8 +25,13 @@ const initialForm = {
   phone: "",
   password: "",
   currentRestaurant: "",
+  currentRestaurantUrl: "",
   website: "",
   jobTitle: "",
+  bio: "",
+  instagramUrl: "",
+  facebookUrl: "",
+  spotifyUrl: "",
   addressLine1: "",
   addressLine2: "",
   city: "",
@@ -358,6 +363,19 @@ const JoinToCreateProfileForm = () => {
                     placeholder={isPublic ? "Optional" : undefined}
                   />
                 </div>
+                {!isOwner ? (
+                  <div>
+                    <label className="form-label">Restaurant link</label>
+                    <input
+                      type="text"
+                      name="currentRestaurantUrl"
+                      value={formData.currentRestaurantUrl}
+                      className="input-field"
+                      onChange={handleChange}
+                      placeholder="https://restaurant-website.com"
+                    />
+                  </div>
+                ) : null}
                 <div>
                   <label className="form-label">
                     Website
@@ -372,6 +390,56 @@ const JoinToCreateProfileForm = () => {
                 </div>
               </div>
             </div>
+
+            {(isChef || isPublic) && (
+              <div className="mb-10 space-y-6">
+                <div>
+                  <label className="form-label">About</label>
+                  <textarea
+                    name="bio"
+                    value={formData.bio}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, bio: e.target.value }))
+                    }
+                    className="input-field min-h-32"
+                    maxLength={4000}
+                    placeholder="Who you are, what you’re into, CV highlights..."
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="form-label">Instagram URL</label>
+                    <input
+                      type="url"
+                      name="instagramUrl"
+                      value={formData.instagramUrl}
+                      className="input-field"
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">Facebook URL</label>
+                    <input
+                      type="url"
+                      name="facebookUrl"
+                      value={formData.facebookUrl}
+                      className="input-field"
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">Spotify URL</label>
+                    <input
+                      type="url"
+                      name="spotifyUrl"
+                      value={formData.spotifyUrl}
+                      className="input-field"
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {isChef && (
               <div className="mb-10">

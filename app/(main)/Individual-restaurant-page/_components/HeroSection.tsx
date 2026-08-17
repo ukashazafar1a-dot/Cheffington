@@ -17,6 +17,7 @@ const HeroSection = ({ restaurant }: Props) => {
             <RestaurantHeroCover
               name={restaurant.name}
               cuisine={restaurant.cuisine}
+              tagline={restaurant.tagline}
               coverImageUrl={coverImageUrl}
               reviewCount={restaurant.reviewCount ?? 0}
             />

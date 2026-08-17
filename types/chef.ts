@@ -4,7 +4,13 @@ export type ChefProfile = {
   lastName?: string;
   email?: string;
   currentRestaurant?: string;
+  currentRestaurantUrl?: string;
   jobTitle?: string;
+  bio?: string;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  spotifyUrl?: string;
+  affiliatedRestaurantIds?: string[];
   addressLine1?: string;
   addressLine2?: string;
   city?: string;
@@ -40,10 +46,44 @@ export function formatChefSubtitle(chef?: ChefProfile): string {
   const parts: string[] = [];
   if (chef.jobTitle?.trim()) parts.push(chef.jobTitle.trim());
   if (chef.currentRestaurant?.trim()) parts.push(chef.currentRestaurant.trim());
-  if (chef.website?.trim() && !parts.includes(chef.website.trim())) {
-    parts.push(chef.website.trim());
-  }
   return parts.join(" / ");
+}
+
+export function displayWebsiteLabel(website?: string): string {
+  const trimmed = String(website || "").trim();
+  if (!trimmed) return "";
+  return trimmed.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+}
+
+export function affiliatedNamesFromIds(
+  ids: Array<string | undefined> | undefined,
+  restaurants: Array<{ _id: string; name?: string }>
+): string[] {
+  const byId = new Map(
+    restaurants.map((restaurant) => [
+      String(restaurant._id),
+      restaurant.name?.trim() || "",
+    ])
+  );
+  return (ids ?? [])
+    .map((id) => byId.get(String(id)) || "")
+    .filter(Boolean);
+}
+
+export function chefAffiliationNames(chef?: {
+  affiliatedRestaurants?: Array<{ name?: string }>;
+}): string[] {
+  return (chef?.affiliatedRestaurants ?? [])
+    .map((restaurant) => restaurant.name?.trim() || "")
+    .filter(Boolean);
+}
+
+export function toExternalHref(url?: string): string | undefined {
+  const trimmed = String(url || "").trim();
+  if (!trimmed) return undefined;
+  if (/^(javascript|data|vbscript):/i.test(trimmed)) return undefined;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
 }
 
 export function formatChefAddress(chef?: ChefProfile): string | undefined {

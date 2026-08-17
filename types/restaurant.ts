@@ -11,6 +11,7 @@ export interface PublicRestaurant {
   name: string;
   description?: string;
   cuisine?: string;
+  tagline?: string;
   phone?: string;
   website?: string;
   addressLine1: string;

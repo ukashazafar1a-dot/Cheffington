@@ -31,6 +31,12 @@ export interface AdPlacement {
   cells?: Record<string, string>;
 }
 
+export interface AdPlacementAvailability {
+  available: boolean;
+  conflictType: "campaign" | "paid_pending" | null;
+  message: string | null;
+}
+
 /** Q5 — monthly chef subscription plan (Option B: Stripe Price ID required) */
 export interface ChefSubscriptionPlan {
   id: string;

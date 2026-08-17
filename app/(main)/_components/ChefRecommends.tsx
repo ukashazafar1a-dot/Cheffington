@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getFeaturedReviews } from "@/lib/api-client";
+import { chefAffiliationNames } from "@/types/chef";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +64,8 @@ export default async function ChefRecommends() {
             const quote = review.comment?.trim() || "";
             const restaurantId = review.restaurant?.id;
             const restaurantName = review.restaurant?.name;
+            const affiliations = chefAffiliationNames(review.chef);
+            const chefId = review.chef?.id;
 
             return (
               <article
@@ -70,29 +73,60 @@ export default async function ChefRecommends() {
                 className="w-full max-w-[320px] overflow-hidden rounded-2xl border-2 border-black bg-white p-3.5 text-left shadow-[3px_3px_0_0_#000] transition-transform duration-200 hover:-translate-y-0.5 sm:w-[320px]"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-black bg-[#FFF1E1]">
-                    {review.chef?.profilePhotoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={review.chef.profilePhotoUrl}
-                        alt={name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-sm font-bold text-[#FF8400]">
-                        {chefInitials(name)}
-                      </span>
-                    )}
-                  </div>
+                  {chefId ? (
+                    <Link
+                      href={`/chefs/${chefId}`}
+                      className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-black bg-[#FFF1E1]"
+                    >
+                      {review.chef?.profilePhotoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={review.chef.profilePhotoUrl}
+                          alt={name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-sm font-bold text-[#FF8400]">
+                          {chefInitials(name)}
+                        </span>
+                      )}
+                    </Link>
+                  ) : (
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-black bg-[#FFF1E1]">
+                      {review.chef?.profilePhotoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={review.chef.profilePhotoUrl}
+                          alt={name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-sm font-bold text-[#FF8400]">
+                          {chefInitials(name)}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   <div className="min-w-0 flex-1">
-                    <h4 className="truncate text-sm font-bold leading-tight">
-                      {name}
+                    <h4 className="truncate text-sm font-bold leading-tight text-gray-900">
+                      {chefId ? (
+                        <Link href={`/chefs/${chefId}`} className="hover:underline">
+                          {name}
+                        </Link>
+                      ) : (
+                        name
+                      )}
                     </h4>
+                    {affiliations.length > 0 ? (
+                      <p className="mt-1 text-[11px] font-semibold leading-snug text-[#FF8400]">
+                        {affiliations.join(" · ")}
+                      </p>
+                    ) : null}
                     {restaurantName && restaurantId ? (
                       <Link
                         href={`/restaurants/${restaurantId}`}
-                        className="mb-1 block truncate text-[11px] font-bold uppercase tracking-wide text-[#FF8400] underline-offset-2 hover:underline"
+                        className="mt-2.5 mb-1.5 block truncate text-[11px] font-bold uppercase tracking-wide text-gray-900 underline underline-offset-2 hover:text-black"
                       >
                         {restaurantName}
                       </Link>
