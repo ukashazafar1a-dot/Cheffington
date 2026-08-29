@@ -157,7 +157,7 @@ export default function AdvertisingRequestForm() {
 
           if (status.reviewStatus === "rejected") {
             setError(
-              "This placement was already booked for that region. If you were charged, a refund has been issued."
+              "Your advertising request could not be completed. If you were charged, please contact support about a refund."
             );
             setVerifyingPayment(false);
             clearCheckoutQuery();
@@ -740,6 +740,8 @@ export default function AdvertisingRequestForm() {
                   </select>
                   <p className="form-hint">
                     Your ad will appear for visitors browsing this area.
+                    Multiple businesses may share the same placement; live ads
+                    rotate on the site.
                   </p>
                   {checkingAvailability ? (
                     <p className="form-hint">Checking availability…</p>

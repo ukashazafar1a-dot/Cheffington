@@ -109,7 +109,9 @@ export interface ActiveAdCampaign {
 
 export interface ActiveAdSlotResponse {
   ad: ActiveAdCampaign | null;
+  ads?: ActiveAdCampaign[];
   slotSize: AdSlotSize | null;
+  rotationIntervalMs?: number;
 }
 
 export const MIN_AD_DAYS = 1;

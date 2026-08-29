@@ -737,7 +737,9 @@ export async function getActiveAd(
   const data = (await res.json()) as {
     success: boolean;
     data?: import("@/types/advertising").ActiveAdCampaign | null;
+    ads?: import("@/types/advertising").ActiveAdCampaign[];
     slotSize?: import("@/types/advertising").AdSlotSize | null;
+    rotationIntervalMs?: number;
     message?: string;
   };
 
@@ -745,8 +747,23 @@ export async function getActiveAd(
     throw new Error(data.message || "Failed to load ad");
   }
 
+  const primary = data.data ?? null;
+  const adsFromApi = Array.isArray(data.ads)
+    ? data.ads.filter((item) => Boolean(item?.imageUrl))
+    : [];
+  const ads =
+    adsFromApi.length > 0 ? adsFromApi : primary?.imageUrl ? [primary] : [];
+
+  const rotationParsed = Number(data.rotationIntervalMs);
+  const rotationIntervalMs =
+    Number.isFinite(rotationParsed) && rotationParsed >= 5000
+      ? rotationParsed
+      : 25000;
+
   return {
-    ad: data.data ?? null,
+    ad: ads[0] ?? primary,
+    ads,
     slotSize: data.slotSize ?? null,
+    rotationIntervalMs,
   };
 }

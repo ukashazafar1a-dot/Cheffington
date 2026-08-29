@@ -3,24 +3,37 @@ import { getPublishedRestaurants } from "@/lib/api-client";
 import FeaturedRestaurantCard from "./featured-restaurant-card";
 import RotatingKissLine from "./RotatingKissLine";
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
+
+async function getChefsKissLines(): Promise<string[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/site-copy`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const lines = json?.data?.chefs_kiss_lines;
+    if (!Array.isArray(lines)) return [];
+    return lines
+      .map((line: unknown) => String(line || "").trim())
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 export default async function RestaurantsList() {
   let featured: Awaited<ReturnType<typeof getPublishedRestaurants>>["data"] = [];
+  let kissLines: string[] = [];
 
-  try {
-    const res = await getPublishedRestaurants();
-    // API returns newest first (updatedAt desc)
-    featured = (res.data ?? []).slice(0, 3);
-  } catch {
-    featured = [];
-  }
+  const [restaurantsResult, lines] = await Promise.all([
+    getPublishedRestaurants().catch(() => null),
+    getChefsKissLines(),
+  ]);
 
-  const cuisines = [
-    ...new Set(
-      (featured ?? [])
-        .map((r) => r.cuisine?.trim())
-        .filter((value): value is string => Boolean(value))
-    ),
-  ];
+  featured = (restaurantsResult?.data ?? []).slice(0, 3);
+  kissLines = lines;
 
   return (
     <section className="lg:my-32 my-24 max-sm:my-18">
@@ -28,7 +41,7 @@ export default async function RestaurantsList() {
         <h2 className="title md:text-7xl font-black tracking-tighter mb-4">
           The Chef&apos;s Kiss
         </h2>
-        <RotatingKissLine cuisines={cuisines} />
+        <RotatingKissLine lines={kissLines} />
 
         {featured.length === 0 ? (
           <p className="text-gray-600 mb-8">

@@ -20,6 +20,8 @@ type AdSlotProps = {
   strictRegion?: boolean;
 };
 
+const DEFAULT_ROTATION_INTERVAL_MS = 25000;
+
 const VARIANT_FALLBACK_SIZE: Record<
   NonNullable<AdSlotProps["variant"]>,
   AdSlotSize
@@ -74,6 +76,15 @@ function getSlotFrameStyle(
   };
 }
 
+function prefetchAdImages(ads: ActiveAdCampaign[]) {
+  for (const item of ads) {
+    const src = String(item.imageUrl || "").trim();
+    if (!src || typeof window === "undefined") continue;
+    const img = new window.Image();
+    img.src = src;
+  }
+}
+
 export default function AdSlot({
   slot,
   className = "",
@@ -84,8 +95,12 @@ export default function AdSlot({
 }: AdSlotProps) {
   const useCard = showCard ?? (variant === "sidebar" || variant === "inline");
   const fillWidth = variant === "sidebar" || variant === "inline";
-  const [ad, setAd] = useState<ActiveAdCampaign | null | undefined>(undefined);
+  const [ads, setAds] = useState<ActiveAdCampaign[] | undefined>(undefined);
+  const [index, setIndex] = useState(0);
   const [slotSize, setSlotSize] = useState<AdSlotSize | null>(null);
+  const [rotationIntervalMs, setRotationIntervalMs] = useState(
+    DEFAULT_ROTATION_INTERVAL_MS
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -98,15 +113,32 @@ export default function AdSlot({
       : explicitRegion || getStoredVisitorRegion() || null;
 
     getActiveAd(slot, resolvedRegion, { strictRegion })
-      .then(({ ad: activeAd, slotSize: activeSlotSize }) => {
-        if (!cancelled) {
-          setAd(activeAd);
+      .then(
+        ({
+          ad: activeAd,
+          ads: activeAds,
+          slotSize: activeSlotSize,
+          rotationIntervalMs: intervalMs,
+        }) => {
+          if (cancelled) return;
+          const list =
+            Array.isArray(activeAds) && activeAds.length > 0
+              ? activeAds.filter((item) => Boolean(item?.imageUrl))
+              : activeAd?.imageUrl
+                ? [activeAd]
+                : [];
+          setAds(list);
+          setIndex(0);
           setSlotSize(activeSlotSize);
+          if (typeof intervalMs === "number" && intervalMs >= 5000) {
+            setRotationIntervalMs(intervalMs);
+          }
+          prefetchAdImages(list);
         }
-      })
+      )
       .catch(() => {
         if (!cancelled) {
-          setAd(null);
+          setAds([]);
           setSlotSize(null);
         }
       });
@@ -115,6 +147,20 @@ export default function AdSlot({
       cancelled = true;
     };
   }, [slot, region, strictRegion]);
+
+  useEffect(() => {
+    if (!ads || ads.length <= 1) return;
+
+    const timer = window.setInterval(() => {
+      setIndex((current) => (current + 1) % ads.length);
+    }, rotationIntervalMs);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [ads, rotationIntervalMs]);
+
+  const ad = ads === undefined ? undefined : ads[index] || ads[0] || null;
 
   if (ad === undefined || !ad?.imageUrl) {
     return null;
@@ -135,6 +181,7 @@ export default function AdSlot({
         Advertisement · Sponsored
       </p>
       <a
+        key={ad._id}
         href={ad.linkUrl}
         target="_blank"
         rel="noopener noreferrer sponsored"
