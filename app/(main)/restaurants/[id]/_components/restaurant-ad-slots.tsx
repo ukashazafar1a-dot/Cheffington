@@ -19,16 +19,9 @@ export function RestaurantPageTopAd({ region = null }: Props) {
   );
 }
 
-export function RestaurantRightRailAd({ region = null }: Props) {
-  return (
-    <AdSlot
-      slot={SITE_AD_SLOTS.RESTAURANT_RIGHT_RAIL}
-      variant="inline"
-      className="mb-6"
-      region={region}
-      strictRegion
-    />
-  );
+export function RestaurantRightRailAd(_props: Props) {
+  // Temporarily disabled — placement restaurant_right_rail is hidden sitewide.
+  return null;
 }
 
 export function RestaurantReviewsTopAd({ region = null }: Props) {
