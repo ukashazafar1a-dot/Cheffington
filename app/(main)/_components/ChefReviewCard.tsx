@@ -1,3 +1,6 @@
+import type { ReviewMediaItem } from "@/types/review";
+import ReviewMediaViewer from "@/components/ReviewMediaViewer";
+
 type ChefReviewCardProps = {
   chefName?: string;
   chefId?: string;
@@ -12,6 +15,9 @@ type ChefReviewCardProps = {
   showRestaurantName?: boolean;
   /** Tighter padding for stacked profile cards */
   compact?: boolean;
+  /** Shown next to the name: Chef or Business owner */
+  authorLabel?: string;
+  media?: ReviewMediaItem[];
 };
 
 function formatReviewDate(dateStr?: string) {
@@ -27,6 +33,30 @@ function formatReviewDate(dateStr?: string) {
   }
 }
 
+function ReviewMediaGallery({
+  media,
+  compact = false,
+}: {
+  media?: ReviewMediaItem[];
+  compact?: boolean;
+}) {
+  return (
+    <ReviewMediaViewer
+      media={media}
+      className={
+        compact
+          ? "mt-3 grid grid-cols-2 gap-2"
+          : "mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3"
+      }
+      thumbClassName={
+        compact
+          ? "h-28 w-full rounded-lg"
+          : "h-36 w-full rounded-lg md:h-44"
+      }
+    />
+  );
+}
+
 const ChefReviewCard = ({
   chefName = "Jane Doe",
   chefId,
@@ -39,6 +69,8 @@ const ChefReviewCard = ({
   date,
   showRestaurantName = true,
   compact = false,
+  authorLabel,
+  media,
 }: ChefReviewCardProps) => {
   const affiliationNames =
     affiliations !== undefined
@@ -111,6 +143,11 @@ const ChefReviewCard = ({
                 {chefName}
               </p>
             )}
+            {authorLabel ? (
+              <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 md:text-sm">
+                {authorLabel}
+              </span>
+            ) : null}
             {affiliationNames.length > 0 ? (
               <span className="basis-full text-sm font-semibold text-[#FF8400] md:text-base">
                 {affiliationNames.join(" · ")}
@@ -141,6 +178,8 @@ const ChefReviewCard = ({
             {comment}
           </p>
         ) : null}
+
+        <ReviewMediaGallery media={media} compact={compact} />
       </div>
     </article>
   );

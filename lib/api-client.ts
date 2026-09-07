@@ -1,4 +1,5 @@
 import type {
+  PublicRestaurant,
   PublicRestaurantListResponse,
   PublicRestaurantResponse,
 } from "@/types/restaurant";
@@ -97,6 +98,36 @@ export async function getPublishedRestaurants() {
   return data;
 }
 
+/** Paid restaurant cards for SPONSORED RESULTS on /restaurants (by ad target region). */
+export async function getSponsoredSearchRestaurants(region: string) {
+  const key = String(region || "").trim();
+  if (!key) {
+    return { success: true as const, count: 0, data: [] as PublicRestaurant[], region: key };
+  }
+
+  const params = new URLSearchParams({ region: key });
+  const res = await fetch(
+    `${API_BASE_URL}/advertising/sponsored-search?${params.toString()}`,
+    { cache: "no-store" }
+  );
+
+  const data = (await res.json()) as PublicRestaurantListResponse & {
+    message?: string;
+    region?: string;
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to load sponsored search results");
+  }
+
+  return {
+    success: true as const,
+    count: data.count ?? data.data?.length ?? 0,
+    data: data.data ?? [],
+    region: data.region ?? key,
+  };
+}
+
 export async function getPublishedRestaurant(id: string) {
   const res = await fetch(`${API_BASE_URL}/restaurants/${id}`, {
     cache: "no-store",
@@ -157,6 +188,12 @@ export async function submitReview(
     restaurantId: string;
     comment: string;
     title?: string;
+    media?: Array<{
+      url: string;
+      type: "image" | "video";
+      mimeType?: string;
+      originalName?: string;
+    }>;
   },
   chefToken: string
 ) {
@@ -178,6 +215,56 @@ export async function submitReview(
     );
   }
   return data;
+}
+
+export const REVIEW_MEDIA_ACCEPTED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+] as const;
+
+export const REVIEW_MEDIA_MAX_FILES = 5;
+export const REVIEW_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+export const REVIEW_VIDEO_MAX_BYTES = 50 * 1024 * 1024;
+
+export async function uploadReviewMedia(
+  file: File,
+  restaurantId: string,
+  chefToken: string
+) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("restaurantId", restaurantId);
+
+  const res = await fetch(`${API_BASE_URL}/reviews/upload-media`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${chefToken}`,
+    },
+    body: formData,
+  });
+
+  const data = (await res.json()) as {
+    success: boolean;
+    data?: {
+      url: string;
+      displayUrl?: string;
+      type: "image" | "video";
+      mimeType?: string;
+      originalName?: string;
+      key?: string;
+    };
+    message?: string;
+  };
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to upload media");
+  }
+
+  return data.data!;
 }
 
 export async function getMyReviews(chefToken: string) {
@@ -242,6 +329,7 @@ export async function updateChefMe(
       | "currentRestaurant"
       | "currentRestaurantUrl"
       | "website"
+      | "phone"
       | "bio"
       | "instagramUrl"
       | "facebookUrl"
@@ -286,6 +374,7 @@ export type PublicChef = {
   spotifyUrl?: string;
   profilePhotoUrl?: string;
   affiliatedRestaurantIds?: string[];
+  applicationType?: "chef" | "business_owner" | "public";
   affiliatedRestaurants?: {
     _id: string;
     name: string;
@@ -309,6 +398,12 @@ export type PublicChef = {
     comment?: string;
     createdAt?: string;
     updatedAt?: string;
+    media?: Array<{
+      url: string;
+      type: "image" | "video";
+      mimeType?: string;
+      originalName?: string;
+    }>;
     restaurant?: {
       id: string;
       name: string;

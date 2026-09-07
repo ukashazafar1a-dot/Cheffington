@@ -91,8 +91,13 @@ export default function Navbar() {
   const [chefSession, setChefSession] = useState<ChefNavSession | null>(null);
 
   const isChefAccount = chefSession?.applicationType !== "business_owner";
+  // Owners can leave reviews; ADD LISTING stays chef-oriented (owner dashboard covers listings).
   const navLinks = isLoggedIn
-    ? allNavLinks.filter((item) => (item.chefsOnly ? isChefAccount : true))
+    ? allNavLinks.filter((item) => {
+        if (item.name === "REVIEW") return true;
+        if (item.chefsOnly) return isChefAccount;
+        return true;
+      })
     : allNavLinks.filter((item) => !item.chefsOnly);
 
   const dropdownRef = useRef<HTMLDivElement>(null);

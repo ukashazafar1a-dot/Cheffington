@@ -5,6 +5,7 @@ type RestaurantHeroCoverProps = {
   cuisine?: string;
   tagline?: string;
   coverImageUrl?: string;
+  logoUrl?: string;
   reviewCount?: number;
 };
 
@@ -16,6 +17,7 @@ const RestaurantHeroCover = ({
   cuisine,
   tagline,
   coverImageUrl,
+  logoUrl,
   reviewCount = 0,
 }: RestaurantHeroCoverProps) => {
   return (
@@ -46,10 +48,18 @@ const RestaurantHeroCover = ({
       )}
 
       <div className="flex items-center gap-4 md:gap-5">
-        <div
-          className="md:h-24 md:w-24 h-16 w-16 shrink-0 rounded-full border-4 border-[#ff8400]/40 bg-white shadow-sm"
-          aria-hidden
-        />
+        <div className="md:h-24 md:w-24 h-16 w-16 shrink-0 overflow-hidden rounded-full border-4 border-[#ff8400]/40 bg-white shadow-sm">
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoUrl}
+              alt={`${name} logo`}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span className="sr-only">No logo uploaded</span>
+          )}
+        </div>
         <div className="min-w-0">
           <h1 className="text-2xl font-bold tracking-[-0.04em] text-gray-900 md:text-4xl md:leading-10 leading-8">
             {name}

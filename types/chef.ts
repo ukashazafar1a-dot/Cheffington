@@ -26,6 +26,15 @@ export type ChefProfile = {
   latitude?: number | null;
   longitude?: number | null;
   geocodePrecision?: "exact" | "city" | "region" | "none";
+  ownedRestaurants?: Array<{
+    _id: string;
+    name: string;
+    city?: string;
+    state?: string;
+    cuisine?: string;
+    status?: string;
+    images?: string[];
+  }>;
 };
 
 export function formatAccountRoleLabel(

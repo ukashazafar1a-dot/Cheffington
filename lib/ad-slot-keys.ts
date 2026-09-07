@@ -23,6 +23,11 @@ export const SITE_AD_SLOTS = {
   RESTAURANTS_TOP: "restaurants_top",
   /** Restaurants directory — between list cards */
   RESTAURANTS_LIST: "restaurants_list",
+  /**
+   * Restaurants directory — paid listing cards under SPONSORED RESULTS
+   * (not a banner AdSlot; served via /advertising/sponsored-search)
+   */
+  RESTAURANTS_SEARCH_SPONSORED: "restaurants_search_sponsored",
   /** About page — between hero and search */
   ABOUT_BANNER: "about_banner",
 } as const;
@@ -84,6 +89,12 @@ export const SITE_AD_SLOT_GUIDE: {
     key: SITE_AD_SLOTS.RESTAURANTS_LIST,
     label: "Restaurants list inline",
     where: "Restaurants page, between listing cards",
+  },
+  {
+    key: SITE_AD_SLOTS.RESTAURANTS_SEARCH_SPONSORED,
+    label: "Sponsored search results",
+    where:
+      "Restaurants page — SPONSORED RESULTS listing cards for a city/region (not a banner)",
   },
   {
     key: SITE_AD_SLOTS.ABOUT_BANNER,

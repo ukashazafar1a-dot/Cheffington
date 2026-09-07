@@ -25,10 +25,11 @@ const HeroSection = ({
 
   return (
     <div>
-      <section className="bg-black xl:min-h-[235] xl:h-[235]">
-        <div className="page-width">
-          <div className="flex align-center justify-center max-xl:flex-wrap gap-6 pt-5 max-xl:pb-5">
-            <div className="flex flex-col xl:w-[68%] w-full">
+      {/* Short black band on xl; map hangs below into the page (overflow visible). */}
+      <section className="relative z-10 bg-black xl:h-[200px]">
+        <div className="page-width relative h-full">
+          <div className="flex h-full flex-col gap-5 py-5 max-xl:pb-6 xl:flex-row xl:items-center xl:justify-between xl:gap-8 xl:py-0">
+            <div className="min-w-0 xl:max-w-[58%] xl:pr-4">
               <RestaurantsDetails
                 chef={chef}
                 reviewCount={reviewCount}
@@ -36,7 +37,9 @@ const HeroSection = ({
                 roleLabel={roleLabel}
               />
             </div>
-            <div className="relative z-20 xl:w-[30%] w-full">
+
+            {/* Far-right address card; hangs past the short black band on desktop */}
+            <div className="relative z-20 w-full shrink-0 xl:absolute xl:right-0 xl:top-5 xl:w-[300px]">
               <RestaurantsMap
                 address={address}
                 addressFields={{
@@ -49,7 +52,9 @@ const HeroSection = ({
                 }}
                 lat={chef?.latitude ?? undefined}
                 lng={chef?.longitude ?? undefined}
-                geocodePrecision={chef?.geocodePrecision as GeocodePrecision | undefined}
+                geocodePrecision={
+                  chef?.geocodePrecision as GeocodePrecision | undefined
+                }
                 phone={chef?.phone}
                 website={chef?.website}
                 locationName={locationName}

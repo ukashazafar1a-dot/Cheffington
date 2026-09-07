@@ -30,7 +30,7 @@ export default function Map({ lat, lng, name, precision = 'exact' }: Props) {
         center={[lat, lng]}
         zoom={zoom}
         scrollWheelZoom={false}
-        className="w-full h-full min-h-60"
+        className="h-full w-full"
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

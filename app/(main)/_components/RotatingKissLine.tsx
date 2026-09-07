@@ -25,26 +25,43 @@ type Props = {
   lines?: string[];
 };
 
-/** Highlight cuisine + city in: "Best place for {cuisine} in {city}" */
-function renderKissLine(line: string) {
-  const match = line.match(/^Best place for (.+) in (.+)$/i);
-  if (!match) return line;
+type KissParts = {
+  cuisine: string;
+  city: string;
+};
+
+/** Parse "Best place for {cuisine} in {city}" — returns null if format does not match. */
+function parseKissLine(line: string): KissParts | null {
+  const match = String(line || "")
+    .trim()
+    .match(/^Best place for (.+) in (.+)$/i);
+  if (!match) return null;
 
   const cuisine = match[1].trim();
   const city = match[2].trim();
-  if (!cuisine || !city) return line;
+  if (!cuisine || !city) return null;
+  return { cuisine, city };
+}
+
+function AccentWord({
+  children,
+  animate,
+}: {
+  children: string;
+  animate: boolean;
+}) {
+  if (!animate) {
+    return (
+      <span className="font-black" style={{ color: ACCENT }}>
+        {children}
+      </span>
+    );
+  }
 
   return (
-    <>
-      Best place for{" "}
-      <span className="font-black" style={{ color: ACCENT }}>
-        {cuisine}
-      </span>{" "}
-      in{" "}
-      <span className="font-black" style={{ color: ACCENT }}>
-        {city}
-      </span>
-    </>
+    <span className="kiss-scroll-word font-black" style={{ color: ACCENT }}>
+      {children}
+    </span>
   );
 }
 
@@ -80,19 +97,31 @@ export default function RotatingKissLine({ lines = [] }: Props) {
   }, [list]);
 
   const current = list[index % list.length] ?? DEFAULT_LINES[0];
-  const content = renderKissLine(current);
+  const parts = parseKissLine(current);
+  const animate = !reduceMotion && list.length > 1;
 
   return (
     <p
       className="subtitle mx-auto mb-8 max-w-4xl px-2 text-center font-bold md:mb-12"
       aria-live="polite"
     >
-      {reduceMotion ? (
-        content
-      ) : (
+      {parts ? (
+        <>
+          Best place for{" "}
+          <AccentWord key={`cuisine-${index}`} animate={animate}>
+            {parts.cuisine}
+          </AccentWord>{" "}
+          in{" "}
+          <AccentWord key={`city-${index}`} animate={animate}>
+            {parts.city}
+          </AccentWord>
+        </>
+      ) : animate ? (
         <span key={index} className="kiss-scroll-word">
-          {content}
+          {current}
         </span>
+      ) : (
+        current
       )}
     </p>
   );

@@ -160,7 +160,7 @@ const ClaimRestaurantForm = () => {
         ) : null}
 
         <div className="form-field">
-          <label className="form-label">Full Name</label>
+          <label className="form-label">Full Name *</label>
           <input
             required
             type="text"
@@ -173,7 +173,7 @@ const ClaimRestaurantForm = () => {
         </div>
 
         <div className="form-field">
-          <label className="form-label">Email</label>
+          <label className="form-label">Email *</label>
           <input
             required
             type="email"
@@ -183,10 +183,15 @@ const ClaimRestaurantForm = () => {
             }
             className="input-field"
           />
+          <p className="form-hint mt-2">
+            Use the email for your approved business owner account. Already a
+            chef? Apply as business owner with the same email (Join), get
+            approved, then claim here.
+          </p>
         </div>
 
         <div className="form-field">
-          <label className="form-label">Phone</label>
+          <label className="form-label">Phone *</label>
           <input
             required
             type="text"
@@ -199,8 +204,9 @@ const ClaimRestaurantForm = () => {
         </div>
 
         <div className="form-field">
-          <label className="form-label">Relationship to Business</label>
+          <label className="form-label">Relationship to Business *</label>
           <select
+            required
             value={form.relationshipToBusiness}
             onChange={(e) =>
               setForm((prev) => ({
@@ -236,7 +242,7 @@ const ClaimRestaurantForm = () => {
         </div>
 
         <div className="form-field">
-          <label className="form-label">Ownership Proof Summary</label>
+          <label className="form-label">Ownership Proof Summary *</label>
           <textarea
             required
             value={form.proofSummary}

@@ -24,6 +24,7 @@ const initialForm = {
   email: "",
   phone: "",
   password: "",
+  confirmPassword: "",
   currentRestaurant: "",
   currentRestaurantUrl: "",
   website: "",
@@ -107,8 +108,18 @@ const JoinToCreateProfileForm = () => {
     try {
       setLoading(true);
 
-      const payload: typeof formData & { applicationDocuments?: string[] } = {
-        ...formData,
+      if (formData.password !== formData.confirmPassword) {
+        toast.error("Password and Verify Password must match");
+        setLoading(false);
+        return;
+      }
+
+      const { confirmPassword: _confirmPassword, ...formWithoutConfirm } =
+        formData;
+      const payload: typeof formWithoutConfirm & {
+        applicationDocuments?: string[];
+      } = {
+        ...formWithoutConfirm,
       };
       if (isOwner || isPublic) {
         delete (payload as { jobTitle?: string }).jobTitle;
@@ -177,9 +188,17 @@ const JoinToCreateProfileForm = () => {
       toast.success("Application submitted successfully");
       setShowPopup(true);
 
-      setFormData(initialForm);
+      // Full reset — keep selected application type (incl. ?type= from URL)
+      const keptType =
+        searchParams.get("type") === "chef" ||
+        searchParams.get("type") === "business_owner"
+          ? (searchParams.get("type") as ApplicationType)
+          : formData.applicationType;
+      setFormData({ ...initialForm, applicationType: keptType });
       setProofFiles([]);
       setProofUploadError("");
+      setShowPassword(false);
+      setShowConfirmPassword(false);
       localStorage.removeItem("chefForm");
     } catch (err: unknown) {
       const message =
@@ -211,7 +230,7 @@ const JoinToCreateProfileForm = () => {
             onSubmit={handleSubmit}
             className="form-card page-width-narrow"
           >
-            <div className="flex flex-wrap gap-3 justify-center mb-10">
+            <div className="flex flex-wrap gap-3 justify-center mb-4">
               <button
                 type="button"
                 onClick={() => setApplicationType("chef")}
@@ -231,6 +250,13 @@ const JoinToCreateProfileForm = () => {
                 Join as Business Owner
               </button>
             </div>
+            <p className="mb-10 text-center text-sm text-gray-600 max-w-xl mx-auto">
+              Already a chef? You can also apply as a business owner with the{" "}
+              <span className="font-semibold">same email and password</span> to
+              claim and manage restaurants. After both are approved, use the
+              public site to leave reviews and the owner dashboard for your
+              business.
+            </p>
 
             {/* Full Name */}
             <div className="mb-10">
@@ -298,6 +324,10 @@ const JoinToCreateProfileForm = () => {
                   <label className="form-label">
                     Create Password
                   </label>
+                  <p className="text-xs text-gray-500 mb-2">
+                    If you already have a Cheffington account with this email,
+                    enter that same password.
+                  </p>
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
@@ -306,6 +336,7 @@ const JoinToCreateProfileForm = () => {
                     onChange={handleChange}
                     required
                     minLength={6}
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
@@ -323,7 +354,12 @@ const JoinToCreateProfileForm = () => {
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     name="confirmPassword"
+                    value={formData.confirmPassword}
                     className="input-field pr-10"
+                    onChange={handleChange}
+                    required
+                    minLength={6}
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"

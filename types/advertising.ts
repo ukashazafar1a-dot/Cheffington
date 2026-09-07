@@ -67,6 +67,8 @@ export interface AdRequestPayload {
   adImageUrl?: string;
   needsDesign?: boolean;
   message?: string;
+  /** Required when placement is restaurants_search_sponsored */
+  restaurantId?: string;
 }
 
 export interface AdTargetRegion {

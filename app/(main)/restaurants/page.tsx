@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   getAdTargetRegionMapping,
   getPublishedRestaurants,
+  getSponsoredSearchRestaurants,
   searchPublicChefs,
   type PublicChef,
 } from "@/lib/api-client";
@@ -17,6 +18,7 @@ import {
 import {
   getRestaurantDistanceKm,
   NEAR_ME_RADIUS_KM,
+  NEAR_ME_RADIUS_MILES,
 } from "@/lib/restaurant-location";
 import {
   parseRestaurantSort,
@@ -126,7 +128,7 @@ export default async function RestaurantsPage({ searchParams }: Props) {
   }
 
   const activeFilterLabel = hasNearCoords
-    ? `Within ${NEAR_ME_RADIUS_KM} km of you`
+    ? `Within ${NEAR_ME_RADIUS_MILES} miles of you`
     : sortOption !== "newest"
       ? restaurantSortLabel(sortOption)
       : null;
@@ -139,10 +141,98 @@ export default async function RestaurantsPage({ searchParams }: Props) {
     regionMapping
   );
 
+  let sponsoredRestaurants: Awaited<
+    ReturnType<typeof getSponsoredSearchRestaurants>
+  >["data"] = [];
+  if (directoryAdRegion) {
+    try {
+      const sponsored = await getSponsoredSearchRestaurants(directoryAdRegion);
+      sponsoredRestaurants = sponsored.data ?? [];
+    } catch {
+      sponsoredRestaurants = [];
+    }
+  }
+
+  // City targeting is already applied via ad region. Only refine by name/cuisine
+  // so a Sacramento sponsored Italian still hides when searching "Mexican".
+  if (sponsoredRestaurants.length > 0) {
+    const nameQ = defaults.name?.trim().toLowerCase() ?? "";
+    const cuisineQ = defaults.cuisine?.trim().toLowerCase() ?? "";
+    if (nameQ || cuisineQ) {
+      sponsoredRestaurants = sponsoredRestaurants.filter((restaurant) => {
+        if (nameQ && !restaurant.name?.toLowerCase().includes(nameQ)) {
+          return false;
+        }
+        if (
+          cuisineQ &&
+          !restaurant.cuisine?.toLowerCase().includes(cuisineQ)
+        ) {
+          return false;
+        }
+        return true;
+      });
+    }
+  }
+
+  if (
+    sponsoredRestaurants.length > 0 &&
+    chefQuery.length >= 2 &&
+    chefResults.length === 0
+  ) {
+    sponsoredRestaurants = [];
+  }
+
+  if (
+    sponsoredRestaurants.length > 0 &&
+    chefQuery.length >= 2 &&
+    chefResults.length > 0
+  ) {
+    const relatedIds = new Set<string>();
+    for (const chef of chefResults) {
+      for (const id of chef.relatedRestaurantIds ?? []) {
+        relatedIds.add(String(id));
+      }
+      for (const restaurant of chef.affiliatedRestaurants ?? []) {
+        relatedIds.add(String(restaurant._id));
+      }
+      for (const restaurant of chef.ownedRestaurants ?? []) {
+        relatedIds.add(String(restaurant._id));
+      }
+      const workplace = chef.currentRestaurant?.trim().toLowerCase();
+      if (workplace) {
+        for (const restaurant of restaurants) {
+          if (restaurant.name?.toLowerCase().includes(workplace)) {
+            relatedIds.add(restaurant._id);
+          }
+        }
+      }
+    }
+    sponsoredRestaurants = sponsoredRestaurants.filter((restaurant) =>
+      relatedIds.has(String(restaurant._id))
+    );
+  }
+
+  if (hasNearCoords && sponsoredRestaurants.length > 0) {
+    sponsoredRestaurants = sponsoredRestaurants.filter((restaurant) => {
+      const distanceKm = getRestaurantDistanceKm(restaurant, nearLat, nearLng);
+      return distanceKm != null && distanceKm <= NEAR_ME_RADIUS_KM;
+    });
+  }
+
+  const sponsoredIds = new Set(
+    sponsoredRestaurants.map((restaurant) => String(restaurant._id))
+  );
+  if (sponsoredIds.size > 0) {
+    displayRestaurants = displayRestaurants.filter(
+      (restaurant) => !sponsoredIds.has(String(restaurant._id))
+    );
+  }
+
   const noResults =
     !error &&
     !chefSearchError &&
     displayRestaurants.length === 0 &&
+    sponsoredRestaurants.length === 0 &&
     chefResults.length === 0;
 
   return (
@@ -157,7 +247,7 @@ export default async function RestaurantsPage({ searchParams }: Props) {
               Restaurants
             </h1>
             <p className="mt-3 text-base text-gray-600 sm:text-lg">
-              Discover chef-reviewed places on Cheffington.
+              Discover chef-reviewed establishments on Cheffington.
             </p>
             {activeFilterLabel ? (
               <span className="mt-4 inline-flex items-center rounded-full border border-[#FF8400]/30 bg-[#FF8400]/10 px-3 py-1 text-xs font-semibold text-[#b35a00]">
@@ -190,6 +280,29 @@ export default async function RestaurantsPage({ searchParams }: Props) {
           <p className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-600">
             {chefSearchError}
           </p>
+        ) : null}
+
+        {!error && sponsoredRestaurants.length > 0 ? (
+          <div className="mb-10">
+            <p className="mb-5 text-sm font-semibold uppercase tracking-wider text-gray-500">
+              Sponsored results
+            </p>
+            <div className="grid gap-5 md:gap-6">
+              {sponsoredRestaurants.map((restaurant) => {
+                const distanceKm = hasNearCoords
+                  ? getRestaurantDistanceKm(restaurant, nearLat, nearLng)
+                  : null;
+                return (
+                  <RestaurantListCard
+                    key={`sponsored-${restaurant._id}`}
+                    restaurant={restaurant}
+                    distanceKm={distanceKm ?? undefined}
+                    sponsored
+                  />
+                );
+              })}
+            </div>
+          </div>
         ) : null}
 
         {chefResults.length > 0 ? (
@@ -226,7 +339,7 @@ export default async function RestaurantsPage({ searchParams }: Props) {
           <div className="rounded-2xl border border-dashed border-gray-300 bg-white/60 px-6 py-16 text-center">
             <p className="text-lg font-semibold text-gray-800">
               {hasNearCoords
-                ? `No restaurants within ${NEAR_ME_RADIUS_KM} km`
+                ? `No restaurants within ${NEAR_ME_RADIUS_MILES} miles`
                 : chefQuery.length >= 2
                   ? "No chefs match that name"
                   : hasSearchFilters
@@ -248,9 +361,11 @@ export default async function RestaurantsPage({ searchParams }: Props) {
         {!error && displayRestaurants.length > 0 && (
           <div>
             <p className="mb-5 text-sm font-semibold uppercase tracking-wider text-gray-500">
+              Results
+              {" · "}
               {displayRestaurants.length} place
-              {displayRestaurants.length === 1 ? "" : "s"} found
-              {hasNearCoords ? ` within ${NEAR_ME_RADIUS_KM} km` : ""}
+              {displayRestaurants.length === 1 ? "" : "s"}
+              {hasNearCoords ? ` within ${NEAR_ME_RADIUS_MILES} miles` : ""}
             </p>
             <div className="grid gap-5 md:gap-6">
               {displayRestaurants.map((restaurant, index) => {

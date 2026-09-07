@@ -12,8 +12,10 @@ import {
   getAdPlacements,
   getAdTargetRegions,
   getChefSubscriptionPlans,
+  getPublishedRestaurants,
   uploadAdvertisingAsset,
 } from "@/lib/api-client";
+import type { PublicRestaurant } from "@/types/restaurant";
 import type {
   AdPlacement,
   AdPlacementAvailability,
@@ -23,11 +25,14 @@ import type {
   ChefSubscriptionPlan,
 } from "@/types/advertising";
 import { MAX_AD_DAYS, MIN_AD_DAYS } from "@/types/advertising";
+import { SITE_AD_SLOTS } from "@/lib/ad-slot-keys";
 
 // Q5: monthly chef subscription plans enabled (controlled by env var on the backend).
 // When false (default), nothing on the form changes — billingMode stays "one_time".
 const CHEF_SUBSCRIPTIONS_ENABLED =
   process.env.NEXT_PUBLIC_CHEF_SUBSCRIPTIONS_ENABLED === "true";
+
+const SPONSORED_SEARCH_KEY = SITE_AD_SLOTS.RESTAURANTS_SEARCH_SPONSORED;
 
 const sectionTitle = "title text-center text-4xl md:text-5xl";
 const sectionSubtitle = "subtitle mx-auto mt-3 max-w-2xl text-center text-xl md:text-2xl";
@@ -89,6 +94,7 @@ function createInitialFormState() {
     websiteUrl: "",
     placementKey: "",
     targetRegionKey: "",
+    restaurantId: "",
     days: "",
     needsDesign: false,
     message: "",
@@ -102,6 +108,9 @@ export default function AdvertisingRequestForm() {
     placements: [],
   });
   const [regions, setRegions] = useState<AdTargetRegion[]>([]);
+  const [publishedRestaurants, setPublishedRestaurants] = useState<
+    PublicRestaurant[]
+  >([]);
   const [subscriptionPlans, setSubscriptionPlans] = useState<ChefSubscriptionPlan[]>([]);
   const [loadingPlacements, setLoadingPlacements] = useState(true);
   const [form, setForm] = useState(createInitialFormState);
@@ -215,13 +224,15 @@ export default function AdvertisingRequestForm() {
     Promise.all([
       getAdPlacements(),
       getAdTargetRegions(),
+      getPublishedRestaurants().catch(() => ({ data: [] as PublicRestaurant[] })),
       CHEF_SUBSCRIPTIONS_ENABLED
         ? getChefSubscriptionPlans()
         : Promise.resolve([] as ChefSubscriptionPlan[]),
     ])
-      .then(([pricingData, regionData, planData]) => {
+      .then(([pricingData, regionData, restaurantData, planData]) => {
         setPricing(pricingData);
         setRegions(regionData);
+        setPublishedRestaurants(restaurantData.data ?? []);
         setSubscriptionPlans(planData);
       })
       .catch((loadError) => {
@@ -308,6 +319,7 @@ export default function AdvertisingRequestForm() {
     sortedColumns[sortedColumns.length - 1]?.id;
 
   const selectedPlacement = placements.find((p) => p.key === form.placementKey);
+  const isSponsoredSearch = form.placementKey === SPONSORED_SEARCH_KEY;
   const selectedPlacementSize = getPlacementSizeLabel(selectedPlacement);
   const selectedRow = sortedRows.find((row) => row.slotKey === form.placementKey);
   const dayCount = Number(form.days);
@@ -323,15 +335,21 @@ export default function AdvertisingRequestForm() {
       : null;
 
   const isValid = useMemo(() => {
+    const creativeOk = isSponsoredSearch || form.needsDesign || Boolean(adImageUrl);
+    const restaurantOk = !isSponsoredSearch || Boolean(form.restaurantId);
+    const websiteOk = isSponsoredSearch
+      ? Boolean(form.websiteUrl.trim() || form.restaurantId)
+      : Boolean(form.websiteUrl.trim());
     const base = Boolean(
       form.businessName.trim() &&
         form.contactName.trim() &&
         form.contactEmail.trim() &&
         form.contactPhone.trim() &&
-        form.websiteUrl.trim() &&
+        websiteOk &&
         form.placementKey &&
         form.targetRegionKey &&
-        (form.needsDesign || adImageUrl) &&
+        creativeOk &&
+        restaurantOk &&
         slotAvailability?.available !== false
     );
     if (billingMode === "subscription") {
@@ -345,6 +363,7 @@ export default function AdvertisingRequestForm() {
     billingMode,
     selectedSubscriptionPlan,
     slotAvailability,
+    isSponsoredSearch,
   ]);
 
   const onSelectImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -403,18 +422,32 @@ export default function AdvertisingRequestForm() {
       setSubmitting(true);
       setError("");
 
+      const selectedRestaurant = publishedRestaurants.find(
+        (item) => item._id === form.restaurantId
+      );
+      const websiteUrl =
+        form.websiteUrl.trim() ||
+        selectedRestaurant?.website?.trim() ||
+        (selectedRestaurant
+          ? `${window.location.origin}/restaurants/${selectedRestaurant._id}`
+          : "");
+
       const payload = {
         businessName: form.businessName.trim(),
         contactName: form.contactName.trim(),
         contactEmail: form.contactEmail.trim(),
         contactPhone: form.contactPhone.trim(),
-        websiteUrl: form.websiteUrl.trim(),
+        websiteUrl,
         placementKey: form.placementKey,
         targetRegionKey: form.targetRegionKey,
         days: billingMode === "subscription" ? 30 : dayCount,
-        needsDesign: form.needsDesign,
-        adImageUrl: form.needsDesign ? undefined : adImageUrl,
+        needsDesign: isSponsoredSearch ? false : form.needsDesign,
+        adImageUrl:
+          isSponsoredSearch || form.needsDesign ? undefined : adImageUrl,
         message: form.message.trim() || undefined,
+        restaurantId: isSponsoredSearch
+          ? form.restaurantId || undefined
+          : undefined,
       };
 
       // Q5: route to subscription endpoint when monthly plan is selected
@@ -480,7 +513,8 @@ export default function AdvertisingRequestForm() {
           </h2>
           <p className={sectionSubtitle}>
             Choose a placement below. You pay per day — enter any number of days
-            on the request form.
+            on the request form. Sponsored search results boost a published
+            restaurant listing for a city (not a banner image).
           </p>
         </div>
 
@@ -610,7 +644,9 @@ export default function AdvertisingRequestForm() {
               </div>
 
               <div className="form-field">
-                <label className="form-label">Website / link URL *</label>
+                <label className="form-label">
+                  Website / link URL {isSponsoredSearch ? "(optional)" : "*"}
+                </label>
                 <input
                   type="url"
                   placeholder="https://yourbusiness.com"
@@ -619,8 +655,14 @@ export default function AdvertisingRequestForm() {
                   onChange={(e) =>
                     setForm((prev) => ({ ...prev, websiteUrl: e.target.value }))
                   }
-                  required
+                  required={!isSponsoredSearch}
                 />
+                {isSponsoredSearch ? (
+                  <p className="form-hint">
+                    Defaults to the restaurant website or Cheffington listing
+                    page if left blank.
+                  </p>
+                ) : null}
               </div>
             </div>
 
@@ -670,12 +712,21 @@ export default function AdvertisingRequestForm() {
                   <select
                     className="input-field"
                     value={form.placementKey}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const nextKey = e.target.value;
+                      const nextSponsored = nextKey === SPONSORED_SEARCH_KEY;
                       setForm((prev) => ({
                         ...prev,
-                        placementKey: e.target.value,
-                      }))
-                    }
+                        placementKey: nextKey,
+                        restaurantId: nextSponsored ? prev.restaurantId : "",
+                        needsDesign: nextSponsored ? false : prev.needsDesign,
+                      }));
+                      if (nextSponsored) {
+                        setAdImageUrl("");
+                        setAdImagePreview("");
+                        setUploadedFileName("");
+                      }
+                    }}
                     required
                   >
                     <option value="" disabled>
@@ -687,7 +738,7 @@ export default function AdvertisingRequestForm() {
                       const sizePart = sizeLabel ? ` (${sizeLabel})` : "";
                       const monthlyLabel =
                         billingMode === "subscription" && subPlan?.monthlyPrice
-                          ? ` — ${subPlan.currency.toUpperCase()} $${formatMoney(subPlan.monthlyPrice)}/month`
+                          ? ` — USD $${formatMoney(subPlan.monthlyPrice)}/month`
                           : placement.priceLabel
                             ? ` — ${placement.priceLabel}`
                             : "";
@@ -700,12 +751,21 @@ export default function AdvertisingRequestForm() {
                       );
                     })}
                   </select>
-                  {selectedPlacementSize ? (
+                  {selectedPlacementSize && !isSponsoredSearch ? (
                     <p className="form-hint">
                       Recommended image size:{" "}
                       <span className="font-semibold text-black">
                         {selectedPlacementSize} pixels
                       </span>
+                    </p>
+                  ) : null}
+                  {isSponsoredSearch ? (
+                    <p className="form-hint">
+                      Your restaurant&apos;s existing listing card appears under{" "}
+                      <span className="font-semibold text-black">
+                        Sponsored results
+                      </span>{" "}
+                      when visitors search that city — no banner creative needed.
                     </p>
                   ) : null}
                   {billingMode === "subscription" &&
@@ -796,6 +856,63 @@ export default function AdvertisingRequestForm() {
                 </div>
               </div>
 
+              {isSponsoredSearch ? (
+                <div className="form-field">
+                  <label className="form-label">Restaurant to boost *</label>
+                  <select
+                    className="input-field"
+                    value={form.restaurantId}
+                    onChange={(e) => {
+                      const restaurantId = e.target.value;
+                      const restaurant = publishedRestaurants.find(
+                        (item) => item._id === restaurantId
+                      );
+                      setForm((prev) => ({
+                        ...prev,
+                        restaurantId,
+                        businessName:
+                          prev.businessName.trim() ||
+                          restaurant?.name ||
+                          prev.businessName,
+                        websiteUrl:
+                          prev.websiteUrl.trim() ||
+                          restaurant?.website?.trim() ||
+                          (restaurant
+                            ? `${typeof window !== "undefined" ? window.location.origin : ""}/restaurants/${restaurant._id}`
+                            : prev.websiteUrl),
+                      }));
+                    }}
+                    required
+                  >
+                    <option value="" disabled>
+                      Select a published restaurant
+                    </option>
+                    {publishedRestaurants.map((restaurant) => {
+                      const place = [restaurant.city, restaurant.state]
+                        .filter(Boolean)
+                        .join(", ");
+                      return (
+                        <option key={restaurant._id} value={restaurant._id}>
+                          {restaurant.name}
+                          {place ? ` — ${place}` : ""}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {publishedRestaurants.length === 0 ? (
+                    <p className="form-hint text-amber-700">
+                      No published restaurants are available yet. Publish a
+                      listing first, then choose Sponsored search results.
+                    </p>
+                  ) : (
+                    <p className="form-hint">
+                      Pick the Cheffington listing that should appear at the top
+                      of directory search for your target area.
+                    </p>
+                  )}
+                </div>
+              ) : null}
+
               {selectedPlacement && (billingMode === "subscription" || hasValidDays) ? (
                 <div className="rounded-xl border border-[#FF8400]/25 bg-[#fff8f2] px-5 py-4">
                   <p className="text-sm font-medium text-gray-800">
@@ -805,7 +922,7 @@ export default function AdvertisingRequestForm() {
                     <>
                       <p className="mt-1 text-2xl font-bold text-[#FF8400]">
                         {selectedSubscriptionPlan?.monthlyPrice != null
-                          ? `${selectedSubscriptionPlan.currency.toUpperCase()} $${formatMoney(selectedSubscriptionPlan.monthlyPrice)} / month`
+                          ? `USD $${formatMoney(selectedSubscriptionPlan.monthlyPrice)} / month`
                           : "Monthly plan (Stripe)"}
                       </p>
                       <p className="mt-1 text-sm text-gray-600">
@@ -841,6 +958,7 @@ export default function AdvertisingRequestForm() {
               ) : null}
             </div>
 
+            {!isSponsoredSearch ? (
             <div className="form-section space-y-4 border-t border-black/10 pt-8">
               <h3 className="body-title">Ad creative</h3>
               <label className="form-checkbox-row rounded-lg border border-black/20 px-4 py-3">
@@ -906,6 +1024,7 @@ export default function AdvertisingRequestForm() {
                 </div>
               ) : null}
             </div>
+            ) : null}
 
             <div className="form-field border-t border-black/10 pt-8">
               <label className="form-label">Message (optional)</label>

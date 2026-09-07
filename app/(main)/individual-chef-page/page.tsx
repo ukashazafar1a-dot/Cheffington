@@ -41,14 +41,10 @@ export default function IndividualChefPage() {
           );
         }
 
-        if (chefData?.applicationType !== "business_owner") {
-          try {
-            const reviewsRes = await getMyReviews(chefToken);
-            setReviews(reviewsRes.data ?? []);
-          } catch {
-            setReviews([]);
-          }
-        } else {
+        try {
+          const reviewsRes = await getMyReviews(chefToken);
+          setReviews(reviewsRes.data ?? []);
+        } catch {
           setReviews([]);
         }
       } catch (err) {
@@ -112,39 +108,48 @@ export default function IndividualChefPage() {
         roleLabel={roleLabel}
       />
 
-      <div className="relative z-0 -mt-8 flex flex-col page-width">
-        {!isBusinessOwner && token && chef ? (
-          <div className="mb-4 mt-6 w-full xl:w-[68%]">
-            <EditChefProfileForm
-              chef={chef}
-              token={token}
-              onSaved={(updated) => setChef(updated)}
-            />
+      <div className="relative z-0 flex flex-col page-width pt-6 md:pt-8">
+        {isBusinessOwner ? (
+          <div className="mb-6 flex items-start gap-6 max-xl:flex-wrap">
+            <div className="w-full rounded-xl border border-black/10 bg-white px-6 py-8 xl:w-[68%]">
+              <p className="text-lg font-semibold text-black">
+                You&apos;re signed in as a Business Owner
+              </p>
+              <p className="mt-2 text-gray-600">
+                Manage restaurants from the business owner dashboard. On this site
+                you can leave reviews, advertise, claim restaurants, and edit your
+                public profile (including About).
+              </p>
+              <a
+                href={`${OWNER_APP_URL.replace(/\/$/, "")}/login`}
+                className="mt-4 inline-block font-semibold text-[#FF8400] underline"
+              >
+                Open business owner dashboard
+              </a>
+            </div>
+            {/* Reserve space under the hanging address card */}
+            <div className="hidden xl:block xl:w-[300px] xl:shrink-0" aria-hidden="true" />
           </div>
         ) : null}
 
-        {isBusinessOwner ? (
-          <div className="mb-18 rounded-xl border border-black/10 bg-white px-6 py-8">
-            <p className="text-lg font-semibold text-black">
-              You&apos;re signed in as a Business Owner
-            </p>
-            <p className="mt-2 text-gray-600">
-              Manage restaurants from the business owner dashboard. You can still
-              advertise on Cheffington and claim restaurants from this website.
-            </p>
-            <a
-              href={`${OWNER_APP_URL.replace(/\/$/, "")}/login`}
-              className="mt-4 inline-block font-semibold text-[#FF8400] underline"
-            >
-              Open business owner dashboard
-            </a>
+        {token && chef ? (
+          <div className="mb-4 flex items-start gap-6 max-xl:flex-wrap">
+            <div className="w-full xl:w-[68%]">
+              <EditChefProfileForm
+                chef={chef}
+                token={token}
+                onSaved={(updated) => setChef(updated)}
+              />
+            </div>
+            {/* Reserve space under the hanging address card */}
+            <div className="hidden xl:block xl:w-[300px] xl:shrink-0" aria-hidden="true" />
           </div>
-        ) : (
-          <div className="mb-18 flex items-start gap-6 max-xl:flex-wrap max-xl:pb-5">
-            <ChefReviewForRestaurants chef={chef} reviews={reviews} />
-            <Adertising />
-          </div>
-        )}
+        ) : null}
+
+        <div className="mb-18 flex items-start gap-6 max-xl:flex-wrap max-xl:pb-5">
+          <ChefReviewForRestaurants chef={chef} reviews={reviews} />
+          <Adertising />
+        </div>
       </div>
     </div>
   );

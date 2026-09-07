@@ -20,6 +20,8 @@ type Props = {
 
 const ChefReviewForRestaurants = ({ chef, reviews }: Props) => {
   const chefName = formatChefFullName(chef) || "Chef";
+  const authorLabel =
+    chef?.applicationType === "business_owner" ? "Business owner" : "Chef";
   const [restaurants, setRestaurants] = useState<PublicRestaurant[]>([]);
   const affiliatedNames = affiliatedNamesFromIds(
     chef?.affiliatedRestaurantIds,
@@ -70,7 +72,7 @@ const ChefReviewForRestaurants = ({ chef, reviews }: Props) => {
       {reviews.length === 0 ? (
         <p className="rounded-3xl border-2 border-black p-6 text-gray-700">
           You have not written any restaurant reviews yet. Use{" "}
-          <strong>Add review</strong> to share your first chef note.
+          <strong>Add review</strong> to share your first note.
         </p>
       ) : (
         <div className="border-2 border-black rounded-3xl p-4 md:p-8 space-y-8">
@@ -81,10 +83,12 @@ const ChefReviewForRestaurants = ({ chef, reviews }: Props) => {
               chefId={chef?._id}
               profilePhotoUrl={chef?.profilePhotoUrl}
               restaurantName={review.restaurant?.name ?? "Restaurant"}
+              authorLabel={authorLabel}
               affiliations={affiliatedNames}
               title={review.title?.trim() || undefined}
               comment={review.comment}
               date={review.updatedAt ?? review.createdAt}
+              media={review.media}
             />
           ))}
         </div>
