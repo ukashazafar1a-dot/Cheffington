@@ -7,6 +7,7 @@ import { SITE_AD_SLOTS } from "@/lib/ad-slot-keys";
 import { getPublicChef } from "@/lib/api-client";
 import {
   displayWebsiteLabel,
+  formatAccountRoleLabel,
   formatChefFullName,
   formatChefSubtitle,
 } from "@/types/chef";
@@ -108,6 +109,7 @@ export default async function PublicChefPage({ params }: Props) {
   }
 
   const fullName = formatChefFullName(chef) || "Chef";
+  const roleLabel = formatAccountRoleLabel(chef.applicationType);
   const subtitle = formatChefSubtitle(chef);
   const websiteLabel = displayWebsiteLabel(chef.website);
   const websiteHref = chef.website?.trim()
@@ -164,7 +166,7 @@ export default async function PublicChefPage({ params }: Props) {
               </div>
               <div className="min-w-0">
                 <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-[#FF8400]">
-                  Chef profile
+                  {roleLabel} profile
                 </p>
                 <h1 className="text-3xl font-black tracking-tight text-[#FFF1E1] md:text-5xl">
                   {fullName}
@@ -292,6 +294,7 @@ export default async function PublicChefPage({ params }: Props) {
                       chefId={chef._id}
                       profilePhotoUrl={chef.profilePhotoUrl}
                       restaurantName={review.restaurant?.name}
+                      authorLabel="Chef"
                       affiliations={(chef.affiliatedRestaurants ?? []).map(
                         (restaurant) => restaurant.name
                       )}
@@ -299,6 +302,7 @@ export default async function PublicChefPage({ params }: Props) {
                       comment={review.comment}
                       date={review.updatedAt ?? review.createdAt}
                       compact
+                      media={review.media}
                     />
                   ))}
                 </div>

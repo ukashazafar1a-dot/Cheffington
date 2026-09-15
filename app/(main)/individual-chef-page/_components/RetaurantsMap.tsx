@@ -67,7 +67,7 @@ const RestaurantsMap = ({
 
     return (
         <div className="relative z-20 isolate overflow-hidden rounded-3xl bg-[#FF8400] [&_.leaflet-pane]:!z-[1] [&_.leaflet-top]:!z-[2] [&_.leaflet-container]:!z-0">
-            <div className="relative z-0 h-48 overflow-hidden md:h-52">
+            <div className="relative z-0 h-48 min-h-0 overflow-hidden md:h-52">
                 <GeocodedMap
                     address={address?.trim() || undefined}
                     addressFields={addressFields}
@@ -75,7 +75,7 @@ const RestaurantsMap = ({
                     lng={lng}
                     geocodePrecision={geocodePrecision}
                     name={locationName}
-                    className="h-full w-full"
+                    className="h-full w-full min-h-0"
                     unavailableLabel={
                         address?.trim()
                             ? "Map unavailable for this address"
@@ -84,7 +84,7 @@ const RestaurantsMap = ({
                 />
             </div>
 
-            <div className="relative z-20 flex flex-col text-center">
+            <div className="relative z-20 bg-[#FF8400] flex flex-col text-center">
                 {/* Address Section */}
                 <div className="px-6 py-5 border-b border-black/10 group relative">
                     <p className="font-extrabold text-sm text-black tracking-[-2%] leading-tight">

@@ -27,7 +27,7 @@ export default function ReviewChefGuard({ restaurantId, restaurantName }: Props)
   if (!ready) {
     return (
       <p className="py-12 text-center text-lg text-gray-700">
-        Checking chef sign-in…
+        Checking sign-in…
       </p>
     );
   }

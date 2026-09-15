@@ -24,6 +24,7 @@ export interface PublicRestaurant {
   longitude?: number | null;
   geocodePrecision?: "exact" | "city" | "region" | "none";
   images?: string[];
+  logoUrl?: string;
   contentSections?: ContentSection[];
   createdAt?: string;
   updatedAt?: string;

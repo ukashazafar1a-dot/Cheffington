@@ -1,15 +1,26 @@
 import Link from "next/link";
+import ReviewMediaViewer from "@/components/ReviewMediaViewer";
 import { getFeaturedReviews } from "@/lib/api-client";
 import { chefAffiliationNames } from "@/types/chef";
+import type { PublicReview } from "@/types/review";
 
 export const dynamic = "force-dynamic";
 
-function chefDisplayName(chef?: {
-  firstName?: string;
-  lastName?: string;
-}) {
-  if (!chef) return "Chef";
-  return `${chef.firstName ?? ""} ${chef.lastName ?? ""}`.trim() || "Chef";
+function reviewAuthor(review: PublicReview) {
+  return review.author || review.chef;
+}
+
+function chefDisplayName(
+  author?: { firstName?: string; lastName?: string } | null,
+  authorType?: PublicReview["authorType"]
+) {
+  if (!author) {
+    return authorType === "business_owner" ? "Business owner" : "Chef";
+  }
+  return (
+    `${author.firstName ?? ""} ${author.lastName ?? ""}`.trim() ||
+    (authorType === "business_owner" ? "Business owner" : "Chef")
+  );
 }
 
 function chefInitials(name: string) {
@@ -43,8 +54,8 @@ export default async function ChefRecommends() {
           </p>
           <p className="text-center text-lg text-gray-700">
             {loadFailed
-              ? "Could not load chef reviews. Make sure the backend is running on port 5000, then refresh."
-              : "Chef reviews will appear here once published."}
+              ? "Could not load reviews. Make sure the backend is running on port 5000, then refresh."
+              : "Reviews will appear here once published."}
           </p>
         </div>
       </section>
@@ -60,12 +71,16 @@ export default async function ChefRecommends() {
         </p>
         <div className="flex flex-wrap justify-start gap-4">
           {reviews.map((review) => {
-            const name = chefDisplayName(review.chef);
+            const author = reviewAuthor(review);
+            const authorType = review.authorType || "chef";
+            const name = chefDisplayName(author, authorType);
             const quote = review.comment?.trim() || "";
             const restaurantId = review.restaurant?.id;
             const restaurantName = review.restaurant?.name;
-            const affiliations = chefAffiliationNames(review.chef);
-            const chefId = review.chef?.id;
+            const affiliations = chefAffiliationNames(author);
+            const profileId = author?.id ? String(author.id) : undefined;
+            const authorLabel =
+              authorType === "business_owner" ? "Business owner" : "Chef";
 
             return (
               <article
@@ -73,15 +88,15 @@ export default async function ChefRecommends() {
                 className="w-full max-w-[320px] overflow-hidden rounded-2xl border-2 border-black bg-white p-3.5 text-left shadow-[3px_3px_0_0_#000] transition-transform duration-200 hover:-translate-y-0.5 sm:w-[320px]"
               >
                 <div className="flex items-center gap-3">
-                  {chefId ? (
+                  {profileId ? (
                     <Link
-                      href={`/chefs/${chefId}`}
+                      href={`/chefs/${profileId}`}
                       className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-black bg-[#FFF1E1]"
                     >
-                      {review.chef?.profilePhotoUrl ? (
+                      {author?.profilePhotoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={review.chef.profilePhotoUrl}
+                          src={author.profilePhotoUrl}
                           alt={name}
                           className="h-full w-full object-cover"
                         />
@@ -93,10 +108,10 @@ export default async function ChefRecommends() {
                     </Link>
                   ) : (
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-black bg-[#FFF1E1]">
-                      {review.chef?.profilePhotoUrl ? (
+                      {author?.profilePhotoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={review.chef.profilePhotoUrl}
+                          src={author.profilePhotoUrl}
                           alt={name}
                           className="h-full w-full object-cover"
                         />
@@ -110,14 +125,17 @@ export default async function ChefRecommends() {
 
                   <div className="min-w-0 flex-1">
                     <h4 className="truncate text-sm font-bold leading-tight text-gray-900">
-                      {chefId ? (
-                        <Link href={`/chefs/${chefId}`} className="hover:underline">
+                      {profileId ? (
+                        <Link href={`/chefs/${profileId}`} className="hover:underline">
                           {name}
                         </Link>
                       ) : (
                         name
                       )}
                     </h4>
+                    <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                      {authorLabel}
+                    </p>
                     {affiliations.length > 0 ? (
                       <p className="mt-1 text-[11px] font-semibold leading-snug text-[#FF8400]">
                         {affiliations.join(" · ")}
@@ -134,6 +152,14 @@ export default async function ChefRecommends() {
                     <p className="line-clamp-2 text-sm leading-snug text-black/75">
                       &ldquo;{quote}&rdquo;
                     </p>
+                    {review.media?.length ? (
+                      <ReviewMediaViewer
+                        media={review.media}
+                        maxItems={3}
+                        className="mt-2 flex gap-1.5 overflow-hidden"
+                        thumbClassName="h-14 w-14 shrink-0 rounded-md"
+                      />
+                    ) : null}
                   </div>
                 </div>
               </article>

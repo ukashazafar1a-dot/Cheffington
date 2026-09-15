@@ -1,3 +1,14 @@
+export type ReviewAuthorType = "chef" | "business_owner";
+
+export type ReviewMediaType = "image" | "video";
+
+export interface ReviewMediaItem {
+  url: string;
+  type: ReviewMediaType;
+  mimeType?: string;
+  originalName?: string;
+}
+
 export interface ReviewChef {
   id: string;
   firstName: string;
@@ -6,6 +17,8 @@ export interface ReviewChef {
   currentRestaurant?: string;
   jobTitle?: string;
   affiliatedRestaurants?: Array<{ id: string; name: string }>;
+  authorType?: ReviewAuthorType;
+  roleLabel?: string;
 }
 
 export interface FeaturedReviewRestaurant {
@@ -19,7 +32,12 @@ export interface PublicReview {
   comment: string;
   createdAt: string;
   updatedAt?: string;
+  authorType?: ReviewAuthorType;
+  /** Preferred author payload (chef or business owner). */
+  author?: ReviewChef;
+  /** Legacy chef-only field; still set for chef reviews. */
   chef?: ReviewChef;
+  media?: ReviewMediaItem[];
   restaurant?: FeaturedReviewRestaurant;
 }
 
@@ -70,6 +88,8 @@ export interface MyReview {
   title?: string;
   comment: string;
   status: string;
+  authorType?: ReviewAuthorType;
+  media?: ReviewMediaItem[];
   createdAt: string;
   updatedAt?: string;
   restaurant?: MyReviewRestaurant;

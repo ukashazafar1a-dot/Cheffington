@@ -44,36 +44,36 @@ const HowItWork = () => {
 
   return (
     <section className="flex flex-col items-center text-center max-w-3xl mx-auto">
-      <div className="inline-block relative mb-6 page-width-narrow mb0">
-        <h2 className="text-[40px] tracking-tight border-b-2 border-black pb-4">
-          How it Works
+      <div className="inline-block relative mb-6 page-width-narrow">
+        <h2 className="subtitle border-b-2 border-black pb-4">
+          How It Works
         </h2>
       </div>
-      <p className="md:text-[33px] text-xl leading-relaxed tracking-tight text-black/80 md:mt-12 mt-6 mb-6 md:mb-12">
+      <p className="text-40 text-black/80 md:mt-12 mt-6 mb-6 md:mb-12">
         Cheffington is a place for chefs to share their love of their favorite
         eateries across the globe. No bad reviews, only great food.
       </p>
 
-      <div className="flex flex-col items-center  w-full max-w-2xl md:gap-14 gap-8">
+      <div className="flex flex-col items-center w-full max-w-2xl md:gap-14 gap-8">
         {steps.map((step) => (
           <div
             key={step.number}
             className="flex flex-col items-center group md:gap-14 gap-8"
           >
             <div className="border border-black rounded-full w-16 h-16 flex items-center justify-center">
-              <span className="md:text-[33px] text-xl font-bold text-black">
+              <span className="text-40 font-bold text-black">
                 {step.number}
               </span>
             </div>
             {step.link ? (
               <a
                 href={step.link}
-                className=" md:text-[33px] text-xl  text-black group-hover:text-[#FF8400] transition-colors underline decoration-black/10 decoration-2 underline-offset-4 group-hover:decoration-[#FF8400]"
+                className="text-40 text-black group-hover:text-[#FF8400] transition-colors underline decoration-black/10 decoration-2 underline-offset-4 group-hover:decoration-[#FF8400]"
               >
                 {step.text}
               </a>
             ) : (
-              <p className="md:text-[33px] text-xl tracking-tight text-black leading-snug px-4 md:px-0">
+              <p className="text-40 text-black leading-snug px-4 md:px-0">
                 {step.text}
               </p>
             )}

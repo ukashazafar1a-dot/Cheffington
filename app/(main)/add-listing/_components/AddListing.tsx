@@ -19,6 +19,9 @@ const AMENITIES = [
   'Wifi',
 ] as const
 
+/** List cards show ~2 lines; keep Add Listing descriptions brief. */
+const DESCRIPTION_MAX_CHARS = 250
+
 const initialForm = {
   submitterName: '',
   submitterEmail: '',
@@ -83,6 +86,8 @@ const AddListing = () => {
     )
   }, [form])
 
+  const descriptionLength = form.description.length
+
   const setField = (name: keyof typeof initialForm, value: string) => {
     setForm((prev) => ({ ...prev, [name]: value }))
   }
@@ -117,7 +122,7 @@ const AddListing = () => {
         state: form.state.trim() || undefined,
         zipCode: form.zipCode.trim() || undefined,
         country: form.country.trim() || undefined,
-        description: form.description.trim() || undefined,
+        description: form.description.trim().slice(0, DESCRIPTION_MAX_CHARS) || undefined,
         features: form.features,
       })
       setSuccess(true)
@@ -321,10 +326,35 @@ const AddListing = () => {
           </div>
 
           <div className="mt-10">
-            <label className="form-label">Brief description (optional)</label>
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <label className="form-label mb-0">
+                Brief description (optional)
+              </label>
+              <span
+                className={`text-sm font-medium tabular-nums ${
+                  descriptionLength >= DESCRIPTION_MAX_CHARS
+                    ? 'text-red-600'
+                    : descriptionLength >= DESCRIPTION_MAX_CHARS - 40
+                      ? 'text-[#c45f00]'
+                      : 'text-gray-500'
+                }`}
+                aria-live="polite"
+              >
+                {descriptionLength}/{DESCRIPTION_MAX_CHARS}
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-gray-500">
+              Keep it short — longer text is cut off on restaurant list cards.
+            </p>
             <textarea
               value={form.description}
-              onChange={(e) => setField('description', e.target.value)}
+              onChange={(e) =>
+                setField(
+                  'description',
+                  e.target.value.slice(0, DESCRIPTION_MAX_CHARS)
+                )
+              }
+              maxLength={DESCRIPTION_MAX_CHARS}
               className="input-field h-44 md:h-80 mt-4"
               placeholder="Tell diners what makes this place special."
             />

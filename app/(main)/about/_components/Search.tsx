@@ -9,25 +9,57 @@ const Search = () => {
             Explore <span className="text-[#FF8400]">Now</span>
           </h2>
         </div>
-        <div className="form-search-card relative w-full">
+        <form
+          action="/restaurants"
+          method="get"
+          className="form-search-card relative w-full"
+        >
           <div className="grid grid-cols-1 items-end gap-6 md:grid-cols-4">
             <div className="flex flex-col space-y-2">
-              <label className="form-search-label">Cuisine</label>
-              <input type="text" className="form-search-input" />
+              <label className="form-search-label" htmlFor="about-cuisine">
+                Cuisine
+              </label>
+              <input
+                id="about-cuisine"
+                name="cuisine"
+                type="text"
+                suppressHydrationWarning
+                className="form-search-input"
+              />
             </div>
             <div className="flex flex-col space-y-2">
-              <label className="form-search-label">Location</label>
-              <input type="text" className="form-search-input" />
+              <label className="form-search-label" htmlFor="about-location">
+                Location
+              </label>
+              <input
+                id="about-location"
+                name="location"
+                type="text"
+                suppressHydrationWarning
+                className="form-search-input"
+              />
             </div>
             <div className="flex flex-col space-y-2">
-              <label className="form-search-label">Chef</label>
-              <input type="text" className="form-search-input" />
+              <label className="form-search-label" htmlFor="about-chef">
+                Chef
+              </label>
+              <input
+                id="about-chef"
+                name="chef"
+                type="text"
+                suppressHydrationWarning
+                className="form-search-input"
+              />
             </div>
             <div className="relative">
-              <Button title="Let's Eat" />
+              <Button
+                title="Let's Eat"
+                type="submit"
+                className="w-full md:w-auto"
+              />
             </div>
           </div>
-        </div>
+        </form>
       </div>
     </section>
   );

@@ -19,6 +19,7 @@ const HeroSection = ({ restaurant }: Props) => {
               cuisine={restaurant.cuisine}
               tagline={restaurant.tagline}
               coverImageUrl={coverImageUrl}
+              logoUrl={restaurant.logoUrl}
               reviewCount={restaurant.reviewCount ?? 0}
             />
           </div>

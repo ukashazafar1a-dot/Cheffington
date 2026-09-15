@@ -65,6 +65,7 @@ export function markersFromRestaurants(
 }
 
 const EARTH_RADIUS_KM = 6371;
+const KM_PER_MILE = 1.609344;
 
 export function haversineKm(
   lat1: number,
@@ -81,8 +82,11 @@ export function haversineKm(
   return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-/** Default radius when Near me is active (kilometres). */
-export const NEAR_ME_RADIUS_KM = 30;
+/** Default Near me radius shown in the UI (miles). */
+export const NEAR_ME_RADIUS_MILES = 30;
+
+/** Same radius in km for haversine comparisons. */
+export const NEAR_ME_RADIUS_KM = NEAR_ME_RADIUS_MILES * KM_PER_MILE;
 
 export function getRestaurantDistanceKm(
   restaurant: PublicRestaurant,
@@ -124,14 +128,16 @@ export function filterRestaurantsNearMe(
     });
 }
 
-export function formatDistanceKm(distanceKm: number): string {
-  if (distanceKm < 1) {
-    return `${Math.max(1, Math.round(distanceKm * 1000))} m away`;
+/** Format a haversine km distance for display in miles. */
+export function formatDistanceMiles(distanceKm: number): string {
+  const miles = distanceKm / KM_PER_MILE;
+  if (miles < 0.1) {
+    return "Nearby";
   }
-  if (distanceKm < 10) {
-    return `${distanceKm.toFixed(1)} km away`;
+  if (miles < 10) {
+    return `${miles.toFixed(1)} mi away`;
   }
-  return `${Math.round(distanceKm)} km away`;
+  return `${Math.round(miles)} mi away`;
 }
 
 /** @deprecated Use filterRestaurantsNearMe for Near me mode. */

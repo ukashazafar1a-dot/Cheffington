@@ -69,7 +69,22 @@ export function filterRestaurantsDirectory(
           .join(" ")
           .toLowerCase();
 
-        if (!locationHaystack.includes(location)) return false;
+        // Support "Roseville, CA" (common search) as well as plain "Roseville".
+        // Comma-joined queries rarely appear verbatim in the space-joined haystack.
+        const parts = location
+          .split(",")
+          .map((part) => part.trim())
+          .filter(Boolean);
+        const cityPart = parts[0] || location;
+        const statePart = parts.length >= 2 ? parts[parts.length - 1] : "";
+        const cityHit = locationHaystack.includes(cityPart);
+        const stateHit =
+          !statePart ||
+          locationHaystack.includes(statePart) ||
+          (restaurant.state || "").toLowerCase().startsWith(statePart);
+        const exactHit = locationHaystack.includes(location);
+
+        if (!(exactHit || (cityHit && stateHit))) return false;
       }
 
       // Chef name search is handled on the restaurants page via /api/chefs.

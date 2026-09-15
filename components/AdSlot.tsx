@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { ActiveAdCampaign, AdSlotSize } from "@/types/advertising";
 import { getActiveAd } from "@/lib/api-client";
+import { trackAdEvent } from "@/lib/ad-analytics";
 import {
   getStoredVisitorRegion,
   setStoredVisitorRegion,
@@ -39,6 +40,8 @@ const SLOT_FALLBACK_SIZE: Record<string, AdSlotSize> = {
   restaurant_top: { width: 728, height: 90, sizeLabel: "728×90" },
   restaurant_right_rail: { width: 300, height: 250, sizeLabel: "300×250" },
   restaurant_reviews_top: { width: 728, height: 90, sizeLabel: "728×90" },
+  chef_sidebar: { width: 300, height: 600, sizeLabel: "300×600" },
+  chef_sidebar1: { width: 300, height: 600, sizeLabel: "300×600" },
 };
 
 function resolveSlotSize(
@@ -46,12 +49,16 @@ function resolveSlotSize(
   variant: NonNullable<AdSlotProps["variant"]>,
   slot: string
 ): AdSlotSize {
+  // Known layout slots use fixed site sizes (e.g. tall chef/restaurant sidebars).
+  if (SLOT_FALLBACK_SIZE[slot]) {
+    return SLOT_FALLBACK_SIZE[slot];
+  }
   const width = slotSize?.width ?? 0;
   const height = slotSize?.height ?? 0;
   if (width > 0 && height > 0 && slotSize) {
     return slotSize;
   }
-  return SLOT_FALLBACK_SIZE[slot] ?? VARIANT_FALLBACK_SIZE[variant];
+  return VARIANT_FALLBACK_SIZE[variant];
 }
 
 function getSlotFrameClassName(slotSize: AdSlotSize, extra = "") {
@@ -162,12 +169,31 @@ export default function AdSlot({
 
   const ad = ads === undefined ? undefined : ads[index] || ads[0] || null;
 
+  useEffect(() => {
+    if (!ad?._id || !ad.imageUrl) return;
+    trackAdEvent({
+      type: "impression",
+      campaignId: String(ad._id),
+      placementKey: slot,
+      targetRegionKey: ad.targetRegionKey || "sitewide",
+    });
+  }, [ad?._id, ad?.imageUrl, ad?.targetRegionKey, slot]);
+
   if (ad === undefined || !ad?.imageUrl) {
     return null;
   }
 
   const frameSize = resolveSlotSize(slotSize, variant, slot);
   const frameStyle = getSlotFrameStyle(frameSize, fillWidth);
+
+  const recordClick = () => {
+    trackAdEvent({
+      type: "click",
+      campaignId: String(ad._id),
+      placementKey: slot,
+      targetRegionKey: ad.targetRegionKey || "sitewide",
+    });
+  };
 
   const content = (
     <>
@@ -185,6 +211,11 @@ export default function AdSlot({
         href={ad.linkUrl}
         target="_blank"
         rel="noopener noreferrer sponsored"
+        onClick={recordClick}
+        onAuxClick={(e) => {
+          // Middle-click only — ignore right-click context menu.
+          if (e.button === 1) recordClick();
+        }}
         className={getSlotFrameClassName(
           frameSize,
           `block overflow-hidden bg-white ${
