@@ -243,7 +243,7 @@ function SignInForm() {
                 Sign up here.
               </Link>
             </p>
-            <Link href="#" className="text-black underline font-semibold">
+            <Link href="/forgot-password" className="text-black underline font-semibold">
               Forgot password?
             </Link>
           </div>
