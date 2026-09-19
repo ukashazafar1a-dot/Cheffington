@@ -35,7 +35,12 @@ const CHEF_SUBSCRIPTIONS_ENABLED =
 const SPONSORED_SEARCH_KEY = SITE_AD_SLOTS.RESTAURANTS_SEARCH_SPONSORED;
 
 const sectionTitle = "title text-center text-4xl md:text-5xl";
-const sectionSubtitle = "subtitle mx-auto mt-3 max-w-2xl text-center text-xl md:text-2xl";
+const sectionSubtitle =
+  "subtitle mx-auto mt-3 max-w-2xl text-center text-lg md:text-xl";
+/** Pricing block: smaller + left-aligned above the chart (client request). */
+const pricingTitle = "title text-left text-2xl md:text-3xl";
+const pricingSubtitle =
+  "mt-3 max-w-3xl text-left text-sm text-gray-700 md:text-base";
 
 /** Display-only: recommended creative size for a placement (does not affect checkout). */
 function getPlacementSizeLabel(placement: AdPlacement | undefined): string {
@@ -505,16 +510,16 @@ export default function AdvertisingRequestForm() {
   }
 
   return (
-    <div className="mt-14 w-full space-y-16 page-width-narrow px-4 sm:px-0">
+    <div className="mt-56 w-full space-y-16 page-width-narrow px-4 sm:px-0 md:mt-72">
       <section className="space-y-6">
         <div>
-          <h2 className={sectionTitle}>
+          <h2 className={pricingTitle}>
             Advertising <span className="text-[#FF8400]">Pricing</span>
           </h2>
-          <p className={sectionSubtitle}>
-            Choose a placement below. You pay per day — enter any number of days
-            on the request form. Sponsored search results boost a published
-            restaurant listing for a city (not a banner image).
+          <p className={pricingSubtitle}>
+            Choose your ad placement below, and select how many days you&apos;d
+            like your ad to run. Select Sponsored Search Results to boost your
+            restaurant listing in your city!
           </p>
         </div>
 
@@ -976,7 +981,7 @@ export default function AdvertisingRequestForm() {
                     }
                   }}
                 />
-                <span>We&apos;ll design the ad for me</span>
+                <span>Let Cheffington design the ad for you</span>
               </label>
 
               {!form.needsDesign ? (
