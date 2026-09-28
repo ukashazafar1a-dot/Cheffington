@@ -1,8 +1,8 @@
 import ChefProfileAvatar from './ChefProfileAvatar';
 import {
-  formatAccountRoleLabel,
   formatChefFullName,
   formatChefSubtitle,
+  formatPublicJobLabel,
   type ChefProfile,
 } from '@/types/chef';
 
@@ -33,23 +33,16 @@ const RestaurantsDetails = ({
   chef,
   reviewCount = 0,
   onPhotoUpdated,
-  roleLabel,
 }: RestaurantsDetailsProps) => {
   const fullName = formatChefFullName(chef) || "Chef";
+  const jobLabel = formatPublicJobLabel(chef);
   const subtitle = formatChefSubtitle(chef);
-  const accountRole =
-    roleLabel || formatAccountRoleLabel(chef?.applicationType);
-  const isBusinessOwner = chef?.applicationType === "business_owner";
   const reviewLabel =
     reviewCount === 0
       ? "No reviews yet"
       : reviewCount === 1
-        ? isBusinessOwner
-          ? "1 review"
-          : "1 chef review"
-        : isBusinessOwner
-          ? `${reviewCount} reviews`
-          : `${reviewCount} chef reviews`;
+        ? "1 review"
+        : `${reviewCount} reviews`;
 
   return (
     <div className="flex items-start gap-4 md:gap-6">
@@ -64,9 +57,11 @@ const RestaurantsDetails = ({
         <h1 className="text-2xl leading-tight tracking-[-0.06em] text-[#FFF1E1] md:text-4xl md:leading-tight">
           {fullName}
         </h1>
-        <p className="mt-1 text-sm font-semibold tracking-[-0.04em] text-[#FF8400] md:text-lg">
-          {accountRole}
-        </p>
+        {jobLabel ? (
+          <p className="mt-1 text-sm font-semibold tracking-[-0.04em] text-[#FF8400] md:text-lg">
+            {jobLabel}
+          </p>
+        ) : null}
         {subtitle ? (
           <p className="mt-0.5 text-sm tracking-[-0.06em] text-[#FFF1E1]/90 md:text-lg">
             {subtitle}

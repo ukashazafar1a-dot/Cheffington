@@ -12,7 +12,7 @@ export default function PrivacyPage() {
             </h1>
             <div className="font-bold text-sm tracking-[-8%] leading-normal">
               <p className="mb-1.5">
-                Last Updated December 30, 2024 (Effective January 1, 2025).
+                Last Updated December 30, 2025 (Effective January 1, 2026).
               </p>
               <p className="mb-1.5">
                 This Privacy Policy describes our policies on the collection,
@@ -25,7 +25,7 @@ export default function PrivacyPage() {
               </p>
               <ul className="list-[lower-roman] pl-6 mb-1.5">
                 <li>
-                  Cheffington Inc., a Delaware corporation with its headquarters
+                  Cheffington Inc., an LLC with its headquarters
                   in Nevada City, California.
                 </li>
               </ul>
@@ -852,7 +852,7 @@ export default function PrivacyPage() {
                 </p>
                 <ul className="list-[lower-roman] pl-6 mb-1.5">
                   <li>
-                    Cheffington Inc., a Delaware corporation with its
+                    Cheffington Inc., an LLC with its
                     headquarters in Nevada City, California.
                   </li>
                 </ul>

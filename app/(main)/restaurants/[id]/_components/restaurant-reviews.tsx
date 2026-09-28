@@ -15,9 +15,15 @@ function reviewAuthor(review: PublicReview) {
 }
 
 function reviewAuthorLabel(review: PublicReview) {
-  if (review.authorType === "business_owner") return "Business owner";
-  if (review.author?.roleLabel) return review.author.roleLabel;
-  if (review.authorType === "chef" || review.chef) return "Chef";
+  if (review.authorType === "business_owner") {
+    return review.author?.jobTitle?.trim() || "Business owner";
+  }
+  const jobTitle =
+    review.author?.jobTitle?.trim() || review.chef?.jobTitle?.trim();
+  if (jobTitle) return jobTitle;
+  // Prefer API roleLabel only when it is not the generic "Chef" fallback.
+  const roleLabel = review.author?.roleLabel?.trim();
+  if (roleLabel && roleLabel.toLowerCase() !== "chef") return roleLabel;
   return undefined;
 }
 

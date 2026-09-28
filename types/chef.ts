@@ -45,17 +45,28 @@ export function formatAccountRoleLabel(
   return "Chef";
 }
 
+/**
+ * Label shown under the member name on public profile / reviews.
+ * Prefers the job title they entered; never hardcodes "Chef".
+ */
+export function formatPublicJobLabel(
+  chef?: Pick<ChefProfile, "jobTitle" | "applicationType"> | null
+): string | undefined {
+  const title = chef?.jobTitle?.trim();
+  if (title) return title;
+  if (chef?.applicationType === "business_owner") return "Business Owner";
+  return undefined;
+}
+
 export function formatChefFullName(chef?: ChefProfile): string {
   if (!chef) return "";
   return `${chef.firstName ?? ""} ${chef.lastName ?? ""}`.trim();
 }
 
+/** Workplace line under the name (job title is shown separately). */
 export function formatChefSubtitle(chef?: ChefProfile): string {
   if (!chef) return "";
-  const parts: string[] = [];
-  if (chef.jobTitle?.trim()) parts.push(chef.jobTitle.trim());
-  if (chef.currentRestaurant?.trim()) parts.push(chef.currentRestaurant.trim());
-  return parts.join(" / ");
+  return chef.currentRestaurant?.trim() || "";
 }
 
 export function displayWebsiteLabel(website?: string): string {

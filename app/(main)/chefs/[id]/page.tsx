@@ -7,9 +7,9 @@ import { SITE_AD_SLOTS } from "@/lib/ad-slot-keys";
 import { getPublicChef } from "@/lib/api-client";
 import {
   displayWebsiteLabel,
-  formatAccountRoleLabel,
   formatChefFullName,
   formatChefSubtitle,
+  formatPublicJobLabel,
 } from "@/types/chef";
 
 type Props = { params: Promise<{ id: string }> };
@@ -109,7 +109,7 @@ export default async function PublicChefPage({ params }: Props) {
   }
 
   const fullName = formatChefFullName(chef) || "Chef";
-  const roleLabel = formatAccountRoleLabel(chef.applicationType);
+  const jobLabel = formatPublicJobLabel(chef);
   const subtitle = formatChefSubtitle(chef);
   const websiteLabel = displayWebsiteLabel(chef.website);
   const websiteHref = chef.website?.trim()
@@ -165,14 +165,16 @@ export default async function PublicChefPage({ params }: Props) {
                 )}
               </div>
               <div className="min-w-0">
-                <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-[#FF8400]">
-                  {roleLabel} profile
-                </p>
                 <h1 className="text-3xl font-black tracking-tight text-[#FFF1E1] md:text-5xl">
                   {fullName}
                 </h1>
+                {jobLabel ? (
+                  <p className="mt-2 text-sm font-semibold tracking-wide text-[#FF8400] md:text-base">
+                    {jobLabel}
+                  </p>
+                ) : null}
                 {subtitle ? (
-                  <p className="mt-2 text-sm text-white/70 md:text-base">
+                  <p className="mt-1 text-sm text-white/70 md:text-base">
                     {subtitle}
                   </p>
                 ) : null}
@@ -197,7 +199,7 @@ export default async function PublicChefPage({ params }: Props) {
                 </a>
               ) : null}
               <div className="rounded-full bg-[#FF8400] px-4 py-2 text-sm font-black uppercase tracking-wide text-black">
-                {reviewCount === 1 ? "1 chef review" : `${reviewCount} chef reviews`}
+                {reviewCount === 1 ? "1 review" : `${reviewCount} reviews`}
               </div>
             </div>
           </div>
@@ -294,7 +296,7 @@ export default async function PublicChefPage({ params }: Props) {
                       chefId={chef._id}
                       profilePhotoUrl={chef.profilePhotoUrl}
                       restaurantName={review.restaurant?.name}
-                      authorLabel="Chef"
+                      authorLabel={jobLabel}
                       affiliations={(chef.affiliatedRestaurants ?? []).map(
                         (restaurant) => restaurant.name
                       )}

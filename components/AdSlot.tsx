@@ -42,6 +42,9 @@ const SLOT_FALLBACK_SIZE: Record<string, AdSlotSize> = {
   restaurant_reviews_top: { width: 728, height: 90, sizeLabel: "728×90" },
   chef_sidebar: { width: 300, height: 600, sizeLabel: "300×600" },
   chef_sidebar1: { width: 300, height: 600, sizeLabel: "300×600" },
+  /** Between restaurant list cards — banner, not square MREC */
+  restaurants_list: { width: 728, height: 90, sizeLabel: "728×90" },
+  restaurants_top: { width: 728, height: 90, sizeLabel: "728×90" },
 };
 
 function resolveSlotSize(

@@ -87,7 +87,7 @@ export const SITE_AD_SLOT_GUIDE: {
   },
   {
     key: SITE_AD_SLOTS.RESTAURANTS_LIST,
-    label: "Restaurants list inline",
+    label: "Restaurants list banner",
     where: "Restaurants page, between listing cards",
   },
   {

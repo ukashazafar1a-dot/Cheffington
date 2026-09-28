@@ -174,7 +174,7 @@ const ChefReviewCard = ({
         ) : null}
 
         {comment ? (
-          <p className="text-base leading-relaxed text-gray-800 md:text-lg">
+          <p className="whitespace-pre-wrap text-base leading-relaxed text-gray-800 md:text-lg">
             {comment}
           </p>
         ) : null}

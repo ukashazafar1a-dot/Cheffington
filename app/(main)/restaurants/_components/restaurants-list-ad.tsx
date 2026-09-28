@@ -11,7 +11,7 @@ export default function RestaurantsListAd({
   return (
     <AdSlot
       slot={SITE_AD_SLOTS.RESTAURANTS_LIST}
-      variant="inline"
+      variant="banner"
       className="my-2"
       region={region}
     />

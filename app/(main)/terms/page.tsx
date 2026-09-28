@@ -8,7 +8,7 @@ export default function TermsPage() {
         <div className="">
           <div className="">
             <h1 className="title text-center sm:mb-16 mb-6">
-              Terms of Conditions
+              Terms & Conditions
             </h1>
             <div className=" font-bold text-sm tracking-[-8%] leading-normal">
               <p className="">

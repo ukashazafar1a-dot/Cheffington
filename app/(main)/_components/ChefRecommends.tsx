@@ -80,7 +80,9 @@ export default async function ChefRecommends() {
             const affiliations = chefAffiliationNames(author);
             const profileId = author?.id ? String(author.id) : undefined;
             const authorLabel =
-              authorType === "business_owner" ? "Business owner" : "Chef";
+              authorType === "business_owner"
+                ? author?.jobTitle?.trim() || "Business owner"
+                : author?.jobTitle?.trim() || undefined;
 
             return (
               <article
@@ -133,9 +135,11 @@ export default async function ChefRecommends() {
                         name
                       )}
                     </h4>
-                    <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                      {authorLabel}
-                    </p>
+                    {authorLabel ? (
+                      <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                        {authorLabel}
+                      </p>
+                    ) : null}
                     {affiliations.length > 0 ? (
                       <p className="mt-1 text-[11px] font-semibold leading-snug text-[#FF8400]">
                         {affiliations.join(" · ")}

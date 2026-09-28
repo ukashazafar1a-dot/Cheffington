@@ -8,6 +8,7 @@ import { getPublishedRestaurants } from "@/lib/api-client";
 import {
   affiliatedNamesFromIds,
   formatChefFullName,
+  formatPublicJobLabel,
   type ChefProfile,
 } from "@/types/chef";
 import type { PublicRestaurant } from "@/types/restaurant";
@@ -20,8 +21,7 @@ type Props = {
 
 const ChefReviewForRestaurants = ({ chef, reviews }: Props) => {
   const chefName = formatChefFullName(chef) || "Chef";
-  const authorLabel =
-    chef?.applicationType === "business_owner" ? "Business owner" : "Chef";
+  const authorLabel = formatPublicJobLabel(chef);
   const [restaurants, setRestaurants] = useState<PublicRestaurant[]>([]);
   const affiliatedNames = affiliatedNamesFromIds(
     chef?.affiliatedRestaurantIds,
