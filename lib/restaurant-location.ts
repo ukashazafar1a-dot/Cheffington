@@ -162,3 +162,108 @@ export function mapGeocodePrecision(
   }
   return undefined;
 }
+
+type LocationFields = {
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
+};
+
+/** Normalize "Grass Valley, CA" and "Grass Valley CA" the same way. */
+export function normalizeLocationSearchText(raw: string): string {
+  return String(raw || "")
+    .trim()
+    .toLowerCase()
+    .replace(/,/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function looksLikeStateCode(token: string): boolean {
+  return /^[a-z]{2}$/.test(token);
+}
+
+/**
+ * Parse free-text location into city + state when the last token is a
+ * 2-letter state/province code (with or without a comma in the original input).
+ */
+export function parseLocationSearchQuery(raw: string): {
+  normalized: string;
+  city: string | null;
+  state: string | null;
+} {
+  const normalized = normalizeLocationSearchText(raw);
+  if (!normalized) return { normalized: "", city: null, state: null };
+
+  const tokens = normalized.split(" ").filter(Boolean);
+  if (tokens.length >= 2 && looksLikeStateCode(tokens[tokens.length - 1]!)) {
+    return {
+      normalized,
+      city: tokens.slice(0, -1).join(" "),
+      state: tokens[tokens.length - 1]!,
+    };
+  }
+
+  return { normalized, city: null, state: null };
+}
+
+function stateMatches(restaurantState: string, queryState: string): boolean {
+  if (!restaurantState || !queryState) return false;
+  return (
+    restaurantState === queryState ||
+    restaurantState.startsWith(queryState) ||
+    queryState.startsWith(restaurantState)
+  );
+}
+
+function cityMatches(restaurantCity: string, queryCity: string): boolean {
+  if (!restaurantCity || !queryCity) return false;
+  return (
+    restaurantCity === queryCity ||
+    restaurantCity.includes(queryCity) ||
+    queryCity.includes(restaurantCity)
+  );
+}
+
+/**
+ * Match a restaurant to a location search string.
+ * - "Grass Valley" → any state with that city
+ * - "Grass Valley CA" / "Grass Valley, CA" → that city + state only
+ * Avoids false state hits (e.g. "IN" matching inside "Main").
+ */
+export function restaurantMatchesLocationQuery(
+  restaurant: LocationFields,
+  locationQuery: string
+): boolean {
+  const parsed = parseLocationSearchQuery(locationQuery);
+  if (!parsed.normalized) return true;
+
+  const city = String(restaurant.city || "")
+    .trim()
+    .toLowerCase();
+  const state = String(restaurant.state || "")
+    .trim()
+    .toLowerCase();
+
+  if (parsed.city && parsed.state) {
+    return cityMatches(city, parsed.city) && stateMatches(state, parsed.state);
+  }
+
+  const haystack = normalizeLocationSearchText(
+    [
+      restaurant.addressLine1,
+      restaurant.addressLine2,
+      restaurant.city,
+      restaurant.state,
+      restaurant.zipCode,
+      restaurant.country,
+    ]
+      .filter(Boolean)
+      .join(" ")
+  );
+
+  return haystack.includes(parsed.normalized);
+}

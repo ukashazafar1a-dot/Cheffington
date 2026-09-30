@@ -87,8 +87,9 @@ export const SITE_AD_SLOT_GUIDE: {
   },
   {
     key: SITE_AD_SLOTS.RESTAURANTS_LIST,
-    label: "Restaurants list banner",
-    where: "Restaurants page, between listing cards",
+    label: "Restaurants list card",
+    where:
+      "Restaurants page, between listing cards (matches restaurant card size)",
   },
   {
     key: SITE_AD_SLOTS.RESTAURANTS_SEARCH_SPONSORED,

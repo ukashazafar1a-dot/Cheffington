@@ -19,6 +19,10 @@ type AdSlotProps = {
   region?: string | null;
   /** Use strict matching for explicit page-region slots; unknown/non-matching => no ad */
   strictRegion?: boolean;
+  /** Extra classes on the clickable creative frame */
+  frameClassName?: string;
+  /** Force full-width frame (e.g. list cards between restaurant rows) */
+  forceFillWidth?: boolean;
 };
 
 const DEFAULT_ROTATION_INTERVAL_MS = 25000;
@@ -40,10 +44,10 @@ const SLOT_FALLBACK_SIZE: Record<string, AdSlotSize> = {
   restaurant_top: { width: 728, height: 90, sizeLabel: "728×90" },
   restaurant_right_rail: { width: 300, height: 250, sizeLabel: "300×250" },
   restaurant_reviews_top: { width: 728, height: 90, sizeLabel: "728×90" },
-  chef_sidebar: { width: 300, height: 600, sizeLabel: "300×600" },
-  chef_sidebar1: { width: 300, height: 600, sizeLabel: "300×600" },
-  /** Between restaurant list cards — banner, not square MREC */
-  restaurants_list: { width: 728, height: 90, sizeLabel: "728×90" },
+  chef_sidebar: { width: 300, height: 250, sizeLabel: "300×250" },
+  chef_sidebar1: { width: 300, height: 250, sizeLabel: "300×250" },
+  /** Between restaurant list cards — match restaurant card footprint */
+  restaurants_list: { width: 960, height: 280, sizeLabel: "960×280" },
   restaurants_top: { width: 728, height: 90, sizeLabel: "728×90" },
 };
 
@@ -70,8 +74,16 @@ function getSlotFrameClassName(slotSize: AdSlotSize, extra = "") {
 
 function getSlotFrameStyle(
   slotSize: AdSlotSize,
-  fillWidth: boolean
+  fillWidth: boolean,
+  /** When true, height comes from CSS classes (list-card match). */
+  cssSizedFrame = false
 ): React.CSSProperties {
+  if (cssSizedFrame) {
+    return {
+      width: "100%",
+      maxWidth: "100%",
+    };
+  }
   if (fillWidth) {
     return {
       width: "100%",
@@ -102,9 +114,13 @@ export default function AdSlot({
   showCard,
   region = null,
   strictRegion = false,
+  frameClassName = "",
+  forceFillWidth,
 }: AdSlotProps) {
   const useCard = showCard ?? (variant === "sidebar" || variant === "inline");
-  const fillWidth = variant === "sidebar" || variant === "inline";
+  const fillWidth =
+    forceFillWidth ?? (variant === "sidebar" || variant === "inline");
+  const cssSizedFrame = Boolean(frameClassName.trim());
   const [ads, setAds] = useState<ActiveAdCampaign[] | undefined>(undefined);
   const [index, setIndex] = useState(0);
   const [slotSize, setSlotSize] = useState<AdSlotSize | null>(null);
@@ -187,7 +203,7 @@ export default function AdSlot({
   }
 
   const frameSize = resolveSlotSize(slotSize, variant, slot);
-  const frameStyle = getSlotFrameStyle(frameSize, fillWidth);
+  const frameStyle = getSlotFrameStyle(frameSize, fillWidth, cssSizedFrame);
 
   const recordClick = () => {
     trackAdEvent({
@@ -222,10 +238,12 @@ export default function AdSlot({
         className={getSlotFrameClassName(
           frameSize,
           `block overflow-hidden bg-white ${
-            useCard
-              ? "rounded-lg border border-[#ff8400]/15 shadow-sm"
-              : "rounded-sm border border-black/10"
-          }`
+            cssSizedFrame
+              ? ""
+              : useCard
+                ? "rounded-lg border border-[#ff8400]/15 shadow-sm"
+                : "rounded-sm border border-black/10"
+          } ${frameClassName}`.trim()
         )}
         style={frameStyle}
         aria-label={`Advertisement, sponsored: ${ad.businessName}`}
@@ -234,7 +252,7 @@ export default function AdSlot({
         <img
           src={ad.imageUrl}
           alt={`Advertisement, sponsored — ${ad.businessName}`}
-          className={`h-full w-full ${fillWidth ? "object-cover" : "object-contain"}`}
+          className={`h-full w-full ${fillWidth || cssSizedFrame ? "object-cover" : "object-contain"}`}
         />
       </a>
     </>

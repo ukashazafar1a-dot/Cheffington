@@ -2,6 +2,7 @@ import type { PublicRestaurant } from "@/types/restaurant";
 import {
   formatRestaurantAddress,
   filterRestaurantsNearMe,
+  restaurantMatchesLocationQuery,
 } from "@/lib/restaurant-location";
 
 export { formatRestaurantAddress };
@@ -28,7 +29,7 @@ export function filterPublishedRestaurants(
   params: RestaurantSearchParams
 ) {
   const cuisine = params.cuisine?.trim().toLowerCase() ?? "";
-  const location = params.location?.trim().toLowerCase() ?? "";
+  const location = params.location?.trim() ?? "";
   const chef = params.chef?.trim().toLowerCase() ?? "";
   const nearCoords = parseNearCoords(params);
 
@@ -49,22 +50,8 @@ export function filterPublishedRestaurants(
         }
       }
 
-      if (location) {
-        const locationHaystack = [
-          r.addressLine1,
-          r.addressLine2,
-          r.city,
-          r.state,
-          r.zipCode,
-          r.country,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-
-        if (!locationHaystack.includes(location)) {
-          return false;
-        }
+      if (location && !restaurantMatchesLocationQuery(r, location)) {
+        return false;
       }
 
       return true;
