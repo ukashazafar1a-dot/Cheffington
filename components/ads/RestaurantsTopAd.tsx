@@ -5,8 +5,12 @@ import { SITE_AD_SLOTS } from "@/lib/ad-slot-keys";
 
 export default function RestaurantsTopAd({
   region = null,
+  lat = null,
+  lng = null,
 }: {
   region?: string | null;
+  lat?: number | null;
+  lng?: number | null;
 }) {
   return (
     <AdSlot
@@ -14,6 +18,8 @@ export default function RestaurantsTopAd({
       variant="banner"
       className="mb-8"
       region={region}
+      lat={lat}
+      lng={lng}
     />
   );
 }

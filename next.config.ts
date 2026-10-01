@@ -29,4 +29,8 @@ const nextConfig: NextConfig = {
 export default nextConfig;
 
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
-initOpenNextCloudflareForDev();
+
+// Skip Miniflare/workerd on local next dev (it crashes on some Windows setups).
+if (process.env.OPENNEXT_CLOUDFLARE_DEV === "true") {
+  initOpenNextCloudflareForDev();
+}

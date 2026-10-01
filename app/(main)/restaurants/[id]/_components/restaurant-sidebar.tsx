@@ -80,6 +80,8 @@ export default function RestaurantSidebar({
         variant="sidebar"
         className="w-full"
         region={adRegion}
+        lat={restaurant.latitude}
+        lng={restaurant.longitude}
         strictRegion
       />
     </div>

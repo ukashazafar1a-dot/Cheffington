@@ -19,6 +19,8 @@ import {
   getRestaurantDistanceKm,
   NEAR_ME_RADIUS_KM,
   NEAR_ME_RADIUS_MILES,
+  parseLocationSearchQuery,
+  restaurantMatchesLocationQuery,
 } from "@/lib/restaurant-location";
 import {
   parseRestaurantSort,
@@ -144,12 +146,26 @@ export default async function RestaurantsPage({ searchParams }: Props) {
   let sponsoredRestaurants: Awaited<
     ReturnType<typeof getSponsoredSearchRestaurants>
   >["data"] = [];
-  if (directoryAdRegion) {
+  if (directoryAdRegion || hasNearCoords) {
     try {
-      const sponsored = await getSponsoredSearchRestaurants(directoryAdRegion);
+      const sponsored = await getSponsoredSearchRestaurants(directoryAdRegion, {
+        lat: hasNearCoords ? nearLat : null,
+        lng: hasNearCoords ? nearLng : null,
+      });
       sponsoredRestaurants = sponsored.data ?? [];
     } catch {
       sponsoredRestaurants = [];
+    }
+  }
+
+  // City + state (comma optional) must match the listing, same as organic search.
+  // City-only searches still use the mapped ad region and are not narrowed here.
+  if (sponsoredRestaurants.length > 0 && defaults.location?.trim()) {
+    const parsedLocation = parseLocationSearchQuery(defaults.location);
+    if (parsedLocation.city && parsedLocation.state) {
+      sponsoredRestaurants = sponsoredRestaurants.filter((restaurant) =>
+        restaurantMatchesLocationQuery(restaurant, defaults.location)
+      );
     }
   }
 
@@ -266,9 +282,15 @@ export default async function RestaurantsPage({ searchParams }: Props) {
         <PersistDirectoryAdRegion
           location={defaults.location}
           regions={regionMapping}
+          lat={hasNearCoords ? nearLat : null}
+          lng={hasNearCoords ? nearLng : null}
         />
 
-        <RestaurantsTopAd region={directoryAdRegion} />
+        <RestaurantsTopAd
+          region={directoryAdRegion}
+          lat={hasNearCoords ? nearLat : null}
+          lng={hasNearCoords ? nearLng : null}
+        />
 
         {error && (
           <p className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-600">
@@ -379,7 +401,11 @@ export default async function RestaurantsPage({ searchParams }: Props) {
                       distanceKm={distanceKm ?? undefined}
                     />
                     {index === 1 ? (
-                      <RestaurantsListAd region={directoryAdRegion} />
+                      <RestaurantsListAd
+                        region={directoryAdRegion}
+                        lat={hasNearCoords ? nearLat : null}
+                        lng={hasNearCoords ? nearLng : null}
+                      />
                     ) : null}
                   </div>
                 );

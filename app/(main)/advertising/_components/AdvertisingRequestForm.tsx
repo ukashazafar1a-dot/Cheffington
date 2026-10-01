@@ -10,7 +10,6 @@ import {
   getAdCheckoutSessionStatus,
   getAdPlacementAvailability,
   getAdPlacements,
-  getAdTargetRegions,
   getChefSubscriptionPlans,
   getPublishedRestaurants,
   uploadAdvertisingAsset,
@@ -21,11 +20,16 @@ import type {
   AdPlacementAvailability,
   AdPricingPayload,
   AdPricingRow,
-  AdTargetRegion,
   ChefSubscriptionPlan,
 } from "@/types/advertising";
 import { MAX_AD_DAYS, MIN_AD_DAYS } from "@/types/advertising";
 import { SITE_AD_SLOTS } from "@/lib/ad-slot-keys";
+import {
+  AD_RADIUS_MILES,
+  buildCityRadiusRegionKey,
+  parseAdRadiusMiles,
+  parseCityStateInput,
+} from "@/lib/ad-target-radius";
 
 // Q5: monthly chef subscription plans enabled (controlled by env var on the backend).
 // When false (default), nothing on the form changes — billingMode stays "one_time".
@@ -98,7 +102,8 @@ function createInitialFormState() {
     contactPhone: "",
     websiteUrl: "",
     placementKey: "",
-    targetRegionKey: "",
+    targetCity: "",
+    targetRadiusMiles: "10" as "" | "10" | "30",
     restaurantId: "",
     days: "",
     needsDesign: false,
@@ -112,7 +117,6 @@ export default function AdvertisingRequestForm() {
     rows: [],
     placements: [],
   });
-  const [regions, setRegions] = useState<AdTargetRegion[]>([]);
   const [publishedRestaurants, setPublishedRestaurants] = useState<
     PublicRestaurant[]
   >([]);
@@ -228,15 +232,13 @@ export default function AdvertisingRequestForm() {
   useEffect(() => {
     Promise.all([
       getAdPlacements(),
-      getAdTargetRegions(),
       getPublishedRestaurants().catch(() => ({ data: [] as PublicRestaurant[] })),
       CHEF_SUBSCRIPTIONS_ENABLED
         ? getChefSubscriptionPlans()
         : Promise.resolve([] as ChefSubscriptionPlan[]),
     ])
-      .then(([pricingData, regionData, restaurantData, planData]) => {
+      .then(([pricingData, restaurantData, planData]) => {
         setPricing(pricingData);
-        setRegions(regionData);
         setPublishedRestaurants(restaurantData.data ?? []);
         setSubscriptionPlans(planData);
       })
@@ -250,8 +252,19 @@ export default function AdvertisingRequestForm() {
       .finally(() => setLoadingPlacements(false));
   }, []);
 
+  const parsedTarget = parseCityStateInput(form.targetCity);
+  const selectedRadius = parseAdRadiusMiles(form.targetRadiusMiles);
+  const previewTargetRegionKey =
+    parsedTarget.city && selectedRadius
+      ? buildCityRadiusRegionKey(
+          parsedTarget.city,
+          parsedTarget.state,
+          selectedRadius
+        )
+      : "";
+
   useEffect(() => {
-    if (!form.placementKey || !form.targetRegionKey) {
+    if (!form.placementKey || !previewTargetRegionKey) {
       setSlotAvailability(null);
       return;
     }
@@ -259,7 +272,7 @@ export default function AdvertisingRequestForm() {
     let cancelled = false;
     setCheckingAvailability(true);
 
-    getAdPlacementAvailability(form.placementKey, form.targetRegionKey)
+    getAdPlacementAvailability(form.placementKey, previewTargetRegionKey)
       .then((availability) => {
         if (!cancelled) {
           setSlotAvailability(availability);
@@ -279,7 +292,7 @@ export default function AdvertisingRequestForm() {
     return () => {
       cancelled = true;
     };
-  }, [form.placementKey, form.targetRegionKey]);
+  }, [form.placementKey, previewTargetRegionKey]);
 
   const placements = pricing.placements;
   const sortedColumns = [...pricing.columns].sort((a, b) => a.order - b.order);
@@ -352,7 +365,8 @@ export default function AdvertisingRequestForm() {
         form.contactPhone.trim() &&
         websiteOk &&
         form.placementKey &&
-        form.targetRegionKey &&
+        parsedTarget.city &&
+        selectedRadius &&
         creativeOk &&
         restaurantOk &&
         slotAvailability?.available !== false
@@ -369,6 +383,8 @@ export default function AdvertisingRequestForm() {
     selectedSubscriptionPlan,
     slotAvailability,
     isSponsoredSearch,
+    parsedTarget.city,
+    selectedRadius,
   ]);
 
   const onSelectImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -421,7 +437,8 @@ export default function AdvertisingRequestForm() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isValid || !form.placementKey || !form.targetRegionKey) return;
+    if (!isValid || !form.placementKey || !parsedTarget.city || !selectedRadius)
+      return;
 
     try {
       setSubmitting(true);
@@ -444,7 +461,9 @@ export default function AdvertisingRequestForm() {
         contactPhone: form.contactPhone.trim(),
         websiteUrl,
         placementKey: form.placementKey,
-        targetRegionKey: form.targetRegionKey,
+        targetCity: parsedTarget.city,
+        targetState: parsedTarget.state,
+        targetRadiusMiles: selectedRadius,
         days: billingMode === "subscription" ? 30 : dayCount,
         needsDesign: isSponsoredSearch ? false : form.needsDesign,
         adImageUrl:
@@ -519,7 +538,7 @@ export default function AdvertisingRequestForm() {
           <p className={pricingSubtitle}>
             Choose your ad placement below, and select how many days you&apos;d
             like your ad to run. Select Sponsored Search Results to boost your
-            restaurant listing in your city!
+            restaurant listing within your chosen city and mile radius!
           </p>
         </div>
 
@@ -770,7 +789,8 @@ export default function AdvertisingRequestForm() {
                       <span className="font-semibold text-black">
                         Sponsored results
                       </span>{" "}
-                      when visitors search that city — no banner creative needed.
+                      when visitors search that city or are within your selected
+                      mile radius — no banner creative needed.
                     </p>
                   ) : null}
                   {billingMode === "subscription" &&
@@ -782,31 +802,47 @@ export default function AdvertisingRequestForm() {
                   ) : null}
                 </div>
                 <div className="form-field">
-                  <label className="form-label">Target area *</label>
-                  <select
+                  <label className="form-label">Target city *</label>
+                  <input
+                    type="text"
                     className="input-field"
-                    value={form.targetRegionKey}
+                    value={form.targetCity}
+                    placeholder="e.g. Grass Valley, CA"
                     onChange={(e) =>
                       setForm((prev) => ({
                         ...prev,
-                        targetRegionKey: e.target.value,
+                        targetCity: e.target.value,
+                      }))
+                    }
+                    required
+                  />
+                  <p className="form-hint">
+                    Enter a city and state. Your ad appears for visitors in that
+                    city plus the mile radius you choose below.
+                  </p>
+                </div>
+                <div className="form-field">
+                  <label className="form-label">Radius *</label>
+                  <select
+                    className="input-field"
+                    value={form.targetRadiusMiles}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        targetRadiusMiles: e.target.value as "" | "10" | "30",
                       }))
                     }
                     required
                   >
-                    <option value="" disabled>
-                      Select where your ad should appear
-                    </option>
-                    {regions.map((region) => (
-                      <option key={region.key} value={region.key}>
-                        {region.label}
+                    {AD_RADIUS_MILES.map((miles) => (
+                      <option key={miles} value={String(miles)}>
+                        {miles} miles
                       </option>
                     ))}
                   </select>
                   <p className="form-hint">
-                    Your ad will appear for visitors browsing this area.
-                    Multiple businesses may share the same placement; live ads
-                    rotate on the site.
+                    10 or 30 miles from the city center. Multiple businesses may
+                    share the same placement; live ads rotate on the site.
                   </p>
                   {checkingAvailability ? (
                     <p className="form-hint">Checking availability…</p>
@@ -814,7 +850,7 @@ export default function AdvertisingRequestForm() {
                   {slotAvailability?.available === false ? (
                     <p className="form-error mt-2">
                       {slotAvailability.message ||
-                        "This placement is already booked for that region."}
+                        "This placement is already booked for that target area."}
                     </p>
                   ) : null}
                 </div>
@@ -879,6 +915,12 @@ export default function AdvertisingRequestForm() {
                           prev.businessName.trim() ||
                           restaurant?.name ||
                           prev.businessName,
+                        targetCity:
+                          prev.targetCity.trim() ||
+                          [restaurant?.city, restaurant?.state]
+                            .filter(Boolean)
+                            .join(", ") ||
+                          prev.targetCity,
                         websiteUrl:
                           prev.websiteUrl.trim() ||
                           restaurant?.website?.trim() ||

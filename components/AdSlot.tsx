@@ -8,6 +8,11 @@ import {
   getStoredVisitorRegion,
   setStoredVisitorRegion,
 } from "@/lib/ad-target-region";
+import {
+  getStoredVisitorGeo,
+  hasFiniteCoords,
+  setStoredVisitorGeo,
+} from "@/lib/ad-target-radius";
 
 type AdSlotProps = {
   slot: string;
@@ -19,6 +24,9 @@ type AdSlotProps = {
   region?: string | null;
   /** Use strict matching for explicit page-region slots; unknown/non-matching => no ad */
   strictRegion?: boolean;
+  /** Visitor / page coordinates for city + radius ads */
+  lat?: number | null;
+  lng?: number | null;
   /** Extra classes on the clickable creative frame */
   frameClassName?: string;
   /** Force full-width frame (e.g. list cards between restaurant rows) */
@@ -114,6 +122,8 @@ export default function AdSlot({
   showCard,
   region = null,
   strictRegion = false,
+  lat = null,
+  lng = null,
   frameClassName = "",
   forceFillWidth,
 }: AdSlotProps) {
@@ -134,11 +144,22 @@ export default function AdSlot({
     if (explicitRegion) {
       setStoredVisitorRegion(explicitRegion);
     }
+    const hasExplicitCoords = hasFiniteCoords(lat, lng);
+    if (hasExplicitCoords) {
+      setStoredVisitorGeo(Number(lat), Number(lng));
+    }
+    const storedGeo = getStoredVisitorGeo();
+    const resolvedLat = hasExplicitCoords ? Number(lat) : storedGeo?.lat;
+    const resolvedLng = hasExplicitCoords ? Number(lng) : storedGeo?.lng;
     const resolvedRegion = strictRegion
       ? explicitRegion || null
       : explicitRegion || getStoredVisitorRegion() || null;
 
-    getActiveAd(slot, resolvedRegion, { strictRegion })
+    getActiveAd(slot, resolvedRegion, {
+      strictRegion,
+      lat: resolvedLat,
+      lng: resolvedLng,
+    })
       .then(
         ({
           ad: activeAd,
@@ -172,7 +193,7 @@ export default function AdSlot({
     return () => {
       cancelled = true;
     };
-  }, [slot, region, strictRegion]);
+  }, [slot, region, strictRegion, lat, lng]);
 
   useEffect(() => {
     if (!ads || ads.length <= 1) return;

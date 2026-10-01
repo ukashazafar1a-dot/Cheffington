@@ -63,7 +63,10 @@ export interface AdRequestPayload {
   websiteUrl: string;
   placementKey: string;
   days: number;
-  targetRegionKey: string;
+  targetRegionKey?: string;
+  targetCity?: string;
+  targetState?: string;
+  targetRadiusMiles?: 10 | 30;
   adImageUrl?: string;
   needsDesign?: boolean;
   message?: string;

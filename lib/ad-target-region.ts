@@ -3,6 +3,8 @@
  * Region mapping is loaded from the backend admin-managed target areas.
  */
 
+import { parseLocationSearchQuery } from "@/lib/restaurant-location";
+
 const STORAGE_KEY = "cheffington_ad_visitor_region";
 
 export type TargetRegionMapping = {
@@ -98,7 +100,11 @@ export function resolveRegionFromCityState(
   return null;
 }
 
-/** Parse free-text location filter like "Roseville, CA" or "Raleigh". */
+/**
+ * Parse free-text location filter like "Roseville, CA", "Grass Valley CA",
+ * or "Raleigh". City + 2-letter state (comma optional) must not match another
+ * state's same-named city for sponsored / region ads.
+ */
 export function resolveRegionFromLocationQuery(
   locationQuery?: string | null,
   regions: TargetRegionMapping[] = DEFAULT_TARGET_REGION_MAPPING
@@ -106,12 +112,12 @@ export function resolveRegionFromLocationQuery(
   const raw = String(locationQuery || "").trim();
   if (!raw) return null;
 
-  const parts = raw.split(",").map((p) => p.trim());
-  if (parts.length >= 2) {
-    return resolveRegionFromCityState(parts[0], parts[parts.length - 1], regions);
+  const parsed = parseLocationSearchQuery(raw);
+  if (parsed.city && parsed.state) {
+    return resolveRegionFromCityState(parsed.city, parsed.state, regions);
   }
 
-  return resolveRegionFromCityState(raw, null, regions);
+  return resolveRegionFromCityState(parsed.normalized || raw, null, regions);
 }
 
 export function getStoredVisitorRegion(): string | null {

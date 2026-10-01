@@ -99,13 +99,28 @@ export async function getPublishedRestaurants() {
 }
 
 /** Paid restaurant cards for SPONSORED RESULTS on /restaurants (by ad target region). */
-export async function getSponsoredSearchRestaurants(region: string) {
+export async function getSponsoredSearchRestaurants(
+  region: string,
+  coords?: { lat?: number | null; lng?: number | null }
+) {
   const key = String(region || "").trim();
-  if (!key) {
+  const lat = coords?.lat;
+  const lng = coords?.lng;
+  const hasCoords =
+    lat != null &&
+    lng != null &&
+    Number.isFinite(Number(lat)) &&
+    Number.isFinite(Number(lng));
+  if (!key && !hasCoords) {
     return { success: true as const, count: 0, data: [] as PublicRestaurant[], region: key };
   }
 
-  const params = new URLSearchParams({ region: key });
+  const params = new URLSearchParams();
+  if (key) params.set("region", key);
+  if (hasCoords) {
+    params.set("lat", String(Number(lat)));
+    params.set("lng", String(Number(lng)));
+  }
   const res = await fetch(
     `${API_BASE_URL}/advertising/sponsored-search?${params.toString()}`,
     { cache: "no-store" }
@@ -809,7 +824,7 @@ export async function submitAdRequest(
 export async function getActiveAd(
   slot: string,
   region?: string | null,
-  options?: { strictRegion?: boolean }
+  options?: { strictRegion?: boolean; lat?: number | null; lng?: number | null }
 ): Promise<import("@/types/advertising").ActiveAdSlotResponse> {
   const params = new URLSearchParams();
   const regionKey = String(region || "").trim();
@@ -818,6 +833,17 @@ export async function getActiveAd(
   }
   if (options?.strictRegion) {
     params.set("strictRegion", "1");
+  }
+  const lat = options?.lat;
+  const lng = options?.lng;
+  if (
+    lat != null &&
+    lng != null &&
+    Number.isFinite(Number(lat)) &&
+    Number.isFinite(Number(lng))
+  ) {
+    params.set("lat", String(Number(lat)));
+    params.set("lng", String(Number(lng)));
   }
 
   const query = params.toString();

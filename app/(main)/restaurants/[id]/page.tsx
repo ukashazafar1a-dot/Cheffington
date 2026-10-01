@@ -44,15 +44,27 @@ export default async function RestaurantDetailPage({ params }: Props) {
     <div>
       <HeroSection restaurant={restaurant} />
       <div className="page-width px-4 sm:px-6 lg:px-8 pb-18 mt-10 lg:mt-14">
-        <RestaurantPageTopAd region={adRegion} />
+        <RestaurantPageTopAd
+          region={adRegion}
+          lat={restaurant.latitude}
+          lng={restaurant.longitude}
+        />
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,30%)_minmax(0,1fr)] gap-8 lg:gap-10 items-start">
           <aside className="min-w-0">
             <RestaurantSidebar restaurant={restaurant} adRegion={adRegion} />
           </aside>
           <main className="min-w-0">
-            <RestaurantRightRailAd region={adRegion} />
+            <RestaurantRightRailAd
+              region={adRegion}
+              lat={restaurant.latitude}
+              lng={restaurant.longitude}
+            />
             <RestaurantContentSections sections={restaurant.contentSections} />
-            <RestaurantReviewsTopAd region={adRegion} />
+            <RestaurantReviewsTopAd
+              region={adRegion}
+              lat={restaurant.latitude}
+              lng={restaurant.longitude}
+            />
             <RestaurantReviews
               restaurantId={id}
               restaurantName={restaurant.name}
