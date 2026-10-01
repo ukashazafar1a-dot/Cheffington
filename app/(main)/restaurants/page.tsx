@@ -148,10 +148,13 @@ export default async function RestaurantsPage({ searchParams }: Props) {
   >["data"] = [];
   if (directoryAdRegion || hasNearCoords) {
     try {
-      const sponsored = await getSponsoredSearchRestaurants(directoryAdRegion, {
-        lat: hasNearCoords ? nearLat : null,
-        lng: hasNearCoords ? nearLng : null,
-      });
+      const sponsored = await getSponsoredSearchRestaurants(
+        directoryAdRegion ?? "",
+        {
+          lat: hasNearCoords ? nearLat : null,
+          lng: hasNearCoords ? nearLng : null,
+        }
+      );
       sponsoredRestaurants = sponsored.data ?? [];
     } catch {
       sponsoredRestaurants = [];
@@ -160,11 +163,12 @@ export default async function RestaurantsPage({ searchParams }: Props) {
 
   // City + state (comma optional) must match the listing, same as organic search.
   // City-only searches still use the mapped ad region and are not narrowed here.
-  if (sponsoredRestaurants.length > 0 && defaults.location?.trim()) {
-    const parsedLocation = parseLocationSearchQuery(defaults.location);
+  const locationQuery = defaults.location?.trim() ?? "";
+  if (sponsoredRestaurants.length > 0 && locationQuery) {
+    const parsedLocation = parseLocationSearchQuery(locationQuery);
     if (parsedLocation.city && parsedLocation.state) {
       sponsoredRestaurants = sponsoredRestaurants.filter((restaurant) =>
-        restaurantMatchesLocationQuery(restaurant, defaults.location)
+        restaurantMatchesLocationQuery(restaurant, locationQuery)
       );
     }
   }
