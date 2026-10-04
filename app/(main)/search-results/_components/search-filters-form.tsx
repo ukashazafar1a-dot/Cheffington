@@ -25,12 +25,13 @@ export default function SearchFiltersForm({
 
         <div className="flex flex-col space-y-2">
           <label className="form-search-label" htmlFor="search-location">
-            Location
+            City/State
           </label>
           <input
             id="search-location"
             name="location"
             type="text"
+            placeholder="e.g. Grass Valley, CA"
             defaultValue={defaults.location ?? ""}
             suppressHydrationWarning
             className="form-search-input"

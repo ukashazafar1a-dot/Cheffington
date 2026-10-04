@@ -811,6 +811,7 @@ export async function submitAdRequest(
   const data = (await res.json()) as {
     success: boolean;
     message?: string;
+    emailWarning?: string | null;
     data?: { _id: string };
   };
 

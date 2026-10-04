@@ -12,6 +12,7 @@ import {
   getAdPlacements,
   getChefSubscriptionPlans,
   getPublishedRestaurants,
+  submitAdRequest,
   uploadAdvertisingAsset,
 } from "@/lib/api-client";
 import type { PublicRestaurant } from "@/types/restaurant";
@@ -135,6 +136,7 @@ export default function AdvertisingRequestForm() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [successKind, setSuccessKind] = useState<"payment" | "design" | "">("");
   const [verifyingPayment, setVerifyingPayment] = useState(false);
   // Q5: "one_time" is the default — subscription mode only shown when feature flag is on
   const [billingMode, setBillingMode] = useState<"one_time" | "subscription">("one_time");
@@ -183,6 +185,7 @@ export default function AdvertisingRequestForm() {
           }
 
           if (status.paid) {
+            setSuccessKind("payment");
             setSuccess(
               `Advertising request received for ${status.businessName}. Our team will review your ad and email you when it is approved.`
             );
@@ -329,6 +332,7 @@ export default function AdvertisingRequestForm() {
 
   const startAnotherRequest = () => {
     setSuccess("");
+    setSuccessKind("");
     resetFormState();
   };
 
@@ -352,6 +356,8 @@ export default function AdvertisingRequestForm() {
       ? estimatePrice(selectedPlacement, selectedRow, dayCount)
       : null;
 
+  const wantsDesignHelp = !isSponsoredSearch && form.needsDesign;
+
   const isValid = useMemo(() => {
     const creativeOk = isSponsoredSearch || form.needsDesign || Boolean(adImageUrl);
     const restaurantOk = !isSponsoredSearch || Boolean(form.restaurantId);
@@ -371,6 +377,11 @@ export default function AdvertisingRequestForm() {
         restaurantOk &&
         slotAvailability?.available !== false
     );
+    // Design-help path skips Stripe; still collect preferred days (or 30 for monthly UI).
+    if (wantsDesignHelp) {
+      if (billingMode === "subscription") return base;
+      return base && hasValidDays;
+    }
     if (billingMode === "subscription") {
       return base && Boolean(selectedSubscriptionPlan);
     }
@@ -383,6 +394,7 @@ export default function AdvertisingRequestForm() {
     selectedSubscriptionPlan,
     slotAvailability,
     isSponsoredSearch,
+    wantsDesignHelp,
     parsedTarget.city,
     selectedRadius,
   ]);
@@ -474,6 +486,21 @@ export default function AdvertisingRequestForm() {
           : undefined,
       };
 
+      // Design help: submit unpaid request and skip Stripe entirely.
+      if (wantsDesignHelp) {
+        const result = await submitAdRequest(payload);
+        const baseMessage =
+          "Thanks — we received your design request. Our team will contact you to collect assets, agree on the creative, and quote pricing before anything is charged.";
+        setSuccessKind("design");
+        setSuccess(
+          result.emailWarning
+            ? `${result.message || baseMessage} ${result.emailWarning}`
+            : result.message || baseMessage
+        );
+        setSubmitting(false);
+        return;
+      }
+
       // Q5: route to subscription endpoint when monthly plan is selected
       const checkout =
         billingMode === "subscription"
@@ -485,7 +512,9 @@ export default function AdvertisingRequestForm() {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Failed to start payment"
+          : wantsDesignHelp
+            ? "Failed to submit request"
+            : "Failed to start payment"
       );
       setSubmitting(false);
     }
@@ -510,7 +539,7 @@ export default function AdvertisingRequestForm() {
           </div>
           <div className="space-y-3">
             <h2 className="text-2xl font-bold text-gray-900 md:text-3xl">
-              Payment received
+              {successKind === "design" ? "Request received" : "Payment received"}
             </h2>
             <p className="mx-auto max-w-lg text-base text-gray-600 md:text-lg">
               {success}
@@ -1025,6 +1054,13 @@ export default function AdvertisingRequestForm() {
                 />
                 <span>Let Cheffington design the ad for you</span>
               </label>
+              {form.needsDesign ? (
+                <p className="form-hint">
+                  We&apos;ll collect your request without payment. Our team will
+                  reach out to gather logos, fonts, and other assets, design the
+                  ad with you, and quote pricing before anything is charged.
+                </p>
+              ) : null}
 
               {!form.needsDesign ? (
                 <div className="form-field space-y-3">
@@ -1090,11 +1126,15 @@ export default function AdvertisingRequestForm() {
             <div className="flex justify-center pt-2">
               <Button
                 title={
-                  submitting
-                    ? "Redirecting to payment..."
-                    : billingMode === "subscription"
-                      ? "Subscribe & submit request"
-                      : "Pay & submit request"
+                  wantsDesignHelp
+                    ? submitting
+                      ? "Submitting..."
+                      : "Submit"
+                    : submitting
+                      ? "Redirecting to payment..."
+                      : billingMode === "subscription"
+                        ? "Subscribe & submit request"
+                        : "Pay & submit request"
                 }
                 type="submit"
                 disabled={!isValid || submitting || uploading || checkingAvailability}

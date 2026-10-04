@@ -1,36 +1,29 @@
 "use client";
 
 import { useEffect } from "react";
-import {
-  resolveRegionFromLocationQuery,
-  setStoredVisitorRegion,
-  type TargetRegionMapping,
-} from "@/lib/ad-target-region";
 import { setStoredVisitorGeo } from "@/lib/ad-target-radius";
 
 /**
- * Persists visitor ad region / coords from the restaurants directory.
+ * Persists real visitor coords from Near Me for ad targeting.
+ * Does not store search city/region as the visitor location — searching
+ * San Diego while in Nevada City must not overwrite Nevada City ads.
  */
 export default function PersistDirectoryAdRegion({
-  location,
-  regions,
   lat = null,
   lng = null,
 }: {
+  /** @deprecated kept for call-site compatibility; unused */
   location?: string;
-  regions: TargetRegionMapping[];
+  /** @deprecated kept for call-site compatibility; unused */
+  regions?: unknown;
   lat?: number | null;
   lng?: number | null;
 }) {
   useEffect(() => {
-    const key = resolveRegionFromLocationQuery(location, regions);
-    if (key) {
-      setStoredVisitorRegion(key);
-    }
     if (lat != null && lng != null && Number.isFinite(lat) && Number.isFinite(lng)) {
       setStoredVisitorGeo(lat, lng);
     }
-  }, [location, regions, lat, lng]);
+  }, [lat, lng]);
 
   return null;
 }

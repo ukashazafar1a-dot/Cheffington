@@ -10,6 +10,7 @@ import {
   restaurantSortLabel,
   type RestaurantSortOption,
 } from "@/lib/sort-restaurants";
+import { setStoredVisitorGeo } from "@/lib/ad-target-radius";
 
 const pillBase =
   "inline-flex h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-all duration-200";
@@ -82,10 +83,13 @@ export default function RestaurantsToolbar() {
     setLoadingNear(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        setStoredVisitorGeo(lat, lng);
         const params = new URLSearchParams(searchParams.toString());
         params.set("near", "1");
-        params.set("nearLat", String(position.coords.latitude));
-        params.set("nearLng", String(position.coords.longitude));
+        params.set("nearLat", String(lat));
+        params.set("nearLng", String(lng));
         router.push(`${pathname}?${params.toString()}`);
         setLoadingNear(false);
       },

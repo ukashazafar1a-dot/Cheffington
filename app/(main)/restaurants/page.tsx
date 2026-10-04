@@ -378,7 +378,7 @@ export default async function RestaurantsPage({ searchParams }: Props) {
                 : chefQuery.length >= 2
                   ? "Chefs appear in search after their application is approved. Try the first or last name."
                   : hasSearchFilters
-                    ? "Try a different name, cuisine, location, or chef."
+                    ? "Try a different name, cuisine, city/state, or chef."
                     : "Check back soon for new listings."}
             </p>
           </div>

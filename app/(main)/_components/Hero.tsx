@@ -65,12 +65,13 @@ const Hero = async () => {
             </div>
             <div className="flex flex-col space-y-2">
               <label className="form-search-label" htmlFor="hero-location">
-                Location
+                City/State
               </label>
               <input
                 id="hero-location"
                 name="location"
                 type="text"
+                placeholder="e.g. Grass Valley, CA"
                 suppressHydrationWarning
                 className="form-search-input"
               />

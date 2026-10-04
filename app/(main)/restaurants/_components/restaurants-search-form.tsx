@@ -48,12 +48,13 @@ export default function RestaurantsSearchForm({
 
         <div className="flex flex-col space-y-2">
           <label className="form-search-label" htmlFor="restaurants-location">
-            Location
+            City/State
           </label>
           <input
             id="restaurants-location"
             name="location"
             type="text"
+            placeholder="e.g. Grass Valley, CA"
             defaultValue={defaults.location ?? ""}
             suppressHydrationWarning
             className="form-search-input"

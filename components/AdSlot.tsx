@@ -6,12 +6,11 @@ import { getActiveAd } from "@/lib/api-client";
 import { trackAdEvent } from "@/lib/ad-analytics";
 import {
   getStoredVisitorRegion,
-  setStoredVisitorRegion,
 } from "@/lib/ad-target-region";
 import {
+  ensureVisitorGeo,
   getStoredVisitorGeo,
   hasFiniteCoords,
-  setStoredVisitorGeo,
 } from "@/lib/ad-target-radius";
 
 type AdSlotProps = {
@@ -20,11 +19,15 @@ type AdSlotProps = {
   variant?: "sidebar" | "banner" | "inline";
   /** Light card around label + creative (sidebar / inline) */
   showCard?: boolean;
-  /** Preferred geo region for this slot (e.g. from restaurant city) */
+  /** Page/search region — used only when visitor location is unavailable */
   region?: string | null;
-  /** Use strict matching for explicit page-region slots; unknown/non-matching => no ad */
+  /** Use strict matching for page-region fallback; ignored when visitor geo is known */
   strictRegion?: boolean;
-  /** Visitor / page coordinates for city + radius ads */
+  /**
+   * Page/search coordinates (e.g. restaurant lat/lng).
+   * Used only as fallback when the visitor's real location is unavailable.
+   * Never overwrites visitor geo.
+   */
   lat?: number | null;
   lng?: number | null;
   /** Extra classes on the clickable creative frame */
@@ -140,55 +143,68 @@ export default function AdSlot({
 
   useEffect(() => {
     let cancelled = false;
-    const explicitRegion = String(region || "").trim();
-    if (explicitRegion) {
-      setStoredVisitorRegion(explicitRegion);
-    }
-    const hasExplicitCoords = hasFiniteCoords(lat, lng);
-    if (hasExplicitCoords) {
-      setStoredVisitorGeo(Number(lat), Number(lng));
-    }
-    const storedGeo = getStoredVisitorGeo();
-    const resolvedLat = hasExplicitCoords ? Number(lat) : storedGeo?.lat;
-    const resolvedLng = hasExplicitCoords ? Number(lng) : storedGeo?.lng;
-    const resolvedRegion = strictRegion
-      ? explicitRegion || null
-      : explicitRegion || getStoredVisitorRegion() || null;
+    const pageRegion = String(region || "").trim();
+    const hasPageCoords = hasFiniteCoords(lat, lng);
 
-    getActiveAd(slot, resolvedRegion, {
-      strictRegion,
-      lat: resolvedLat,
-      lng: resolvedLng,
-    })
-      .then(
-        ({
+    const loadAds = async () => {
+      // Visitor location wins over page/search context (client request).
+      const visitorGeo =
+        getStoredVisitorGeo() || (await ensureVisitorGeo());
+      if (cancelled) return;
+
+      const hasVisitorCoords = Boolean(visitorGeo);
+      const resolvedLat = hasVisitorCoords
+        ? visitorGeo!.lat
+        : hasPageCoords
+          ? Number(lat)
+          : undefined;
+      const resolvedLng = hasVisitorCoords
+        ? visitorGeo!.lng
+        : hasPageCoords
+          ? Number(lng)
+          : undefined;
+
+      // With visitor coords, omit page/search region so San Diego search
+      // does not pull San Diego legacy region ads for a Nevada City visitor.
+      const resolvedRegion = hasVisitorCoords
+        ? null
+        : pageRegion || getStoredVisitorRegion() || null;
+      const resolvedStrict = hasVisitorCoords ? false : strictRegion;
+
+      try {
+        const {
           ad: activeAd,
           ads: activeAds,
           slotSize: activeSlotSize,
           rotationIntervalMs: intervalMs,
-        }) => {
-          if (cancelled) return;
-          const list =
-            Array.isArray(activeAds) && activeAds.length > 0
-              ? activeAds.filter((item) => Boolean(item?.imageUrl))
-              : activeAd?.imageUrl
-                ? [activeAd]
-                : [];
-          setAds(list);
-          setIndex(0);
-          setSlotSize(activeSlotSize);
-          if (typeof intervalMs === "number" && intervalMs >= 5000) {
-            setRotationIntervalMs(intervalMs);
-          }
-          prefetchAdImages(list);
+        } = await getActiveAd(slot, resolvedRegion, {
+          strictRegion: resolvedStrict,
+          lat: resolvedLat,
+          lng: resolvedLng,
+        });
+        if (cancelled) return;
+        const list =
+          Array.isArray(activeAds) && activeAds.length > 0
+            ? activeAds.filter((item) => Boolean(item?.imageUrl))
+            : activeAd?.imageUrl
+              ? [activeAd]
+              : [];
+        setAds(list);
+        setIndex(0);
+        setSlotSize(activeSlotSize);
+        if (typeof intervalMs === "number" && intervalMs >= 5000) {
+          setRotationIntervalMs(intervalMs);
         }
-      )
-      .catch(() => {
+        prefetchAdImages(list);
+      } catch {
         if (!cancelled) {
           setAds([]);
           setSlotSize(null);
         }
-      });
+      }
+    };
+
+    loadAds();
 
     return () => {
       cancelled = true;
