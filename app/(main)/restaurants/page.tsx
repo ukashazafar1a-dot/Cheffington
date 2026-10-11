@@ -19,8 +19,6 @@ import {
   getRestaurantDistanceKm,
   NEAR_ME_RADIUS_KM,
   NEAR_ME_RADIUS_MILES,
-  parseLocationSearchQuery,
-  restaurantMatchesLocationQuery,
 } from "@/lib/restaurant-location";
 import {
   parseRestaurantSort,
@@ -161,20 +159,13 @@ export default async function RestaurantsPage({ searchParams }: Props) {
     }
   }
 
-  // City + state (comma optional) must match the listing, same as organic search.
-  // City-only searches still use the mapped ad region and are not narrowed here.
-  const locationQuery = defaults.location?.trim() ?? "";
-  if (sponsoredRestaurants.length > 0 && locationQuery) {
-    const parsedLocation = parseLocationSearchQuery(locationQuery);
-    if (parsedLocation.city && parsedLocation.state) {
-      sponsoredRestaurants = sponsoredRestaurants.filter((restaurant) =>
-        restaurantMatchesLocationQuery(restaurant, locationQuery)
-      );
-    }
-  }
+  // Sponsored: always keep region/radius matches, even when the user typed
+  // city+state (client option 2). City+state still picks the correct market
+  // via resolveRegionFromLocationQuery (e.g. Grass Valley CA vs IN); we do not
+  // strip nearby radius hits like Nevada City when searching Grass Valley, CA.
 
-  // City targeting is already applied via ad region. Only refine by name/cuisine
-  // so a Sacramento sponsored Italian still hides when searching "Mexican".
+  // Only refine by name/cuisine so a Sacramento sponsored Italian still hides
+  // when searching "Mexican".
   if (sponsoredRestaurants.length > 0) {
     const nameQ = defaults.name?.trim().toLowerCase() ?? "";
     const cuisineQ = defaults.cuisine?.trim().toLowerCase() ?? "";

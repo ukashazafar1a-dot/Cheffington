@@ -35,17 +35,43 @@ const Footer = () => {
                 </div>
               </div>
 
-              {/* Newsletter Signup */}
+              {/* Newsletter Signup — Mailchimp embedded form (Cheffington styling kept) */}
               <div className="space-y-4">
                 <h3 className="text-[#FF8400] font-black lg:text-4xl text-3xl uppercase">
                   Eat the Newsletter
                 </h3>
-                <form className="flex flex-col sm:flex-row gap-3">
+                <form
+                  action="https://cheffington.us2.list-manage.com/subscribe/post?u=c0906af4e7a1bcb96933f83f7&id=5ebe36c7a6&f_id=0061c0e1f0"
+                  method="post"
+                  target="_blank"
+                  className="relative flex flex-col sm:flex-row gap-3"
+                >
+                  <label htmlFor="footer-newsletter-email" className="sr-only">
+                    Email address
+                  </label>
                   <input
+                    id="footer-newsletter-email"
                     type="email"
+                    name="EMAIL"
+                    required
+                    autoComplete="email"
+                    placeholder="Email address"
                     suppressHydrationWarning
                     className="bg-gray-300 text-black px-4 py-3 rounded-sm w-full focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
+                  {/* Mailchimp bot honeypot — do not remove */}
+                  <div
+                    aria-hidden="true"
+                    style={{ position: "absolute", left: "-5000px" }}
+                  >
+                    <input
+                      type="text"
+                      name="b_c0906af4e7a1bcb96933f83f7_5ebe36c7a6"
+                      tabIndex={-1}
+                      defaultValue=""
+                    />
+                  </div>
+                  <input type="hidden" name="subscribe" value="Sign Up" />
                   <Button title="Sign Up" type="submit" />
                 </form>
               </div>

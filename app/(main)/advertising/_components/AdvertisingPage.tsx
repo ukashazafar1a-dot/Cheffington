@@ -21,7 +21,7 @@ const AdvertisingPage = () => {
         </div>
 
         <div className="w-full h-0.5 bg-black my-8" />
-        <p className="subtitle text-center">
+        <p className="subtitle text-center pb-6 md:pb-10">
           Get <span className="text-[#FF8400]">More Leads</span> for Your Business
           <br />
           When You <span className="text-[#FF8400]">Advertise With Us</span>

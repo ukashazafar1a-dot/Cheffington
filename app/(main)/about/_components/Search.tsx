@@ -61,6 +61,15 @@ const Search = () => {
             </div>
           </div>
         </form>
+        <p className="mt-8 text-left text-base text-black md:text-lg">
+          <span className="font-bold">Questions?</span>{" "}
+          <a
+            href="mailto:info@cheffington.com"
+            className="font-medium text-[#FF8400] hover:underline"
+          >
+            info@cheffington.com
+          </a>
+        </p>
       </div>
     </section>
   );
