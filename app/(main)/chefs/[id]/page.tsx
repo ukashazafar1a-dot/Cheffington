@@ -296,6 +296,11 @@ export default async function PublicChefPage({ params }: Props) {
                       chefId={chef._id}
                       profilePhotoUrl={chef.profilePhotoUrl}
                       restaurantName={review.restaurant?.name}
+                      restaurantId={
+                        review.restaurant?.id
+                          ? String(review.restaurant.id)
+                          : undefined
+                      }
                       authorLabel={jobLabel}
                       affiliations={(chef.affiliatedRestaurants ?? []).map(
                         (restaurant) => restaurant.name

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReviewMediaItem } from "@/types/review";
 import ReviewMediaViewer from "@/components/ReviewMediaViewer";
 
@@ -5,6 +6,8 @@ type ChefReviewCardProps = {
   chefName?: string;
   chefId?: string;
   restaurantName?: string;
+  /** When set, restaurant name links to the restaurant page */
+  restaurantId?: string;
   affiliation?: string;
   affiliations?: string[];
   profilePhotoUrl?: string;
@@ -61,6 +64,7 @@ const ChefReviewCard = ({
   chefName = "Jane Doe",
   chefId,
   restaurantName = "Restaurant",
+  restaurantId,
   affiliation,
   affiliations,
   profilePhotoUrl,
@@ -162,9 +166,18 @@ const ChefReviewCard = ({
         </div>
 
         {showRestaurantName && restaurantName ? (
-          <p className="mb-3 mt-2.5 text-xs font-semibold uppercase tracking-wide text-gray-900 underline underline-offset-2">
-            {restaurantName}
-          </p>
+          restaurantId ? (
+            <Link
+              href={`/restaurants/${restaurantId}`}
+              className="mb-3 mt-2.5 block text-xs font-semibold uppercase tracking-wide text-gray-900 underline underline-offset-2 hover:text-black"
+            >
+              {restaurantName}
+            </Link>
+          ) : (
+            <p className="mb-3 mt-2.5 text-xs font-semibold uppercase tracking-wide text-gray-900 underline underline-offset-2">
+              {restaurantName}
+            </p>
+          )
         ) : null}
 
         {displayTitle ? (

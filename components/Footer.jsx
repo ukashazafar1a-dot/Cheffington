@@ -1,4 +1,4 @@
-import { sitedata } from "@/data/site";
+import { MEDIA_KIT_URL, sitedata } from "@/data/site";
 import Image from "next/image";
 import Link from "next/link";
 import { FaInstagram, FaLinkedin, FaTwitter } from "react-icons/fa";
@@ -10,6 +10,7 @@ const footerLinks = [
   { name: "Privacy Policy", url: "/privacy-policy" },
   { name: "Terms & Conditions", url: "/terms" },
   { name: "Advertise With Us", url: "/advertising" },
+  { name: "Media Kit", url: MEDIA_KIT_URL, openInNewTab: true },
   // { name: "Chef", url: "/individual-chef-page" },
 ];
 const Footer = () => {
@@ -85,6 +86,9 @@ const Footer = () => {
                     <a
                       href={item.url}
                       className="hover:text-[#FF8400] text-[#FFF1E1] transition-colors font-bold text-xl"
+                      {...(item.openInNewTab
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
                     >
                       {item.name}
                     </a>

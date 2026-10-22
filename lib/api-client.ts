@@ -98,6 +98,49 @@ export async function getPublishedRestaurants() {
   return data;
 }
 
+/** Search published restaurants by name/city/state (affiliation picker). */
+export async function searchPublishedRestaurants(q: string, limit = 40) {
+  const query = String(q || "").trim();
+  if (!query) {
+    return { success: true, count: 0, data: [] as PublicRestaurant[] };
+  }
+  const params = new URLSearchParams({
+    q: query,
+    limit: String(limit),
+  });
+  const res = await fetch(`${API_BASE_URL}/restaurants?${params}`, {
+    cache: "no-store",
+  });
+  const data = (await res.json()) as PublicRestaurantListResponse & {
+    message?: string;
+  };
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to search restaurants");
+  }
+  return data;
+}
+
+/** Load specific published restaurants by id (selected affiliations). */
+export async function getPublishedRestaurantsByIds(ids: string[]) {
+  const unique = [
+    ...new Set(ids.map((id) => String(id || "").trim()).filter(Boolean)),
+  ];
+  if (unique.length === 0) {
+    return { success: true, count: 0, data: [] as PublicRestaurant[] };
+  }
+  const params = new URLSearchParams({ ids: unique.join(",") });
+  const res = await fetch(`${API_BASE_URL}/restaurants?${params}`, {
+    cache: "no-store",
+  });
+  const data = (await res.json()) as PublicRestaurantListResponse & {
+    message?: string;
+  };
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to load restaurants");
+  }
+  return data;
+}
+
 /** Paid restaurant cards for SPONSORED RESULTS on /restaurants (by ad target region). */
 export async function getSponsoredSearchRestaurants(
   region: string,

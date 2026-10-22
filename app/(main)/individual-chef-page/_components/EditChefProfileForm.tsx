@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Button from "@/components/Button";
-import { getPublishedRestaurants, updateChefMe } from "@/lib/api-client";
+import {
+  getPublishedRestaurantsByIds,
+  searchPublishedRestaurants,
+  updateChefMe,
+} from "@/lib/api-client";
 import type { ChefProfile } from "@/types/chef";
 import type { PublicRestaurant } from "@/types/restaurant";
 
@@ -11,6 +15,10 @@ type Props = {
   token: string;
   onSaved: (chef: ChefProfile) => void;
 };
+
+function restaurantLocation(restaurant: PublicRestaurant) {
+  return [restaurant.city, restaurant.state].filter(Boolean).join(", ");
+}
 
 export default function EditChefProfileForm({ chef, token, onSaved }: Props) {
   const [open, setOpen] = useState(false);
@@ -32,13 +40,22 @@ export default function EditChefProfileForm({ chef, token, onSaved }: Props) {
   const [affiliatedRestaurantIds, setAffiliatedRestaurantIds] = useState<
     string[]
   >(chef.affiliatedRestaurantIds?.map(String) || []);
-  const [publishedRestaurants, setPublishedRestaurants] = useState<
+  const [selectedRestaurants, setSelectedRestaurants] = useState<
     PublicRestaurant[]
   >([]);
+  const [affiliationQuery, setAffiliationQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<PublicRestaurant[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
 
   const setField = (key: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
+
+  const selectedIdSet = useMemo(
+    () => new Set(affiliatedRestaurantIds.map(String)),
+    [affiliatedRestaurantIds]
+  );
 
   // Sync fields when the form opens (not on every chef prop change — e.g. photo
   // upload must not wipe in-progress edits).
@@ -60,28 +77,110 @@ export default function EditChefProfileForm({ chef, token, onSaved }: Props) {
     setAffiliatedRestaurantIds(
       chef.affiliatedRestaurantIds?.map(String) || []
     );
+    setAffiliationQuery("");
+    setSearchResults([]);
+    setSearchError("");
     setError("");
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when open flips on
   }, [open]);
 
+  // Load currently selected affiliations once when the form opens.
+  // Later add/remove updates selectedRestaurants locally (avoids fetch races).
   useEffect(() => {
     if (!open) return;
+    const ids = chef.affiliatedRestaurantIds?.map(String) || [];
+    if (ids.length === 0) {
+      setSelectedRestaurants([]);
+      return;
+    }
+
     let cancelled = false;
-    getPublishedRestaurants()
+    getPublishedRestaurantsByIds(ids)
       .then((res) => {
-        if (!cancelled) setPublishedRestaurants(res.data ?? []);
+        if (cancelled) return;
+        const byId = new Map(
+          (res.data ?? []).map((restaurant) => [
+            String(restaurant._id),
+            restaurant,
+          ])
+        );
+        setSelectedRestaurants(
+          ids
+            .map((id) => byId.get(String(id)))
+            .filter((restaurant): restaurant is PublicRestaurant =>
+              Boolean(restaurant)
+            )
+        );
       })
       .catch(() => {
-        if (!cancelled) setPublishedRestaurants([]);
+        if (!cancelled) setSelectedRestaurants([]);
       });
+
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- snapshot on open only
   }, [open]);
 
-  const toggleAffiliation = (id: string) => {
-    setAffiliatedRestaurantIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+  // Debounced server search — do not load the full restaurant catalog.
+  useEffect(() => {
+    if (!open) return;
+    const query = affiliationQuery.trim();
+    if (query.length < 2) {
+      setSearchResults([]);
+      setSearching(false);
+      setSearchError("");
+      return;
+    }
+
+    let cancelled = false;
+    setSearching(true);
+    setSearchError("");
+    const timer = window.setTimeout(() => {
+      searchPublishedRestaurants(query, 40)
+        .then((res) => {
+          if (cancelled) return;
+          setSearchResults(res.data ?? []);
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          setSearchResults([]);
+          setSearchError(
+            err instanceof Error ? err.message : "Search failed"
+          );
+        })
+        .finally(() => {
+          if (!cancelled) setSearching(false);
+        });
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [open, affiliationQuery]);
+
+  const toggleAffiliation = (restaurant: PublicRestaurant) => {
+    const id = String(restaurant._id);
+    setAffiliatedRestaurantIds((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((item) => item !== id);
+      }
+      return [...prev, id];
+    });
+    setSelectedRestaurants((prev) => {
+      if (prev.some((item) => String(item._id) === id)) {
+        return prev.filter((item) => String(item._id) !== id);
+      }
+      return [...prev, restaurant];
+    });
+  };
+
+  const removeAffiliation = (id: string) => {
+    const key = String(id);
+    setAffiliatedRestaurantIds((prev) => prev.filter((item) => item !== key));
+    setSelectedRestaurants((prev) =>
+      prev.filter((item) => String(item._id) !== key)
     );
   };
 
@@ -124,6 +223,9 @@ export default function EditChefProfileForm({ chef, token, onSaved }: Props) {
       />
     );
   }
+
+  const queryTrimmed = affiliationQuery.trim();
+  const showSearchHint = queryTrimmed.length > 0 && queryTrimmed.length < 2;
 
   return (
     <form
@@ -266,39 +368,95 @@ export default function EditChefProfileForm({ chef, token, onSaved }: Props) {
             Affiliated restaurants
           </label>
           <p className="mb-3 text-sm leading-relaxed tracking-normal text-gray-600">
-            Select the Cheffington listings you work at or are affiliated with.
-            These show on your public profile and in chef search.
+            Search and select the Cheffington listings you work at or are
+            affiliated with. These show on your public profile and in chef
+            search.
           </p>
+
+          {selectedRestaurants.length > 0 ? (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {selectedRestaurants.map((restaurant) => {
+                const location = restaurantLocation(restaurant);
+                return (
+                  <button
+                    key={`selected-${restaurant._id}`}
+                    type="button"
+                    onClick={() => removeAffiliation(String(restaurant._id))}
+                    className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-black/20 bg-[#FFF1E1] px-3 py-1 text-left text-sm tracking-normal text-black"
+                    title="Remove affiliation"
+                  >
+                    <span className="truncate">
+                      <span className="font-medium">{restaurant.name}</span>
+                      {location ? (
+                        <span className="text-gray-600"> · {location}</span>
+                      ) : null}
+                    </span>
+                    <span aria-hidden className="text-gray-500">
+                      ×
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+
+          <input
+            type="search"
+            className="input-field mb-3 tracking-normal text-base! md:text-lg!"
+            value={affiliationQuery}
+            onChange={(e) => setAffiliationQuery(e.target.value)}
+            placeholder="Search by restaurant name, city, or state…"
+            autoComplete="off"
+          />
+
           <div className="max-h-56 space-y-2.5 overflow-y-auto rounded-xl border border-black/15 p-3">
-            {publishedRestaurants.length === 0 ? (
+            {showSearchHint ? (
               <p className="text-sm tracking-normal text-gray-500">
-                No published restaurants yet.
+                Type at least 2 characters to search.
+              </p>
+            ) : searching ? (
+              <p className="text-sm tracking-normal text-gray-500">
+                Searching…
+              </p>
+            ) : searchError ? (
+              <p className="text-sm tracking-normal text-red-600">
+                {searchError}
+              </p>
+            ) : queryTrimmed.length < 2 ? (
+              <p className="text-sm tracking-normal text-gray-500">
+                {selectedRestaurants.length > 0
+                  ? "Search to add more restaurants."
+                  : "No published restaurants selected yet. Search to find listings."}
+              </p>
+            ) : searchResults.length === 0 ? (
+              <p className="text-sm tracking-normal text-gray-500">
+                No restaurants match “{queryTrimmed}”.
               </p>
             ) : (
-              publishedRestaurants.map((restaurant) => (
-                <label
-                  key={restaurant._id}
-                  className="flex cursor-pointer items-start gap-2.5 text-sm font-normal! tracking-normal! leading-snug text-black"
-                >
-                  <input
-                    type="checkbox"
-                    className="mt-0.5"
-                    checked={affiliatedRestaurantIds.includes(restaurant._id)}
-                    onChange={() => toggleAffiliation(restaurant._id)}
-                  />
-                  <span className="tracking-normal">
-                    <span className="font-medium">{restaurant.name}</span>
-                    {restaurant.city || restaurant.state ? (
-                      <span className="text-gray-600">
-                        {" "}
-                        · {[restaurant.city, restaurant.state]
-                          .filter(Boolean)
-                          .join(", ")}
-                      </span>
-                    ) : null}
-                  </span>
-                </label>
-              ))
+              searchResults.map((restaurant) => {
+                const id = String(restaurant._id);
+                const location = restaurantLocation(restaurant);
+                const checked = selectedIdSet.has(id);
+                return (
+                  <label
+                    key={restaurant._id}
+                    className="flex cursor-pointer items-start gap-2.5 text-sm font-normal! tracking-normal! leading-snug text-black"
+                  >
+                    <input
+                      type="checkbox"
+                      className="mt-0.5"
+                      checked={checked}
+                      onChange={() => toggleAffiliation(restaurant)}
+                    />
+                    <span className="tracking-normal">
+                      <span className="font-medium">{restaurant.name}</span>
+                      {location ? (
+                        <span className="text-gray-600"> · {location}</span>
+                      ) : null}
+                    </span>
+                  </label>
+                );
+              })
             )}
           </div>
         </div>

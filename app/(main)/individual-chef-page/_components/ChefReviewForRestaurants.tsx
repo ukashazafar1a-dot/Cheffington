@@ -83,6 +83,11 @@ const ChefReviewForRestaurants = ({ chef, reviews }: Props) => {
               chefId={chef?._id}
               profilePhotoUrl={chef?.profilePhotoUrl}
               restaurantName={review.restaurant?.name ?? "Restaurant"}
+              restaurantId={
+                review.restaurant?.id
+                  ? String(review.restaurant.id)
+                  : undefined
+              }
               authorLabel={authorLabel}
               affiliations={affiliatedNames}
               title={review.title?.trim() || undefined}

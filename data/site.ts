@@ -1,3 +1,6 @@
+/** Public Media Kit PDF in `public/` (spaces encoded for the URL). */
+export const MEDIA_KIT_URL = "/Cheffington%20Media%20Kit%202026.pdf";
+
 export const sitedata = {
   logo: "/cheffington-logo.png",
   logoWhite: "/Cheffington-white-logo.png",

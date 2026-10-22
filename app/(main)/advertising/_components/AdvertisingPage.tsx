@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { MEDIA_KIT_URL } from "@/data/site";
 import AdvertisingRequestForm from "./AdvertisingRequestForm";
 
 const AdvertisingPage = () => {
@@ -21,11 +22,23 @@ const AdvertisingPage = () => {
         </div>
 
         <div className="w-full h-0.5 bg-black my-8" />
-        <p className="subtitle text-center pb-6 md:pb-10">
+        <p className="subtitle text-center pb-6 md:pb-8">
           Get <span className="text-[#FF8400]">More Leads</span> for Your Business
           <br />
           When You <span className="text-[#FF8400]">Advertise With Us</span>
         </p>
+        <div className="flex justify-center pb-6 md:pb-10">
+          {/* Relative PDF path: use <a> so it opens in a new tab (Button treats
+              http(s) as external; site paths use Next Link). */}
+          <a
+            href={MEDIA_KIT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="button button-primary flex items-center justify-center gap-2"
+          >
+            Media Kit
+          </a>
+        </div>
       </div>
 
       <AdvertisingRequestForm />
