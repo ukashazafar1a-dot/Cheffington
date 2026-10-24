@@ -830,6 +830,10 @@ export default function AdvertisingRequestForm() {
                       checkout, or ask admin to add a monthly price in Stripe.
                     </p>
                   ) : null}
+                  <p className="form-hint">
+                    Multiple businesses may share the same placement; live ads
+                    rotate on the site.
+                  </p>
                 </div>
                 <div className="form-field">
                   <label className="form-label">Target city *</label>
@@ -871,8 +875,7 @@ export default function AdvertisingRequestForm() {
                     ))}
                   </select>
                   <p className="form-hint">
-                    10 or 30 miles from the city center. Multiple businesses may
-                    share the same placement; live ads rotate on the site.
+                    10 or 30 miles from the city center.
                   </p>
                   {checkingAvailability ? (
                     <p className="form-hint">Checking availability…</p>

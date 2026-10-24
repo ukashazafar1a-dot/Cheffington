@@ -254,7 +254,7 @@ const JoinToCreateProfileForm = () => {
               Already a chef? You can also apply as a business owner with the{" "}
               <span className="font-semibold">same email and password</span> to
               claim and manage restaurants. After both are approved, use the
-              public site to leave reviews and the owner dashboard for your
+              public site to leave reviews and use the owner dashboard for your
               business.
             </p>
 
@@ -712,7 +712,7 @@ const JoinToCreateProfileForm = () => {
               </label>
             </div>
 
-            <div className="mb-10">
+            <div className="mb-4">
               <label>
                 <input
                   type="checkbox"
@@ -724,6 +724,10 @@ const JoinToCreateProfileForm = () => {
                 Terms
               </label>
             </div>
+
+            <p className="mb-10 text-xs text-gray-500 tracking-normal">
+              *We will never share or sell your personal information.
+            </p>
 
             <div className="md:py-8 py-6 flex justify-center">
               <Button
