@@ -87,7 +87,9 @@ function getSlotFrameStyle(
   slotSize: AdSlotSize,
   fillWidth: boolean,
   /** When true, height comes from CSS classes (list-card match). */
-  cssSizedFrame = false
+  cssSizedFrame = false,
+  /** Banner frames scale by aspect-ratio so creatives stay visible on phones. */
+  responsiveBanner = false
 ): React.CSSProperties {
   if (cssSizedFrame) {
     return {
@@ -99,6 +101,13 @@ function getSlotFrameStyle(
     return {
       width: "100%",
       maxWidth: "100%",
+      aspectRatio: `${slotSize.width} / ${slotSize.height}`,
+    };
+  }
+  if (responsiveBanner) {
+    return {
+      width: "100%",
+      maxWidth: `${slotSize.width}px`,
       aspectRatio: `${slotSize.width} / ${slotSize.height}`,
     };
   }
@@ -133,6 +142,7 @@ export default function AdSlot({
   const useCard = showCard ?? (variant === "sidebar" || variant === "inline");
   const fillWidth =
     forceFillWidth ?? (variant === "sidebar" || variant === "inline");
+  const responsiveBanner = variant === "banner";
   const cssSizedFrame = Boolean(frameClassName.trim());
   const [ads, setAds] = useState<ActiveAdCampaign[] | undefined>(undefined);
   const [index, setIndex] = useState(0);
@@ -146,31 +156,34 @@ export default function AdSlot({
     const pageRegion = String(region || "").trim();
     const hasPageCoords = hasFiniteCoords(lat, lng);
 
-    const loadAds = async () => {
-      // Visitor location wins over page/search context (client request).
-      const visitorGeo =
-        getStoredVisitorGeo() || (await ensureVisitorGeo());
+    const applyAdsResponse = (
+      activeAd: ActiveAdCampaign | null | undefined,
+      activeAds: ActiveAdCampaign[] | undefined,
+      activeSlotSize: AdSlotSize | null | undefined,
+      intervalMs: number | undefined
+    ) => {
       if (cancelled) return;
+      const list =
+        Array.isArray(activeAds) && activeAds.length > 0
+          ? activeAds.filter((item) => Boolean(item?.imageUrl))
+          : activeAd?.imageUrl
+            ? [activeAd]
+            : [];
+      setAds(list);
+      setIndex(0);
+      setSlotSize(activeSlotSize ?? null);
+      if (typeof intervalMs === "number" && intervalMs >= 5000) {
+        setRotationIntervalMs(intervalMs);
+      }
+      prefetchAdImages(list);
+    };
 
-      const hasVisitorCoords = Boolean(visitorGeo);
-      const resolvedLat = hasVisitorCoords
-        ? visitorGeo!.lat
-        : hasPageCoords
-          ? Number(lat)
-          : undefined;
-      const resolvedLng = hasVisitorCoords
-        ? visitorGeo!.lng
-        : hasPageCoords
-          ? Number(lng)
-          : undefined;
-
-      // With visitor coords, omit page/search region so San Diego search
-      // does not pull San Diego legacy region ads for a Nevada City visitor.
-      const resolvedRegion = hasVisitorCoords
-        ? null
-        : pageRegion || getStoredVisitorRegion() || null;
-      const resolvedStrict = hasVisitorCoords ? false : strictRegion;
-
+    const fetchAds = async (
+      resolvedLat: number | undefined,
+      resolvedLng: number | undefined,
+      resolvedRegion: string | null,
+      resolvedStrict: boolean
+    ) => {
       try {
         const {
           ad: activeAd,
@@ -182,26 +195,50 @@ export default function AdSlot({
           lat: resolvedLat,
           lng: resolvedLng,
         });
-        if (cancelled) return;
-        const list =
-          Array.isArray(activeAds) && activeAds.length > 0
-            ? activeAds.filter((item) => Boolean(item?.imageUrl))
-            : activeAd?.imageUrl
-              ? [activeAd]
-              : [];
-        setAds(list);
-        setIndex(0);
-        setSlotSize(activeSlotSize);
-        if (typeof intervalMs === "number" && intervalMs >= 5000) {
-          setRotationIntervalMs(intervalMs);
-        }
-        prefetchAdImages(list);
+        applyAdsResponse(activeAd, activeAds, activeSlotSize, intervalMs);
       } catch {
         if (!cancelled) {
           setAds([]);
           setSlotSize(null);
         }
       }
+    };
+
+    const loadAds = async () => {
+      // Prefer stored visitor geo immediately (no wait).
+      const storedGeo = getStoredVisitorGeo();
+      if (storedGeo) {
+        await fetchAds(storedGeo.lat, storedGeo.lng, null, false);
+        return;
+      }
+
+      // Don't leave mobile blank for the full geolocation prompt/timeout.
+      // Fetch with page/region fallback quickly, then upgrade if visitor geo arrives.
+      const fallbackLat = hasPageCoords ? Number(lat) : undefined;
+      const fallbackLng = hasPageCoords ? Number(lng) : undefined;
+      const fallbackRegion = pageRegion || getStoredVisitorRegion() || null;
+
+      const GEO_WAIT_MS = 1200;
+      const visitorGeo = await Promise.race([
+        ensureVisitorGeo(),
+        new Promise<null>((resolve) =>
+          window.setTimeout(() => resolve(null), GEO_WAIT_MS)
+        ),
+      ]);
+      if (cancelled) return;
+
+      if (visitorGeo) {
+        await fetchAds(visitorGeo.lat, visitorGeo.lng, null, false);
+        return;
+      }
+
+      await fetchAds(fallbackLat, fallbackLng, fallbackRegion, strictRegion);
+      if (cancelled) return;
+
+      // Background: if the user later grants location, refresh to visitor-first.
+      const lateGeo = await ensureVisitorGeo();
+      if (cancelled || !lateGeo) return;
+      await fetchAds(lateGeo.lat, lateGeo.lng, null, false);
     };
 
     loadAds();
@@ -240,7 +277,12 @@ export default function AdSlot({
   }
 
   const frameSize = resolveSlotSize(slotSize, variant, slot);
-  const frameStyle = getSlotFrameStyle(frameSize, fillWidth, cssSizedFrame);
+  const frameStyle = getSlotFrameStyle(
+    frameSize,
+    fillWidth,
+    cssSizedFrame,
+    responsiveBanner
+  );
 
   const recordClick = () => {
     trackAdEvent({

@@ -208,6 +208,10 @@ export default async function PublicChefPage({ params }: Props) {
 
       <div className="page-width px-4 pt-16 sm:px-6 lg:px-8 lg:pt-20">
         <div className="flex flex-col gap-10 xl:flex-row xl:items-start xl:gap-12">
+          {/* On mobile show the ad near the top; keep right-column order on xl. */}
+          <aside className="order-first w-full shrink-0 xl:order-last xl:w-[300px]">
+            <AdSlot slot={SITE_AD_SLOTS.CHEF_SIDEBAR} variant="sidebar" />
+          </aside>
           <div className="min-w-0 flex-1 space-y-12">
             <section>
               <h2 className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-[#FF8400]">
@@ -316,10 +320,6 @@ export default async function PublicChefPage({ params }: Props) {
               )}
             </section>
           </div>
-
-          <aside className="w-full shrink-0 xl:w-[300px]">
-            <AdSlot slot={SITE_AD_SLOTS.CHEF_SIDEBAR} variant="sidebar" />
-          </aside>
         </div>
       </div>
     </div>

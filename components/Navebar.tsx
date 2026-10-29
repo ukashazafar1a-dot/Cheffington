@@ -290,7 +290,7 @@ export default function Navbar() {
               className="h-10 w-auto shrink-0 object-contain sm:h-11 lg:h-12 xl:h-14"
             />
 
-            <span className="hidden whitespace-nowrap font-black leading-none tracking-tight sm:inline sm:text-2xl md:text-3xl lg:text-3xl xl:text-4xl 2xl:text-5xl">
+            <span className="whitespace-nowrap font-black leading-none tracking-tight text-xl sm:text-2xl md:text-3xl lg:text-3xl xl:text-4xl 2xl:text-5xl">
               Cheffington
             </span>
           </Link>
