@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import type { ActiveAdCampaign, AdSlotSize } from "@/types/advertising";
-import { getActiveAd } from "@/lib/api-client";
+import { getActiveAd, getVisitorGeoFromIp } from "@/lib/api-client";
 import { trackAdEvent } from "@/lib/ad-analytics";
 import {
   getStoredVisitorRegion,
 } from "@/lib/ad-target-region";
 import {
   ensureVisitorGeo,
+  ensureVisitorIpGeo,
   getStoredVisitorGeo,
   hasFiniteCoords,
 } from "@/lib/ad-target-radius";
@@ -232,10 +233,18 @@ export default function AdSlot({
         return;
       }
 
-      await fetchAds(fallbackLat, fallbackLng, fallbackRegion, strictRegion);
+      // Option 1: when GPS is denied/unavailable, estimate city from IP
+      // (no permission popup) so local radius ads can still match.
+      const ipGeo = await ensureVisitorIpGeo(getVisitorGeoFromIp);
+      if (cancelled) return;
+      if (ipGeo) {
+        await fetchAds(ipGeo.lat, ipGeo.lng, null, false);
+      } else {
+        await fetchAds(fallbackLat, fallbackLng, fallbackRegion, strictRegion);
+      }
       if (cancelled) return;
 
-      // Background: if the user later grants location, refresh to visitor-first.
+      // Background: if the user later grants GPS, upgrade to precise visitor geo.
       const lateGeo = await ensureVisitorGeo();
       if (cancelled || !lateGeo) return;
       await fetchAds(lateGeo.lat, lateGeo.lng, null, false);

@@ -865,6 +865,36 @@ export async function submitAdRequest(
   return data;
 }
 
+/** IP-estimated visitor coords for ad targeting when GPS is unavailable. */
+export async function getVisitorGeoFromIp(): Promise<{
+  lat: number;
+  lng: number;
+} | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/advertising/visitor-geo`, {
+      cache: "no-store",
+    });
+    const data = (await res.json()) as {
+      success?: boolean;
+      data?: { lat?: number; lng?: number } | null;
+    };
+    if (!res.ok || !data?.data) return null;
+    const lat = Number(data.data.lat);
+    const lng = Number(data.data.lng);
+    if (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng) ||
+      Math.abs(lat) > 90 ||
+      Math.abs(lng) > 180
+    ) {
+      return null;
+    }
+    return { lat, lng };
+  } catch {
+    return null;
+  }
+}
+
 export async function getActiveAd(
   slot: string,
   region?: string | null,

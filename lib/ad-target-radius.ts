@@ -3,6 +3,9 @@ export type AdRadiusMiles = (typeof AD_RADIUS_MILES)[number];
 
 const GEO_STORAGE_KEY = "cheffington_ad_visitor_geo_v2";
 const GEO_DENIED_KEY = "cheffington_ad_visitor_geo_denied_v2";
+/** IP-estimated coords only — never mixed into GPS/Near Me storage. */
+const IP_GEO_STORAGE_KEY = "cheffington_ad_visitor_ip_geo_v1";
+const IP_GEO_TTL_MS = 24 * 60 * 60 * 1000;
 
 export function parseAdRadiusMiles(value: unknown): AdRadiusMiles | null {
   const miles = Number(value);
@@ -169,4 +172,75 @@ export function ensureVisitorGeo(): Promise<StoredVisitorGeo | null> {
       }
     );
   });
+}
+
+type StoredIpGeo = StoredVisitorGeo & { at: number };
+
+function getStoredIpGeo(): StoredVisitorGeo | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(IP_GEO_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoredIpGeo;
+    if (!hasFiniteCoords(parsed?.lat, parsed?.lng)) {
+      window.localStorage.removeItem(IP_GEO_STORAGE_KEY);
+      return null;
+    }
+    const at = Number(parsed.at) || 0;
+    if (!at || Date.now() - at > IP_GEO_TTL_MS) {
+      window.localStorage.removeItem(IP_GEO_STORAGE_KEY);
+      return null;
+    }
+    return { lat: Number(parsed.lat), lng: Number(parsed.lng) };
+  } catch {
+    return null;
+  }
+}
+
+function setStoredIpGeo(lat: number, lng: number) {
+  if (typeof window === "undefined") return;
+  try {
+    if (!hasFiniteCoords(lat, lng)) {
+      window.localStorage.removeItem(IP_GEO_STORAGE_KEY);
+      return;
+    }
+    window.localStorage.setItem(
+      IP_GEO_STORAGE_KEY,
+      JSON.stringify({ lat: Number(lat), lng: Number(lng), at: Date.now() })
+    );
+  } catch {
+    // ignore
+  }
+}
+
+let ipGeoInflight: Promise<StoredVisitorGeo | null> | null = null;
+
+/**
+ * Approximate visitor coords from IP via backend (no browser permission).
+ * Cached 24h locally. Never overwrites GPS / Near Me storage.
+ */
+export async function ensureVisitorIpGeo(
+  fetchIpGeo: () => Promise<StoredVisitorGeo | null>
+): Promise<StoredVisitorGeo | null> {
+  if (typeof window === "undefined") return null;
+
+  const cached = getStoredIpGeo();
+  if (cached) return cached;
+
+  if (ipGeoInflight) return ipGeoInflight;
+
+  ipGeoInflight = (async () => {
+    try {
+      const result = await fetchIpGeo();
+      if (!result || !hasFiniteCoords(result.lat, result.lng)) return null;
+      setStoredIpGeo(result.lat, result.lng);
+      return { lat: Number(result.lat), lng: Number(result.lng) };
+    } catch {
+      return null;
+    } finally {
+      ipGeoInflight = null;
+    }
+  })();
+
+  return ipGeoInflight;
 }
