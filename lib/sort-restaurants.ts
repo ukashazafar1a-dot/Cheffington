@@ -2,6 +2,7 @@ import type { PublicRestaurant } from "@/types/restaurant";
 
 export type RestaurantSortOption =
   | "newest"
+  | "most-reviewed"
   | "name-asc"
   | "name-desc"
   | "city-asc";
@@ -11,6 +12,7 @@ export const RESTAURANT_SORT_OPTIONS: {
   label: string;
 }[] = [
   { value: "newest", label: "Newest" },
+  { value: "most-reviewed", label: "Most Reviewed" },
   { value: "name-asc", label: "Name (A–Z)" },
   { value: "name-desc", label: "Name (Z–A)" },
   { value: "city-asc", label: "City (A–Z)" },
@@ -20,6 +22,7 @@ export function parseRestaurantSort(
   value?: string | null
 ): RestaurantSortOption {
   if (
+    value === "most-reviewed" ||
     value === "name-asc" ||
     value === "name-desc" ||
     value === "city-asc"
@@ -36,6 +39,12 @@ export function sortRestaurants(
   const list = [...restaurants];
 
   switch (sort) {
+    case "most-reviewed":
+      return list.sort((a, b) => {
+        const byReviews = (b.reviewCount ?? 0) - (a.reviewCount ?? 0);
+        if (byReviews !== 0) return byReviews;
+        return a.name.localeCompare(b.name);
+      });
     case "name-asc":
       return list.sort((a, b) => a.name.localeCompare(b.name));
     case "name-desc":
