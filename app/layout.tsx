@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Footer from "../components/Footer"
+import GoogleAnalytics from "../components/GoogleAnalytics"
 import Navebar from "../components/Navebar"
 import SiteHeaderAd from "../components/ads/SiteHeaderAd"
 import SiteFooterAd from "../components/ads/SiteFooterAd"
@@ -30,6 +31,7 @@ export default function RootLayout({
         <Toaster position="top-right" />
         <SiteFooterAd />
         <Footer />
+        <GoogleAnalytics />
       </body>
     </html>
   );
